@@ -11,12 +11,14 @@
             "id": "bbb93f25ae00203b",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "Docs/ClinicalStudyPB-Docs/Contexto-Geral/Dinâmica-e-Requisitos.pdf"
+                "file": "Docs/ClinicalStudyPB-Docs/Contexto-Geral/Orientacoes/setup-projeto-v1.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "Dinâmica-e-Requisitos"
+              "icon": "lucide-file",
+              "title": "setup-projeto-v1"
             }
           }
         ]
@@ -81,8 +83,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "dbd4bf488a3f0f97",
@@ -189,6 +190,9 @@
   },
   "active": "bbb93f25ae00203b",
   "lastOpenFiles": [
+    "Docs/ClinicalStudyPB-Docs/Contexto-Geral/Dinâmica-e-Requisitos.pdf",
+    "Docs/ClinicalStudyPB-Docs/Contexto-Geral/Orientacoes/setup-projeto-v1.md",
+    "Docs/ClinicalStudyPB-Docs/Contexto-Geral/Orientacoes",
     "backend/clinicalstudypb-api/pom.xml",
     "backend/clinicalstudypb-api/mvnw.cmd",
     "backend/clinicalstudypb-api/mvnw",
@@ -199,8 +203,6 @@
     "backend/clinicalstudypb-api/src/test/java/clinicalstudypb",
     "backend/clinicalstudypb-api/src/main/resources/static",
     "backend/clinicalstudypb-api/src/main/resources/templates",
-    "backend/clinicalstudypb-api/src/main/resources/db",
-    "backend/clinicalstudypb-api/src/main/resources/application.properties",
     "backend/clinicalstudypb-api/clinicalstudypb-api/HELP.md",
     "Docs/ClinicalStudyPB-Docs/Sprints/sprint-1.md"
   ]

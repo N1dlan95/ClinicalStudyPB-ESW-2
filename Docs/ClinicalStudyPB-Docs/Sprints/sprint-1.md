@@ -1,10 +1,13 @@
 ---
-tags: [sprint, clinicalstudypb, eng-sw-2]
+tags:
+  - sprint
+  - clinicalstudypb
+  - eng-sw-2
 sprint: 1
 release: 1
 inicio: 2026-10-13
 fim: 2026-10-26
-lider-da-sprint: "Membro 1"
+lider-da-sprint: Nidlan hendell
 status: planejamento
 ---
 

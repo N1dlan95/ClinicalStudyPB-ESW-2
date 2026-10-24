@@ -1,0 +1,142 @@
+/* Estilos do painel (layout, estudos, acesso negado). Cores seguem o Figma. */
+:root {
+  --vinho: #b5446e;
+  --vinho-escuro: #8f2f54;
+  --rosa-fundo: #fbf6f7;
+  --rosa-claro: #fbe9ef;
+  --borda: #eadde2;
+  --texto: #2b2328;
+  --texto-suave: #7a6a72;
+  --erro: #c0392b;
+  --erro-fundo: #fdecea;
+  --atencao-fundo: #fdf3e1;
+}
+
+.painel {
+  display: flex;
+  min-height: 100vh;
+  background: var(--rosa-fundo);
+}
+
+/* ---------- Lateral ---------- */
+.painel__lateral {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 12px;
+  background: #fff;
+  border-right: 1px solid var(--borda);
+}
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+.marca strong { display: block; font-size: 14px; color: var(--vinho); }
+.marca small { color: var(--texto-suave); font-size: 11px; }
+.marca__icone {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--vinho);
+  color: #fff;
+}
+.menu { display: flex; flex-direction: column; gap: 4px; }
+.menu__item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.menu__item:hover { background: var(--rosa-claro); }
+.menu__item--ativo { background: var(--rosa-claro); color: var(--vinho); font-weight: 600; }
+.painel__rodape { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.usuario-logado { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+.usuario-logado strong { display: block; font-size: 12px; }
+.usuario-logado small { color: var(--texto-suave); font-size: 11px; }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--rosa-claro);
+  color: var(--vinho);
+  font-size: 11px;
+  font-weight: 700;
+}
+.painel__conteudo { flex: 1; min-width: 0; padding: 24px 32px; }
+
+/* ---------- Página ---------- */
+.pagina h1 { margin: 0 0 4px; font-size: 24px; }
+.pagina__subtitulo { margin: 0 0 16px; color: var(--texto-suave); font-size: 13px; }
+.pagina__cabecalho { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.pagina--formulario { max-width: 760px; }
+.migalhas { margin-bottom: 4px; color: var(--texto-suave); font-size: 11px; }
+.migalhas a { color: var(--vinho); text-decoration: none; }
+.titulo-com-selo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.titulo-com-selo h1 { margin: 0; }
+
+/* ---------- Botões ---------- */
+.botao {
+  display: inline-block;
+  padding: 9px 16px;
+  border: 1px solid var(--vinho);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.botao--primario { background: var(--vinho); color: #fff; }
+.botao--primario:hover { background: var(--vinho-escuro); }
+.botao--primario:disabled { opacity: 0.6; cursor: wait; }
+.botao--contorno { background: #fff; color: var(--vinho); }
+.botao--contorno:hover { background: var(--rosa-claro); }
+.link { color: var(--vinho); font-size: 12px; text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+/* ---------- Cartões, avisos ---------- */
+.cartao { background: #fff; border: 1px solid var(--borda); border-radius: 12px; }
+.aviso { margin-bottom: 14px; padding: 10px 14px; border-radius: 8px; font-size: 12px; }
+.aviso ul { margin: 6px 0 0; padding-left: 18px; }
+.aviso--erro { background: var(--erro-fundo); border: 1px solid #f3c1bb; color: var(--erro); }
+.aviso--atencao { background: var(--atencao-fundo); border: 1px solid #f0d9a8; color: #8a5a00; }
+
+/* ---------- Acesso negado ---------- */
+.acesso-negado { display: grid; place-items: center; min-height: 70vh; }
+.acesso-negado__cartao {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 32px;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  text-align: center;
+}
+.acesso-negado__cartao h1 { margin: 10px 0 6px; font-size: 18px; }
+.acesso-negado__cartao p { margin: 0 0 16px; color: var(--texto-suave); font-size: 12px; line-height: 1.5; }
+.acesso-negado__cartao small { display: block; margin-top: 12px; color: var(--texto-suave); font-size: 10px; }
+.acesso-negado__icone {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--rosa-claro);
+}
+.acesso-negado__acoes { display: flex; justify-content: center; gap: 10px; }

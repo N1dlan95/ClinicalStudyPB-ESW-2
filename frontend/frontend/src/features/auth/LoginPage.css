@@ -1,0 +1,245 @@
+.login {
+  --vinho: #4a1a2e;
+  --rosa: #b8456f;
+  --rosa-escuro: #9c3a5e;
+  --rosa-claro: #f6d3df;
+  --fundo: #fcf5f7;
+  --texto: #2b2328;
+  --texto-suave: #6b6066;
+  --borda: #e6dde1;
+  --erro: #b42318;
+  --erro-fundo: #fdf0f0;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  color: var(--texto);
+}
+
+/* Painel da esquerda */
+.login__painel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  background: var(--vinho);
+  color: #fff;
+}
+
+.login__marca,
+.login__chamada,
+.login__rodape {
+  position: relative;
+  z-index: 1;
+}
+
+.login__marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.login__logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--rosa-claro);
+  color: var(--vinho);
+}
+
+.login__chamada {
+  max-width: 380px;
+}
+
+.login__chamada::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-bottom: 24px;
+  border-radius: 2px;
+  background: var(--rosa);
+}
+
+.login__chamada h2 {
+  margin: 0 0 16px;
+  font-size: 36px;
+  line-height: 1.2;
+}
+
+.login__chamada p {
+  margin: 0;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.login__rodape {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.login__circulos {
+  position: absolute;
+  right: -60px;
+  bottom: -120px;
+  width: 320px;
+  height: 320px;
+  border: 1px solid rgba(184, 69, 111, 0.6);
+  border-radius: 50%;
+}
+
+.login__circulos::before,
+.login__circulos::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.login__circulos::before {
+  inset: 55px;
+  border: 1px solid rgba(184, 69, 111, 0.6);
+}
+
+.login__circulos::after {
+  inset: 105px;
+  background: rgba(184, 69, 111, 0.45);
+}
+
+/* Lado direito */
+.login__conteudo {
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background: var(--fundo);
+}
+
+.login__area {
+  width: 100%;
+  max-width: 360px;
+}
+
+.login__cartao {
+  padding: 32px 28px;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(74, 26, 46, 0.08);
+}
+
+.login__cartao h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--vinho);
+}
+
+.login__subtitulo {
+  margin: 4px 0 24px;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+.campo {
+  margin-bottom: 18px;
+}
+
+.campo__topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vinho);
+}
+
+.campo__link {
+  font-size: 13px;
+  color: var(--rosa);
+}
+
+.campo__input {
+  width: 100%;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--texto);
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+}
+
+.campo__input:focus {
+  outline: none;
+  border-color: var(--rosa);
+  box-shadow: 0 0 0 3px rgba(184, 69, 111, 0.15);
+}
+
+.campo__input--erro {
+  border-color: var(--erro);
+  background: var(--erro-fundo);
+}
+
+.campo__erro {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--erro);
+}
+
+.login__botao {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--rosa);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.login__botao:hover {
+  background: var(--rosa-escuro);
+}
+
+.login__botao:focus-visible {
+  outline: 2px solid var(--vinho);
+  outline-offset: 2px;
+}
+
+.login__aviso {
+  display: flex;
+  gap: 8px;
+  margin: 16px 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--texto-suave);
+}
+
+.login__aviso svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--rosa);
+}
+
+/* Em telas pequenas, esconde o painel da esquerda */
+@media (max-width: 900px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__painel {
+    display: none;
+  }
+}

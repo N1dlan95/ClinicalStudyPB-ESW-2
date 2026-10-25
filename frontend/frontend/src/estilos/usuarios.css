@@ -1,0 +1,46 @@
+/* Estilos das telas de usuários (task 3334). Tabela, filtros e formulário reaproveitam o estudos.css */
+
+/* ---------- Listagem ---------- */
+.busca { position: relative; flex: 1; min-width: 0; }
+/* No estudos.css o width: 100% do campo vence o 170px; aqui os selects ficam com largura fixa como no Figma */
+.filtros .filtros__status { width: 170px; flex-shrink: 0; }
+.busca svg {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: var(--texto-suave);
+  pointer-events: none;
+}
+.busca .pn-campo__entrada { padding-left: 32px; }
+.usuario-celula { display: flex; align-items: center; gap: 10px; }
+.tabela__suave { color: var(--texto-suave); }
+
+.selo--ativo { background: #e3f4e6; color: #2e7d32; }
+.selo--inativo { background: #ececec; color: #555; }
+
+/* ---------- Formulário ---------- */
+.pagina__meta { margin: -8px 0 16px; color: var(--texto-suave); font-size: 11px; }
+.formulario__descricao { margin: -8px 0 12px; color: var(--texto-suave); font-size: 11px; }
+
+.perfis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin: 0; padding: 0; border: 0; }
+.perfil-opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.perfil-opcao:hover { border-color: var(--vinho); }
+.perfil-opcao--selecionado { border: 2px solid var(--vinho); padding: 11px 13px; background: var(--rosa-claro); }
+.perfil-opcao input { margin: 2px 0 0; accent-color: var(--vinho); }
+.perfil-opcao strong { display: block; font-size: 12px; }
+.perfil-opcao small { display: block; margin-top: 2px; color: var(--texto-suave); font-size: 11px; }
+
+.caixa-marcar { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; }
+.caixa-marcar input { margin: 0; accent-color: var(--vinho); }
+.formulario__rodape--direita { justify-content: flex-end; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

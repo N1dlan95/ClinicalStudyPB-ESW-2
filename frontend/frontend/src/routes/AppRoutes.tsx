@@ -4,7 +4,8 @@ import { ExigePermissao, RotaProtegida } from '../features/auth/RotaProtegida'
 import { useAutorizacao } from '../features/auth/useAutorizacao'
 import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
 import { EstudosListaPage } from '../features/estudos/EstudosListaPage'
-import { UsuariosPage } from '../features/usuarios/UsuariosPage'
+import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
+import { UsuariosListaPage } from '../features/usuarios/UsuariosListaPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
 
 // Quem já está logado não precisa ver a tela de login de novo
@@ -55,7 +56,23 @@ export function AppRoutes() {
             path="/usuarios"
             element={
               <ExigePermissao permissao="gerenciarUsuarios">
-                <UsuariosPage />
+                <UsuariosListaPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/usuarios/novo"
+            element={
+              <ExigePermissao permissao="gerenciarUsuarios">
+                <UsuarioFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/usuarios/:id/editar"
+            element={
+              <ExigePermissao permissao="gerenciarUsuarios">
+                <UsuarioFormPage />
               </ExigePermissao>
             }
           />

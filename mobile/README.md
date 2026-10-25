@@ -44,21 +44,31 @@ npm test          # Jest + Testing Library
 npm run typecheck # verificação de tipos
 ```
 
+## Telas
+
+| Tela | Requisitos | O que faz |
+|---|---|---|
+| Login | RF02, RF03 | Valida e-mail e senha, mostra erros, bloqueia perfis que não são participante |
+| Estudos | RF17 | Estudos em que o participante está incluído, com status e próxima visita |
+| Visitas | RF18, RF19 | Próximas visitas (confirmar presença, pedir reagendamento) e histórico de comparecimento |
+| Perfil | RF20, RF02 | Dados do participante, pedido de retirada com confirmação, sair |
+
+Sem `EXPO_PUBLIC_API_URL`, as telas usam dados fictícios em memória. Os endpoints provisórios estão documentados em `src/features/participante/participanteService.ts`.
+
 ## Estrutura
 
 ```
 src/
-  app/                    # rotas (Expo Router): cada arquivo é uma tela
-    _layout.tsx           # layout raiz + AuthProvider
-    login.tsx             # tela de login do participante (RF02)
-    index.tsx             # tela inicial provisória + sair (RF02)
-  features/auth/
-    LoginForm.tsx         # formulário (validação, erros, carregamento)
-    validation.ts         # regras de validação dos campos
-    authService.ts        # chamada à API / modo simulado + bloqueio por perfil (RF03)
-    AuthContext.tsx       # estado da sessão (entrar/sair)
-    sessionStorage.ts     # token salvo com expo-secure-store
-    __tests__/            # testes de componente e unidade
-  config/env.ts           # EXPO_PUBLIC_API_URL
-  theme/colors.ts
+  app/                        # rotas (Expo Router): cada arquivo é uma tela
+    _layout.tsx               # layout raiz + AuthProvider
+    login.tsx                 # login do participante
+    (app)/_layout.tsx         # abas inferiores; exige sessão ativa
+    (app)/index.tsx           # Estudos
+    (app)/visitas.tsx         # Visitas
+    (app)/perfil.tsx          # Perfil
+  components/                 # Botao, Card, StatusChip, Cabecalho, estados de carregamento/erro
+  features/auth/              # login, sessão (expo-secure-store), validação
+  features/participante/      # telas do participante, serviço (API/mock) e testes
+  config/env.ts               # EXPO_PUBLIC_API_URL
+  theme/                      # cores e estilos compartilhados
 ```

@@ -22,18 +22,23 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
+import clinicalstudypb.auth.JwtConfig;
+import clinicalstudypb.auth.TokensRevogados;
 import clinicalstudypb.config.SecurityConfig;
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
+import clinicalstudypb.config.erro.RespostaNaoAutenticado;
 import clinicalstudypb.usuario.dto.UsuarioAtualizacaoRequest;
 import clinicalstudypb.usuario.dto.UsuarioCriacaoRequest;
 
 @WebMvcTest({ UsuarioController.class, PerfilController.class })
-@Import(SecurityConfig.class)
+@Import({ SecurityConfig.class, JwtConfig.class, TokensRevogados.class, RespostaNaoAutenticado.class })
+@WithMockUser
 class UsuarioControllerTest {
 
 	@Autowired

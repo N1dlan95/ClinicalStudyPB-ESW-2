@@ -2,6 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ExigePermissao, RotaProtegida } from '../features/auth/RotaProtegida'
 import { useAutorizacao } from '../features/auth/useAutorizacao'
+import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
+import { EstudosListaPage } from '../features/estudos/EstudosListaPage'
 import { UsuariosPage } from '../features/usuarios/UsuariosPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
 
@@ -10,15 +12,6 @@ function RotaLogin() {
   const { autenticado } = useAutorizacao()
   if (autenticado) return <Navigate to="/estudos" replace />
   return <LoginPage />
-}
-
-// Provisório: as telas de estudos entram na task 3237
-function EstudosEmConstrucao() {
-  return (
-    <div className="pagina">
-      <h1>Estudos</h1>
-    </div>
-  )
 }
 
 export function AppRoutes() {
@@ -38,7 +31,23 @@ export function AppRoutes() {
             path="/estudos"
             element={
               <ExigePermissao permissao="verEstudos">
-                <EstudosEmConstrucao />
+                <EstudosListaPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/novo"
+            element={
+              <ExigePermissao permissao="criarEstudos">
+                <EstudoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/editar"
+            element={
+              <ExigePermissao permissao="editarEstudos">
+                <EstudoFormPage />
               </ExigePermissao>
             }
           />

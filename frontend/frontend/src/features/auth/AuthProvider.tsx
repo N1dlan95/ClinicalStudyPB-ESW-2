@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { AuthContext } from './AuthContext'
+import { sairDaApi } from './authService'
 import type { Sessao } from './tipos'
 
 const CHAVE_SESSAO = 'clinicalstudypb.sessao'
@@ -23,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function sair() {
+    // Avisa o backend em segundo plano; a tela não espera a resposta
+    if (sessao) void sairDaApi(sessao.token)
     localStorage.removeItem(CHAVE_SESSAO)
     setSessao(null)
   }

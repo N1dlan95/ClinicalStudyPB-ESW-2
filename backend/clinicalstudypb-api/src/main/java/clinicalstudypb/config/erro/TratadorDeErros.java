@@ -36,6 +36,12 @@ public class TratadorDeErros {
 		return resposta(HttpStatus.BAD_REQUEST, ErroResponse.de(400, "VALIDACAO", "Dados inválidos", detalhes));
 	}
 
+	@ExceptionHandler(ValidacaoException.class)
+	ResponseEntity<ErroResponse> validacaoDeNegocio(ValidacaoException ex) {
+		List<ErroResponse.Detalhe> detalhes = List.of(new ErroResponse.Detalhe(ex.getCampo(), ex.getMessage()));
+		return resposta(HttpStatus.BAD_REQUEST, ErroResponse.de(400, "VALIDACAO", "Dados inválidos", detalhes));
+	}
+
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	ResponseEntity<ErroResponse> corpoInvalido(HttpMessageNotReadableException ex) {
 		return resposta(HttpStatus.BAD_REQUEST,

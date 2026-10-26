@@ -1,20 +1,35 @@
 import { useState, type FormEvent } from 'react'
+import { ErroLogin, MENSAGEM_LOGIN, entrarNaApi } from './authService'
+import { useAuth } from './useAuth'
 import { validarLogin, type ErrosLogin } from './validacao'
 import './LoginPage.css'
 
 export function LoginPage() {
+  const { entrar } = useAuth()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erros, setErros] = useState<ErrosLogin>({})
+  const [mensagemErro, setMensagemErro] = useState('')
+  const [entrando, setEntrando] = useState(false)
 
-  function handleSubmit(evento: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    setMensagemErro('')
     const novosErros = validarLogin(email, senha)
     setErros(novosErros)
 
     if (Object.keys(novosErros).length > 0) return
 
-    // A chamada à API entra no commit de integração (AB#3219)
+    setEntrando(true)
+    try {
+      // Ao salvar a sessão, a rota /login redireciona para o painel
+      entrar(await entrarNaApi(email, senha))
+    } catch (erro) {
+      const erroLogin = erro instanceof ErroLogin ? erro : new ErroLogin(MENSAGEM_LOGIN.inesperado)
+      setMensagemErro(erroLogin.message)
+      if (erroLogin.senhaInvalida) setErros({ senha: 'Senha inválida.' })
+      setEntrando(false)
+    }
   }
 
   return (
@@ -43,6 +58,16 @@ export function LoginPage() {
           <form className="login__cartao" onSubmit={handleSubmit} noValidate>
             <h1>Entrar</h1>
             <p className="login__subtitulo">Use seu e-mail e sua senha para continuar.</p>
+
+            {mensagemErro && (
+              <div className="login__alerta" role="alert">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8v5M12 16h.01" />
+                </svg>
+                {mensagemErro}
+              </div>
+            )}
 
             <div className="campo">
               <label htmlFor="email">E-mail</label>
@@ -85,7 +110,9 @@ export function LoginPage() {
               {erros.senha && <p id="senha-erro" className="campo__erro">{erros.senha}</p>}
             </div>
 
-            <button type="submit" className="login__botao">Entrar</button>
+            <button type="submit" className="login__botao" disabled={entrando}>
+              {entrando ? 'Entrando…' : 'Entrar'}
+            </button>
           </form>
 
           <p className="login__aviso">

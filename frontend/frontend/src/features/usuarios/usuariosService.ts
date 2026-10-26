@@ -1,147 +1,127 @@
+import { isAxiosError } from 'axios'
+import type { Perfil } from '../auth/tipos'
 import { api } from '../../services/api'
 import type { UsuarioCadastrado, UsuarioEntrada } from './tipos'
 
-// ---------------------------------------------------------------------------
-// Enquanto os endpoints de usuários não estão prontos (task 3218), as telas
-// rodam com dados fictícios (em memória). Quando a API estiver pronta, troque
-// para false e ajuste as rotas/formatos marcados com TODO.
-// ---------------------------------------------------------------------------
-const USAR_DADOS_FICTICIOS = true
+// Formatos da API de usuários (backend AB#3218)
+interface UsuarioResposta {
+  id: number
+  nome: string
+  email: string
+  matricula: string | null
+  perfil: Perfil
+  ativo: boolean
+  criadoEm?: string | null
+  ultimoAcesso?: string | null
+}
 
-// ---------------------------------------------------------------------------
-// Dados fictícios (espelham os exemplos do Figma)
-// ---------------------------------------------------------------------------
-let usuariosFicticios: UsuarioCadastrado[] = [
-  {
-    id: 1,
-    nome: 'Coordenação Demo',
-    email: 'coordenacao@clinicalstudy.pb',
-    perfil: 'ADMINISTRADOR',
-    ativo: true,
-    criadoEm: '2026-09-01',
-    ultimoAcesso: '2026-10-22T08:42',
-  },
-  {
-    id: 2,
-    nome: 'Pesquisadora Demo',
-    email: 'pesquisadora@clinicalstudy.pb',
-    perfil: 'PESQUISADOR',
-    ativo: true,
-    criadoEm: '2026-10-15',
-    ultimoAcesso: '2026-10-21T17:10',
-  },
-  {
-    id: 3,
-    nome: 'Monitor Demo',
-    email: 'monitor@clinicalstudy.pb',
-    perfil: 'COORDENADOR',
-    ativo: true,
-    criadoEm: '2026-10-01',
-    ultimoAcesso: '2026-10-20T10:05',
-  },
-  {
-    id: 4,
-    nome: 'Participante Demo',
-    email: 'participante@clinicalstudy.pb',
-    perfil: 'PARTICIPANTE',
-    ativo: true,
-    criadoEm: '2026-10-10',
-    ultimoAcesso: '2026-10-19T19:31',
-  },
-  {
-    id: 5,
-    nome: 'Antigo Pesquisador Demo',
-    email: 'antigo@clinicalstudy.pb',
-    perfil: 'PESQUISADOR',
-    ativo: false,
-    criadoEm: '2026-01-20',
-    ultimoAcesso: '2026-06-30T14:20',
-  },
-]
+interface Pagina<T> {
+  content: T[]
+  number: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+// A tela filtra e conta localmente, então busca todos de uma vez (a API aceita até 100 por página)
+const TAMANHO_PAGINA = 100
 
 // Erro de e-mail repetido: a tela usa o id para o link "Ver usuário existente"
 export class EmailDuplicadoError extends Error {
-  readonly usuarioExistenteId: number
+  readonly usuarioExistenteId: number | null
 
-  constructor(usuarioExistenteId: number) {
+  constructor(usuarioExistenteId: number | null) {
     super('E-mail já cadastrado')
     this.usuarioExistenteId = usuarioExistenteId
   }
 }
 
-function procurarEmailRepetido(email: string, ignorarId?: number) {
-  const procurado = email.trim().toLowerCase()
-  return usuariosFicticios.find((u) => u.id !== ignorarId && u.email.toLowerCase() === procurado)
+function paraUsuario(resposta: UsuarioResposta): UsuarioCadastrado {
+  return {
+    id: resposta.id,
+    nome: resposta.nome,
+    email: resposta.email,
+    perfil: resposta.perfil,
+    ativo: resposta.ativo,
+    criadoEm: resposta.criadoEm ?? null,
+    ultimoAcesso: resposta.ultimoAcesso ?? null,
+  }
 }
 
-function esperar<T>(valor: T): Promise<T> {
-  return new Promise((resolver) => setTimeout(() => resolver(valor), 200))
+function codigoDoErro(erro: unknown): string | undefined {
+  return isAxiosError(erro) ? (erro.response?.data as { codigo?: string } | undefined)?.codigo : undefined
+}
+
+// A API não diz quem já usa o e-mail: procura pela busca da listagem
+async function idDoDonoDoEmail(email: string): Promise<number | null> {
+  try {
+    const { data } = await api.get<Pagina<UsuarioResposta>>('/usuarios', {
+      params: { busca: email, size: TAMANHO_PAGINA },
+    })
+    const procurado = email.trim().toLowerCase()
+    return data.content.find((u) => u.email.toLowerCase() === procurado)?.id ?? null
+  } catch {
+    return null
+  }
+}
+
+async function tratarEmailDuplicado(erro: unknown, email: string): Promise<never> {
+  if (codigoDoErro(erro) === 'EMAIL_DUPLICADO') throw new EmailDuplicadoError(await idDoDonoDoEmail(email))
+  throw erro
+}
+
+async function alterarStatus(id: number, ativo: boolean): Promise<UsuarioCadastrado> {
+  const { data } = await api.patch<UsuarioResposta>(`/usuarios/${id}/status`, { ativo })
+  return paraUsuario(data)
 }
 
 // ---------------------------------------------------------------------------
 // Funções usadas pelas telas
 // ---------------------------------------------------------------------------
 export async function listarUsuarios(): Promise<UsuarioCadastrado[]> {
-  if (USAR_DADOS_FICTICIOS) return esperar([...usuariosFicticios])
-  const resposta = await api.get<UsuarioCadastrado[]>('/usuarios') // TODO: confirmar rota e formato
-  return resposta.data
+  const { data } = await api.get<Pagina<UsuarioResposta>>('/usuarios', { params: { size: TAMANHO_PAGINA } })
+  return data.content.map(paraUsuario)
 }
 
 export async function buscarUsuario(id: number): Promise<UsuarioCadastrado> {
-  if (USAR_DADOS_FICTICIOS) {
-    const usuario = usuariosFicticios.find((u) => u.id === id)
-    if (!usuario) throw new Error('Usuário não encontrado')
-    return esperar({ ...usuario })
-  }
-  const resposta = await api.get<UsuarioCadastrado>(`/usuarios/${id}`) // TODO
-  return resposta.data
+  const { data } = await api.get<UsuarioResposta>(`/usuarios/${id}`)
+  return paraUsuario(data)
 }
 
 export async function criarUsuario(dados: UsuarioEntrada): Promise<UsuarioCadastrado> {
-  if (USAR_DADOS_FICTICIOS) {
-    const repetido = procurarEmailRepetido(dados.email)
-    if (repetido) throw new EmailDuplicadoError(repetido.id)
-    const novo: UsuarioCadastrado = {
-      id: Date.now(),
+  let criado: UsuarioCadastrado
+  try {
+    const { data } = await api.post<UsuarioResposta>('/usuarios', {
       nome: dados.nome,
       email: dados.email,
       perfil: dados.perfil,
-      ativo: dados.ativo,
-      criadoEm: new Date().toISOString().slice(0, 10),
-      ultimoAcesso: null,
-    }
-    usuariosFicticios = [...usuariosFicticios, novo]
-    return esperar(novo)
+      senha: dados.senha,
+    })
+    criado = paraUsuario(data)
+  } catch (erro) {
+    return tratarEmailDuplicado(erro, dados.email)
   }
-  const resposta = await api.post<UsuarioCadastrado>('/usuarios', dados) // TODO
-  return resposta.data
+  // A API sempre cria ativo; o status tem rota própria
+  return dados.ativo ? criado : alterarStatus(criado.id, false)
 }
 
 export async function atualizarUsuario(id: number, dados: UsuarioEntrada): Promise<UsuarioCadastrado> {
-  if (USAR_DADOS_FICTICIOS) {
-    const atual = usuariosFicticios.find((u) => u.id === id)
-    if (!atual) throw new Error('Usuário não encontrado')
-    const repetido = procurarEmailRepetido(dados.email, id)
-    if (repetido) throw new EmailDuplicadoError(repetido.id)
-    const atualizado: UsuarioCadastrado = {
-      ...atual,
+  let atualizado: UsuarioCadastrado
+  try {
+    const { data } = await api.put<UsuarioResposta>(`/usuarios/${id}`, {
       nome: dados.nome,
       email: dados.email,
       perfil: dados.perfil,
-      ativo: dados.ativo,
-    }
-    usuariosFicticios = usuariosFicticios.map((u) => (u.id === id ? atualizado : u))
-    return esperar(atualizado)
+    })
+    atualizado = paraUsuario(data)
+  } catch (erro) {
+    return tratarEmailDuplicado(erro, dados.email)
   }
-  const resposta = await api.put<UsuarioCadastrado>(`/usuarios/${id}`, dados) // TODO
-  return resposta.data
+  // O PUT não muda a situação: só chama a rota de status se ela mudou
+  return atualizado.ativo === dados.ativo ? atualizado : alterarStatus(id, dados.ativo)
 }
 
+// TODO: rota pendente no backend (combinado com a equipe). Até existir, a tela mostra o erro.
 export async function enviarLinkRedefinicaoSenha(id: number): Promise<void> {
-  if (USAR_DADOS_FICTICIOS) {
-    if (!usuariosFicticios.some((u) => u.id === id)) throw new Error('Usuário não encontrado')
-    await esperar(undefined)
-    return
-  }
-  await api.post(`/usuarios/${id}/redefinir-senha`) // TODO
+  await api.post(`/usuarios/${id}/redefinir-senha`)
 }

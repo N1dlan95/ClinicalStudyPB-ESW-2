@@ -1,28 +1,47 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { UsuarioCadastrado } from './tipos'
 import { UsuariosListaPage } from './UsuariosListaPage'
 import { listarUsuarios } from './usuariosService'
 
-// Usa o serviço com dados fictícios de verdade, mas permite simular falha na listagem
+// A tela é testada sem backend: a chamada à API é simulada
 vi.mock('./usuariosService', async (importOriginal) => {
   const original = await importOriginal<typeof import('./usuariosService')>()
-  return { ...original, listarUsuarios: vi.fn(original.listarUsuarios) }
+  return { ...original, listarUsuarios: vi.fn() }
 })
 
-async function renderizar() {
-  const usuario = userEvent.setup()
+// Exemplos do Figma, na ordem alfabética em que a API devolve.
+// Só a Pesquisadora tem datas: a API ainda não envia, os outros mostram "—".
+const USUARIOS: UsuarioCadastrado[] = [
+  { id: 5, nome: 'Antigo Pesquisador Demo', email: 'antigo@clinicalstudy.pb', perfil: 'PESQUISADOR', ativo: false, criadoEm: null, ultimoAcesso: null },
+  { id: 1, nome: 'Coordenação Demo', email: 'coordenacao@clinicalstudy.pb', perfil: 'ADMINISTRADOR', ativo: true, criadoEm: null, ultimoAcesso: null },
+  { id: 3, nome: 'Monitor Demo', email: 'monitor@clinicalstudy.pb', perfil: 'COORDENADOR', ativo: true, criadoEm: null, ultimoAcesso: null },
+  { id: 4, nome: 'Participante Demo', email: 'participante@clinicalstudy.pb', perfil: 'PARTICIPANTE', ativo: true, criadoEm: null, ultimoAcesso: null },
+  { id: 2, nome: 'Pesquisadora Demo', email: 'pesquisadora@clinicalstudy.pb', perfil: 'PESQUISADOR', ativo: true, criadoEm: '2026-10-15', ultimoAcesso: '2026-10-21T17:10' },
+]
+
+beforeEach(() => {
+  vi.mocked(listarUsuarios).mockResolvedValue(USUARIOS)
+})
+
+function montar() {
   render(
     <MemoryRouter>
       <UsuariosListaPage />
     </MemoryRouter>,
   )
+}
+
+async function renderizar() {
+  const usuario = userEvent.setup()
+  montar()
   await screen.findByText('Coordenação Demo')
   return usuario
 }
 
-// Nomes das pessoas nas linhas da tabela (ignora o cabeçalho)
+// Nomes das pessoas nas linhas da tabela (ignora o cabeçalho e as iniciais do avatar)
 function nomesNaTabela() {
   const linhas = screen.getAllByRole('row').slice(1)
   return linhas.map((linha) => within(linha).getAllByRole('cell')[0].textContent?.slice(2))
@@ -30,21 +49,21 @@ function nomesNaTabela() {
 
 describe('UsuariosListaPage', () => {
   it('mostra "Carregando" enquanto busca os usuários', async () => {
-    render(
-      <MemoryRouter>
-        <UsuariosListaPage />
-      </MemoryRouter>,
-    )
+    montar()
 
     expect(screen.getByText('Carregando usuários…')).toBeInTheDocument()
     await screen.findByText('Coordenação Demo')
   })
 
-  it('lista os usuários com e-mail, perfil, status e último acesso', async () => {
+  it('lista os usuários na ordem em que a API devolve', async () => {
     await renderizar()
 
-    expect(nomesNaTabela()).toHaveLength(5)
+    expect(nomesNaTabela()).toEqual(USUARIOS.map((u) => u.nome))
     expect(screen.getByText('Mostrando 5 de 5 usuários')).toBeInTheDocument()
+  })
+
+  it('mostra e-mail, perfil, status e último acesso de cada usuário', async () => {
+    await renderizar()
 
     const linha = screen.getByText('Pesquisadora Demo').closest('tr') as HTMLElement
     expect(linha).toHaveTextContent('PD') // iniciais no avatar
@@ -53,6 +72,13 @@ describe('UsuariosListaPage', () => {
     expect(linha).toHaveTextContent('Ativo')
     expect(linha).toHaveTextContent('21/10/2026 · 17:10')
     expect(within(linha).getByRole('link', { name: 'Editar' })).toHaveAttribute('href', '/usuarios/2/editar')
+  })
+
+  it('mostra "—" no último acesso enquanto a API não devolve a data', async () => {
+    await renderizar()
+
+    const linha = screen.getByText('Monitor Demo').closest('tr') as HTMLElement
+    expect(within(linha).getAllByRole('cell')[4]).toHaveTextContent('—')
   })
 
   it('tem o botão para cadastrar um novo usuário', async () => {
@@ -75,7 +101,7 @@ describe('UsuariosListaPage', () => {
 
     await usuario.selectOptions(screen.getByDisplayValue('Todos os perfis'), 'PESQUISADOR')
 
-    expect(nomesNaTabela()).toEqual(['Pesquisadora Demo', 'Antigo Pesquisador Demo'])
+    expect(nomesNaTabela()).toEqual(['Antigo Pesquisador Demo', 'Pesquisadora Demo'])
   })
 
   it('filtra por status', async () => {
@@ -98,11 +124,7 @@ describe('UsuariosListaPage', () => {
 
   it('mostra uma mensagem de erro quando não consegue carregar', async () => {
     vi.mocked(listarUsuarios).mockRejectedValueOnce(new Error('sem conexão'))
-    render(
-      <MemoryRouter>
-        <UsuariosListaPage />
-      </MemoryRouter>,
-    )
+    montar()
 
     expect(
       await screen.findByText('Não foi possível carregar os usuários. Verifique sua conexão.'),

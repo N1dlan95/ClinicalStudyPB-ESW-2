@@ -7,7 +7,7 @@ const VALIDO: FormularioUsuario = {
   email: 'ana@clinicalstudy.pb',
   perfil: 'PESQUISADOR',
   ativo: true,
-  enviarConvite: true,
+  senha: 'Senha@123',
 }
 
 describe('validarUsuario', () => {
@@ -15,11 +15,12 @@ describe('validarUsuario', () => {
     expect(validarUsuario(VALIDO)).toEqual({})
   })
 
-  it('retorna os três erros quando tudo está vazio', () => {
-    expect(validarUsuario({ ...VALIDO, nome: '', email: '', perfil: '' })).toEqual({
+  it('retorna os quatro erros quando tudo está vazio no cadastro', () => {
+    expect(validarUsuario({ ...VALIDO, nome: '', email: '', perfil: '', senha: '' })).toEqual({
       nome: 'Informe o nome completo.',
       email: 'Informe o e-mail.',
       perfil: 'Selecione o perfil de acesso.',
+      senha: 'Informe a senha.',
     })
   })
 
@@ -46,7 +47,24 @@ describe('validarUsuario', () => {
     expect(validarUsuario({ ...VALIDO, perfil: '' }).perfil).toBe('Selecione o perfil de acesso.')
   })
 
-  it('não valida status nem convite (são opcionais)', () => {
-    expect(validarUsuario({ ...VALIDO, ativo: false, enviarConvite: false })).toEqual({})
+  it('exige senha com pelo menos 8 caracteres', () => {
+    expect(validarUsuario({ ...VALIDO, senha: '1234567' }).senha).toBe(
+      'A senha deve ter pelo menos 8 caracteres.',
+    )
+    expect(validarUsuario({ ...VALIDO, senha: '12345678' }).senha).toBeUndefined()
+  })
+
+  it('recusa senha com mais de 72 caracteres (limite da API)', () => {
+    expect(validarUsuario({ ...VALIDO, senha: 'a'.repeat(73) }).senha).toBe(
+      'A senha deve ter no máximo 72 caracteres.',
+    )
+  })
+
+  it('não exige senha na edição', () => {
+    expect(validarUsuario({ ...VALIDO, senha: '' }, true)).toEqual({})
+  })
+
+  it('não valida o status (é opcional)', () => {
+    expect(validarUsuario({ ...VALIDO, ativo: false })).toEqual({})
   })
 })

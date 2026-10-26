@@ -213,6 +213,29 @@
   background: var(--rosa-escuro);
 }
 
+.login__botao:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.login__alerta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--erro);
+  background: var(--erro-fundo);
+  border: 1px solid #f3c1bb;
+  border-radius: 8px;
+}
+
+.login__alerta svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 .login__botao:focus-visible {
   outline: 2px solid var(--vinho);
   outline-offset: 2px;

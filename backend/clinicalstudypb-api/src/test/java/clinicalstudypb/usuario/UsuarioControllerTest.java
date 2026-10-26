@@ -33,12 +33,14 @@ import clinicalstudypb.config.SecurityConfig;
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.config.erro.RespostaNaoAutenticado;
+import clinicalstudypb.config.erro.RespostaSemPermissao;
 import clinicalstudypb.usuario.dto.UsuarioAtualizacaoRequest;
 import clinicalstudypb.usuario.dto.UsuarioCriacaoRequest;
 
 @WebMvcTest({ UsuarioController.class, PerfilController.class })
-@Import({ SecurityConfig.class, JwtConfig.class, TokensRevogados.class, RespostaNaoAutenticado.class })
-@WithMockUser
+@Import({ SecurityConfig.class, JwtConfig.class, TokensRevogados.class, RespostaNaoAutenticado.class,
+		RespostaSemPermissao.class })
+@WithMockUser(roles = "ADMINISTRADOR")
 class UsuarioControllerTest {
 
 	@Autowired

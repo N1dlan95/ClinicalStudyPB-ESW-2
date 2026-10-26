@@ -21,14 +21,20 @@ import {
   criarUsuario,
   enviarLinkRedefinicaoSenha,
 } from './usuariosService'
-import { MENSAGEM_EMAIL_DUPLICADO, ORDEM_CAMPOS, ROTULO_CAMPO, validarUsuario } from './validacao'
+import {
+  MENSAGEM_EMAIL_DUPLICADO,
+  ORDEM_CAMPOS,
+  ROTULO_CAMPO,
+  SENHA_MINIMO,
+  validarUsuario,
+} from './validacao'
 
 const FORMULARIO_VAZIO: FormularioUsuario = {
   nome: '',
   email: '',
   perfil: '',
   ativo: true,
-  enviarConvite: true,
+  senha: '',
 }
 
 // O texto de ajuda (erro ou dica) fica ligado ao campo pelo aria-describedby
@@ -137,7 +143,7 @@ export function UsuarioFormPage() {
     evento.preventDefault()
     setMensagemErro('')
 
-    const encontrados = validarUsuario(form)
+    const encontrados = validarUsuario(form, edicao)
     setErros(encontrados)
     const camposComErro = ORDEM_CAMPOS.filter((c) => encontrados[c])
     if (camposComErro.length === 1) setMensagemErro(`${acaoFalhou} Corrija o campo destacado.`)
@@ -148,7 +154,7 @@ export function UsuarioFormPage() {
       email: form.email.trim(),
       perfil: form.perfil as Perfil,
       ativo: form.ativo,
-      ...(edicao ? {} : { enviarConvite: form.enviarConvite }),
+      ...(edicao ? {} : { senha: form.senha }),
     }
 
     setSalvando(true)
@@ -208,10 +214,8 @@ export function UsuarioFormPage() {
       </div>
       {usuario && (
         <p className="pagina__meta">
-          Cadastrado em {isoParaBR(usuario.criadoEm)} ·{' '}
-          {usuario.ultimoAcesso
-            ? `Último acesso ${dataHoraParaBR(usuario.ultimoAcesso, ' às ')}`
-            : 'Nunca acessou'}
+          Cadastrado em {usuario.criadoEm ? isoParaBR(usuario.criadoEm) : '—'} · Último acesso{' '}
+          {usuario.ultimoAcesso ? dataHoraParaBR(usuario.ultimoAcesso, ' às ') : '—'}
         </p>
       )}
 
@@ -363,14 +367,26 @@ export function UsuarioFormPage() {
             </div>
           ) : (
             <div className="caixas">
-              <label className="caixa-marcar">
-                <input
-                  type="checkbox"
-                  checked={form.enviarConvite}
-                  onChange={(e) => alterar('enviarConvite', e.target.checked)}
-                />
-                Enviar convite por e-mail para o usuário criar a própria senha
-              </label>
+              <div className="formulario__grade">
+                <Campo
+                  id="senha"
+                  rotulo="Senha"
+                  obrigatorio
+                  erro={erros.senha}
+                  dica={`Mínimo de ${SENHA_MINIMO} caracteres.`}
+                >
+                  <input
+                    id="senha"
+                    className={classeEntrada(erros.senha)}
+                    type="password"
+                    autoComplete="new-password"
+                    value={form.senha}
+                    onChange={(e) => alterar('senha', e.target.value)}
+                    aria-invalid={!!erros.senha}
+                    aria-describedby="senha-ajuda"
+                  />
+                </Campo>
+              </div>
               <label className="caixa-marcar">
                 <input
                   type="checkbox"

@@ -136,7 +136,7 @@ export function UsuariosListaPage() {
                   </span>
                 </td>
                 <td className="tabela__suave">
-                  {usuario.ultimoAcesso ? dataHoraParaBR(usuario.ultimoAcesso) : 'Nunca acessou'}
+                  {usuario.ultimoAcesso ? dataHoraParaBR(usuario.ultimoAcesso) : '—'}
                 </td>
                 <td className="tabela__acao">
                   <Link to={`/usuarios/${usuario.id}/editar`} className="link">

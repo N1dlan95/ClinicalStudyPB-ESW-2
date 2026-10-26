@@ -23,6 +23,7 @@ export interface UsuarioEntrada {
   nome: string
   email: string
   perfil: Perfil
+  ativo: boolean
   enviarConvite?: boolean
 }
 
@@ -31,5 +32,9 @@ export interface FormularioUsuario {
   nome: string
   email: string
   perfil: Perfil | ''
+  ativo: boolean
   enviarConvite: boolean
 }
+
+export type CampoUsuario = 'nome' | 'email' | 'perfil'
+export type ErrosUsuario = Partial<Record<CampoUsuario, string>>

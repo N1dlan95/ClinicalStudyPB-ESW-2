@@ -43,4 +43,7 @@
 .caixa-marcar { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; }
 .caixa-marcar input { margin: 0; accent-color: var(--vinho); }
 .formulario__rodape--direita { justify-content: flex-end; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.caixas { display: flex; flex-direction: column; gap: 10px; }
+.perfis__erro { display: block; margin-top: 6px; }
+.link--forte { font-size: 11px; font-weight: 600; }
+.botao:disabled { opacity: 0.6; cursor: not-allowed; }

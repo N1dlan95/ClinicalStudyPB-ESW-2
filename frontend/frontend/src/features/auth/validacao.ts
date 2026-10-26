@@ -3,7 +3,7 @@ export type ErrosLogin = {
   senha?: string
 }
 
-const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function validarLogin(email: string, senha: string): ErrosLogin {
   const erros: ErrosLogin = {}

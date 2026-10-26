@@ -59,6 +59,21 @@ let usuariosFicticios: UsuarioCadastrado[] = [
   },
 ]
 
+// Erro de e-mail repetido: a tela usa o id para o link "Ver usuário existente"
+export class EmailDuplicadoError extends Error {
+  readonly usuarioExistenteId: number
+
+  constructor(usuarioExistenteId: number) {
+    super('E-mail já cadastrado')
+    this.usuarioExistenteId = usuarioExistenteId
+  }
+}
+
+function procurarEmailRepetido(email: string, ignorarId?: number) {
+  const procurado = email.trim().toLowerCase()
+  return usuariosFicticios.find((u) => u.id !== ignorarId && u.email.toLowerCase() === procurado)
+}
+
 function esperar<T>(valor: T): Promise<T> {
   return new Promise((resolver) => setTimeout(() => resolver(valor), 200))
 }
@@ -84,12 +99,14 @@ export async function buscarUsuario(id: number): Promise<UsuarioCadastrado> {
 
 export async function criarUsuario(dados: UsuarioEntrada): Promise<UsuarioCadastrado> {
   if (USAR_DADOS_FICTICIOS) {
+    const repetido = procurarEmailRepetido(dados.email)
+    if (repetido) throw new EmailDuplicadoError(repetido.id)
     const novo: UsuarioCadastrado = {
       id: Date.now(),
       nome: dados.nome,
       email: dados.email,
       perfil: dados.perfil,
-      ativo: true,
+      ativo: dados.ativo,
       criadoEm: new Date().toISOString().slice(0, 10),
       ultimoAcesso: null,
     }
@@ -104,15 +121,27 @@ export async function atualizarUsuario(id: number, dados: UsuarioEntrada): Promi
   if (USAR_DADOS_FICTICIOS) {
     const atual = usuariosFicticios.find((u) => u.id === id)
     if (!atual) throw new Error('Usuário não encontrado')
+    const repetido = procurarEmailRepetido(dados.email, id)
+    if (repetido) throw new EmailDuplicadoError(repetido.id)
     const atualizado: UsuarioCadastrado = {
       ...atual,
       nome: dados.nome,
       email: dados.email,
       perfil: dados.perfil,
+      ativo: dados.ativo,
     }
     usuariosFicticios = usuariosFicticios.map((u) => (u.id === id ? atualizado : u))
     return esperar(atualizado)
   }
   const resposta = await api.put<UsuarioCadastrado>(`/usuarios/${id}`, dados) // TODO
   return resposta.data
+}
+
+export async function enviarLinkRedefinicaoSenha(id: number): Promise<void> {
+  if (USAR_DADOS_FICTICIOS) {
+    if (!usuariosFicticios.some((u) => u.id === id)) throw new Error('Usuário não encontrado')
+    await esperar(undefined)
+    return
+  }
+  await api.post(`/usuarios/${id}/redefinir-senha`) // TODO
 }

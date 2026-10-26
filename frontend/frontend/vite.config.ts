@@ -12,8 +12,11 @@ export default defineConfig({
   // Testes de componente (Vitest + Testing Library): rodam num navegador simulado (jsdom)
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/setupTests.ts'],
-    passWithNoTests: true,
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+    },
   },
 })
 //O React roda na porta 5173 e o Spring na 8080. Para o navegador, são “origens” diferentes, e ele bloqueia a chamada (erro de CORS).

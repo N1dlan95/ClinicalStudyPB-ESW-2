@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  backend:
+    name: Backend (build + testes)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: clinicalstudy
+          POSTGRES_USER: clinical
+          POSTGRES_PASSWORD: clinical_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clinical -d clinicalstudy"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: backend/clinicalstudypb-api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Permitir execução do Maven Wrapper
+        run: chmod +x mvnw
+
+      - name: Build e testes (JUnit + JaCoCo)
+        run: ./mvnw -B verify
+
+      - name: Publicar relatório de cobertura (JaCoCo)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-jacoco
+          path: backend/clinicalstudypb-api/target/site/jacoco
+
+  frontend:
+    name: Frontend (build + testes)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Testes com cobertura (Vitest)
+        run: npm run test:coverage
+
+      - name: Publicar relatório de cobertura (Vitest)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-vitest
+          path: frontend/frontend/coverage

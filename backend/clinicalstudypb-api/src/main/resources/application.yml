@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: clinicalstudypb-api
+  datasource:
+    url: jdbc:postgresql://localhost:5432/clinicalstudy
+    username: clinical
+    password: clinical_dev
+  jpa:
+    hibernate:
+      ddl-auto: validate

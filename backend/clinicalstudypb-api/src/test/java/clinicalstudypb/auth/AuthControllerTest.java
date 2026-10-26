@@ -23,6 +23,7 @@ import com.jayway.jsonpath.JsonPath;
 
 import clinicalstudypb.config.SecurityConfig;
 import clinicalstudypb.config.erro.RespostaNaoAutenticado;
+import clinicalstudypb.config.erro.RespostaSemPermissao;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.Usuario;
 import clinicalstudypb.usuario.UsuarioRepository;
@@ -30,7 +31,7 @@ import clinicalstudypb.usuario.UsuarioRepository;
 // Fluxo completo de login, /auth/me e logout com tokens reais; só o banco é simulado
 @WebMvcTest(AuthController.class)
 @Import({ SecurityConfig.class, JwtConfig.class, TokensRevogados.class, TokenService.class, AuthService.class,
-		RespostaNaoAutenticado.class })
+		RespostaNaoAutenticado.class, RespostaSemPermissao.class })
 class AuthControllerTest {
 
 	private static final String SENHA = "Senha@123";

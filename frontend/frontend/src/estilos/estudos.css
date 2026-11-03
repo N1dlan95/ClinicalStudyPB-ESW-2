@@ -31,9 +31,14 @@
 .barra__preenchida--lotado { background: #a33a00; }
 
 .selo { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-.selo--em_execucao { background: #e3f4e6; color: #2e7d32; }
+/* Estados do estudo (EstadoEstudo do openapi.yaml) */
+.selo--planejamento { background: var(--rosa-claro); color: var(--vinho); }
+.selo--recrutamento { background: #e4eefb; color: #1f4f8f; }
+.selo--execucao { background: #e3f4e6; color: #2e7d32; }
 .selo--encerrado { background: #ececec; color: #555; }
-.selo--planejado { background: var(--rosa-claro); color: var(--vinho); }
+.tabela__resumo { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.formulario__campos { margin: 0; padding: 0; border: 0; min-width: 0; }
+.aviso--info { background: #f3f6fa; border: 1px solid #d6e0ec; color: #34495e; }
 
 /* ---------- Formulário ---------- */
 .indicadores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }

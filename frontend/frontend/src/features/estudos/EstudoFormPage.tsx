@@ -1,33 +1,43 @@
 import '../../estilos/estudos.css'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
 import { brParaIso, isoParaBR, mascaraData } from './datas'
 import {
+  ErroEstudoApi,
   atualizarEstudo,
   buscarEstudo,
   criarEstudo,
   listarPesquisadores,
+  traduzirErro,
 } from './estudosService'
 import {
-  ROTULO_STATUS,
+  ROTULO_ESTADO,
   type CampoEstudo,
   type Estudo,
   type ErrosEstudo,
   type FormularioEstudo,
   type Pesquisador,
-  type StatusEstudo,
 } from './tipos'
-import { ORDEM_CAMPOS, ROTULO_CAMPO, validarEstudo } from './validacao'
+import { OBJETIVO_MAX, ORDEM_CAMPOS, ROTULO_CAMPO, validarEstudo } from './validacao'
 
 const FORMULARIO_VAZIO: FormularioEstudo = {
   titulo: '',
-  codigoProtocolo: '',
-  descricao: '',
-  pesquisadorId: '',
-  status: 'planejado',
+  objetivo: '',
+  responsavelId: '',
   dataInicio: '',
-  dataTermino: '',
+  dataFim: '',
   limiteParticipantes: '',
+}
+
+function classeEntrada(erro?: string) {
+  return erro ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'
+}
+
+// Junta a lista vinda da API com quem precisa aparecer (usuário logado, responsável atual)
+function comOpcao(lista: Pesquisador[], extra: Pesquisador | null): Pesquisador[] {
+  if (!extra || lista.some((p) => p.id === extra.id)) return lista
+  return [...lista, extra]
 }
 
 function Campo({
@@ -59,29 +69,10 @@ function Campo({
   )
 }
 
-function OcupacaoAtual({ incluidos, limite }: { incluidos: number; limite: number }) {
-  const acima = Math.max(0, incluidos - limite)
-  const percentual = limite > 0 ? Math.min(100, Math.round((incluidos / limite) * 100)) : 100
-  return (
-    <div className="pn-campo">
-      <span className="pn-campo__rotulo">Ocupação atual</span>
-      <div className="ocupacao__linha">
-        <span>{incluidos} incluídos</span>
-        {acima > 0 && <span className="pn-campo__erro">{acima} acima do novo limite</span>}
-      </div>
-      <div className="barra">
-        <div
-          className={acima > 0 ? 'barra__preenchida barra__preenchida--lotado' : 'barra__preenchida'}
-          style={{ width: `${percentual}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
 export function EstudoFormPage() {
   const { id } = useParams<{ id: string }>()
   const navegar = useNavigate()
+  const { usuario } = useAuth()
   const edicao = Boolean(id)
 
   const [form, setForm] = useState<FormularioEstudo>(FORMULARIO_VAZIO)
@@ -92,33 +83,44 @@ export function EstudoFormPage() {
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
 
-  const incluidos = estudo?.participantesIncluidos ?? 0
+  const encerrado = estudo?.estado === 'ENCERRADO'
 
   useEffect(() => {
     let ativo = true
     async function carregar() {
       try {
-        const lista = await listarPesquisadores()
-        if (!ativo) return
-        setPesquisadores(lista)
+        // null: o perfil logado não pode listar usuários (rota só do administrador)
+        const daApi = await listarPesquisadores()
+        const logado =
+          usuario?.perfil === 'PESQUISADOR' ? { id: usuario.id, nome: usuario.nome } : null
+        let lista = comOpcao(daApi ?? [], logado)
 
+        let existente: Estudo | null = null
         if (id) {
-          const existente = await buscarEstudo(id)
-          if (!ativo) return
+          existente = await buscarEstudo(Number(id))
+          lista = comOpcao(lista, existente.responsavel)
+        }
+        if (!ativo) return
+
+        setPesquisadores(lista)
+        if (existente) {
           setEstudo(existente)
           setForm({
             titulo: existente.titulo,
-            codigoProtocolo: existente.codigoProtocolo,
-            descricao: existente.descricao,
-            pesquisadorId: existente.pesquisadorId,
-            status: existente.status,
+            objetivo: existente.objetivo ?? '',
+            responsavelId: String(existente.responsavel.id),
             dataInicio: isoParaBR(existente.dataInicio),
-            dataTermino: isoParaBR(existente.dataTermino),
+            dataFim: isoParaBR(existente.dataFim),
             limiteParticipantes: String(existente.limiteParticipantes),
           })
+        } else if (lista.length === 1) {
+          // Só há uma opção (normalmente o próprio pesquisador): já vem selecionada
+          setForm((atual) => ({ ...atual, responsavelId: String(lista[0].id) }))
         }
-      } catch {
-        if (ativo) setMensagemErro('Não foi possível carregar os dados. Tente novamente.')
+      } catch (erro) {
+        if (ativo) {
+          setMensagemErro(`Não foi possível carregar os dados. ${traduzirErro(erro).message}`)
+        }
       } finally {
         if (ativo) setCarregando(false)
       }
@@ -127,7 +129,7 @@ export function EstudoFormPage() {
     return () => {
       ativo = false
     }
-  }, [id])
+  }, [id, usuario])
 
   function alterar<C extends CampoEstudo>(campo: C, valor: FormularioEstudo[C]) {
     setForm((atual) => ({ ...atual, [campo]: valor }))
@@ -140,45 +142,41 @@ export function EstudoFormPage() {
     })
   }
 
+  function mostrarErros(encontrados: ErrosEstudo) {
+    setErros(encontrados)
+    const camposComErro = ORDEM_CAMPOS.filter((c) => encontrados[c])
+    if (camposComErro.length === 1) {
+      setMensagemErro(`Corrija o campo destacado para ${edicao ? 'salvar' : 'cadastrar'} o estudo.`)
+    }
+    return camposComErro.length
+  }
+
   async function enviar(evento: FormEvent) {
     evento.preventDefault()
     setMensagemErro('')
 
-    const encontrados = validarEstudo(form, incluidos)
-    setErros(encontrados)
-    const camposComErro = ORDEM_CAMPOS.filter((c) => encontrados[c])
-    if (camposComErro.length > 0) {
-      if (camposComErro.length === 1) {
-        setMensagemErro(
-          camposComErro[0] === 'limiteParticipantes' && edicao
-            ? 'Não foi possível salvar as alterações. Revise o limite de participantes.'
-            : `Corrija o campo destacado para ${edicao ? 'salvar' : 'cadastrar'} o estudo.`,
-        )
-      }
-      return
-    }
+    if (mostrarErros(validarEstudo(form)) > 0) return
 
     const dados = {
       titulo: form.titulo.trim(),
-      codigoProtocolo: form.codigoProtocolo.trim(),
-      descricao: form.descricao.trim(),
-      pesquisadorId: form.pesquisadorId,
-      status: form.status,
+      objetivo: form.objetivo.trim(),
+      responsavelId: Number(form.responsavelId),
       dataInicio: brParaIso(form.dataInicio) ?? '',
-      dataTermino: brParaIso(form.dataTermino) ?? '',
+      dataFim: form.dataFim.trim() ? brParaIso(form.dataFim) : null,
       limiteParticipantes: Number(form.limiteParticipantes),
     }
 
     setSalvando(true)
     try {
-      if (id) await atualizarEstudo(id, dados)
+      if (id) await atualizarEstudo(Number(id), dados)
       else await criarEstudo(dados)
       navegar('/estudos')
-    } catch {
+    } catch (erro) {
+      const erroApi: ErroEstudoApi = traduzirErro(erro)
+      // Erros de validação do backend aparecem nos próprios campos
+      if (mostrarErros(erroApi.errosCampos) > 0) return
       setMensagemErro(
-        edicao
-          ? 'Não foi possível salvar as alterações. Tente novamente.'
-          : 'Não foi possível cadastrar o estudo. Tente novamente.',
+        `${edicao ? 'Não foi possível salvar as alterações.' : 'Não foi possível cadastrar o estudo.'} ${erroApi.message}`,
       )
     } finally {
       setSalvando(false)
@@ -186,9 +184,6 @@ export function EstudoFormPage() {
   }
 
   const camposComErro = ORDEM_CAMPOS.filter((c) => erros[c])
-  const limiteDigitado = Number(form.limiteParticipantes)
-  const limiteValido = Number.isInteger(limiteDigitado) && limiteDigitado > 0
-  const lotado = edicao && estudo !== null && estudo.participantesIncluidos >= estudo.limiteParticipantes
 
   if (carregando) {
     return (
@@ -205,27 +200,10 @@ export function EstudoFormPage() {
       </nav>
       <div className="titulo-com-selo">
         <h1>{edicao ? 'Editar estudo' : 'Novo estudo'}</h1>
-        {estudo && <span className={`selo selo--${estudo.status}`}>{ROTULO_STATUS[estudo.status]}</span>}
+        {estudo && (
+          <span className={`selo selo--${estudo.estado.toLowerCase()}`}>{ROTULO_ESTADO[estudo.estado]}</span>
+        )}
       </div>
-
-      {edicao && estudo && (
-        <div className="indicadores">
-          <div className="cartao indicador">
-            <small>Participantes incluídos</small>
-            <strong>
-              {estudo.participantesIncluidos} de {estudo.limiteParticipantes}
-            </strong>
-          </div>
-          <div className="cartao indicador">
-            <small>Próxima visita</small>
-            <strong>{estudo.proximaVisita ? isoParaBR(estudo.proximaVisita) : '—'}</strong>
-          </div>
-          <div className="cartao indicador">
-            <small>Pedidos de retirada</small>
-            <strong>{estudo.pedidosRetirada}</strong>
-          </div>
-        </div>
-      )}
 
       {camposComErro.length > 1 && (
         <div className="aviso aviso--erro" role="alert">
@@ -244,65 +222,57 @@ export function EstudoFormPage() {
           {mensagemErro}
         </div>
       )}
-      {lotado && (
-        <div className="aviso aviso--atencao">
-          Limite de participantes atingido. Para incluir mais pessoas, aumente o limite na edição
-          do estudo.
+      {encerrado && (
+        <div className="aviso aviso--atencao">Estudo encerrado não pode ser editado.</div>
+      )}
+      {!edicao && (
+        <div className="aviso aviso--info">
+          O estudo é criado no estado Planejamento. A mudança de estado é feita depois do cadastro.
         </div>
       )}
 
       <form className="cartao formulario" onSubmit={enviar} noValidate>
-        <section>
-          <h2>Identificação</h2>
-          <div className="formulario__grade">
+        <fieldset className="formulario__campos" disabled={encerrado}>
+          <section>
+            <h2>Identificação</h2>
             <Campo rotulo="Título do estudo" obrigatorio erro={erros.titulo}>
               <input
-                className={erros.titulo ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'}
+                className={classeEntrada(erros.titulo)}
                 placeholder="Ex.: Estudo de exemplo C"
+                maxLength={200}
                 value={form.titulo}
                 onChange={(e) => alterar('titulo', e.target.value)}
               />
             </Campo>
-            <Campo rotulo="Código do protocolo" obrigatorio erro={erros.codigoProtocolo}>
-              <input
-                className={
-                  erros.codigoProtocolo ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'
-                }
-                placeholder="Ex.: [CÓDIGO-C]"
-                value={form.codigoProtocolo}
-                onChange={(e) => alterar('codigoProtocolo', e.target.value)}
+            <Campo
+              rotulo="Objetivo"
+              obrigatorio
+              erro={erros.objetivo}
+              dica={`Até ${OBJETIVO_MAX} caracteres. Um resumo curto aparece para o participante no aplicativo.`}
+            >
+              <textarea
+                className={classeEntrada(erros.objetivo)}
+                rows={3}
+                maxLength={OBJETIVO_MAX}
+                placeholder="Objetivo do estudo e informações para a equipe"
+                value={form.objetivo}
+                onChange={(e) => alterar('objetivo', e.target.value)}
               />
             </Campo>
-          </div>
-          <Campo
-            rotulo="Descrição"
-            dica="Opcional. Um resumo curto aparece para o participante no aplicativo."
-          >
-            <textarea
-              className="pn-campo__entrada"
-              rows={3}
-              placeholder="Objetivo do estudo e informações para a equipe"
-              value={form.descricao}
-              onChange={(e) => alterar('descricao', e.target.value)}
-            />
-          </Campo>
-        </section>
+          </section>
 
-        <section>
-          <h2>Responsável e status</h2>
-          <div className="formulario__grade">
+          <section>
+            <h2>Responsável</h2>
             <Campo
               rotulo="Pesquisador responsável"
               obrigatorio
-              erro={erros.pesquisadorId}
-              dica="Lista apenas usuários ativos com perfil Pesquisador."
+              erro={erros.responsavelId}
+              dica="Usuário ativo com perfil Pesquisador."
             >
               <select
-                className={
-                  erros.pesquisadorId ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'
-                }
-                value={form.pesquisadorId}
-                onChange={(e) => alterar('pesquisadorId', e.target.value)}
+                className={classeEntrada(erros.responsavelId)}
+                value={form.responsavelId}
+                onChange={(e) => alterar('responsavelId', e.target.value)}
               >
                 <option value="">Selecione</option>
                 {pesquisadores.map((p) => (
@@ -312,90 +282,58 @@ export function EstudoFormPage() {
                 ))}
               </select>
             </Campo>
-            <Campo
-              rotulo="Status"
-              obrigatorio
-              dica={
-                edicao ? 'Ao encerrar, o estudo aparece como “Encerrado” no aplicativo.' : undefined
-              }
-            >
-              <select
-                className="pn-campo__entrada"
-                value={form.status}
-                onChange={(e) => alterar('status', e.target.value as StatusEstudo)}
-              >
-                {(Object.keys(ROTULO_STATUS) as StatusEstudo[]).map((status) => (
-                  <option key={status} value={status}>
-                    {ROTULO_STATUS[status]}
-                  </option>
-                ))}
-              </select>
-            </Campo>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <h2>Período e vagas</h2>
-          <div className="formulario__grade">
-            <Campo rotulo="Data de início" obrigatorio erro={erros.dataInicio}>
-              <input
-                className={erros.dataInicio ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'}
-                placeholder="dd/mm/aaaa"
-                inputMode="numeric"
-                value={form.dataInicio}
-                onChange={(e) => alterar('dataInicio', mascaraData(e.target.value))}
-              />
-            </Campo>
-            <Campo rotulo="Data de término prevista" obrigatorio erro={erros.dataTermino}>
-              <input
-                className={erros.dataTermino ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'}
-                placeholder="dd/mm/aaaa"
-                inputMode="numeric"
-                value={form.dataTermino}
-                onChange={(e) => alterar('dataTermino', mascaraData(e.target.value))}
-              />
-            </Campo>
-            <Campo
-              rotulo="Limite de participantes"
-              obrigatorio
-              erro={erros.limiteParticipantes}
-              dica={
-                edicao
-                  ? `Não pode ser menor que os ${incluidos} já incluídos.`
-                  : 'Ao atingir o limite, novas inclusões ficam bloqueadas.'
-              }
-            >
-              <input
-                className={
-                  erros.limiteParticipantes ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'
-                }
-                placeholder="Ex.: 30"
-                inputMode="numeric"
-                value={form.limiteParticipantes}
-                onChange={(e) => alterar('limiteParticipantes', e.target.value.replace(/\D/g, ''))}
-              />
-            </Campo>
-            {edicao && limiteValido && <OcupacaoAtual incluidos={incluidos} limite={limiteDigitado} />}
-          </div>
-        </section>
+          <section>
+            <h2>Período e vagas</h2>
+            <div className="formulario__grade">
+              <Campo rotulo="Data de início" obrigatorio erro={erros.dataInicio}>
+                <input
+                  className={classeEntrada(erros.dataInicio)}
+                  placeholder="dd/mm/aaaa"
+                  inputMode="numeric"
+                  value={form.dataInicio}
+                  onChange={(e) => alterar('dataInicio', mascaraData(e.target.value))}
+                />
+              </Campo>
+              <Campo
+                rotulo="Data de término prevista"
+                erro={erros.dataFim}
+                dica="Opcional. Não pode ser anterior à data de início."
+              >
+                <input
+                  className={classeEntrada(erros.dataFim)}
+                  placeholder="dd/mm/aaaa"
+                  inputMode="numeric"
+                  value={form.dataFim}
+                  onChange={(e) => alterar('dataFim', mascaraData(e.target.value))}
+                />
+              </Campo>
+              <Campo
+                rotulo="Limite de participantes"
+                obrigatorio
+                erro={erros.limiteParticipantes}
+                dica="Ao atingir o limite, novas inclusões ficam bloqueadas."
+              >
+                <input
+                  className={classeEntrada(erros.limiteParticipantes)}
+                  placeholder="Ex.: 30"
+                  inputMode="numeric"
+                  value={form.limiteParticipantes}
+                  onChange={(e) => alterar('limiteParticipantes', e.target.value.replace(/\D/g, ''))}
+                />
+              </Campo>
+            </div>
+          </section>
+        </fieldset>
 
         <footer className="formulario__rodape">
-          <small>
-            {edicao && estudo?.ultimaAlteracaoEm
-              ? `Última alteração em ${isoParaBR(estudo.ultimaAlteracaoEm)}${
-                  estudo.ultimaAlteracaoPor ? ` por ${estudo.ultimaAlteracaoPor}` : ''
-                }`
-              : '* Campos obrigatórios'}
-          </small>
+          <small>* Campos obrigatórios</small>
           <div className="formulario__acoes">
-            <button
-              type="button"
-              className="botao botao--contorno"
-              onClick={() => navegar('/estudos')}
-            >
+            <button type="button" className="botao botao--contorno" onClick={() => navegar('/estudos')}>
               Cancelar
             </button>
-            <button type="submit" className="botao botao--primario" disabled={salvando}>
+            <button type="submit" className="botao botao--primario" disabled={salvando || encerrado}>
               {salvando ? 'Salvando…' : edicao ? 'Salvar alterações' : 'Cadastrar estudo'}
             </button>
           </div>

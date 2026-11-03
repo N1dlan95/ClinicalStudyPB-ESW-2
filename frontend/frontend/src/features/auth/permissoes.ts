@@ -22,10 +22,12 @@ export const DESCRICAO_PERMISSAO: Record<Permissao, string> = {
   gerenciarUsuarios: 'gerenciar usuários',
 }
 
+// Igual ao backend (Perfil.java e SecurityConfig.java) e ao openapi.yaml: só o PESQUISADOR
+// cadastra e edita estudos (US-04.1); administrador e coordenador apenas consultam.
 const PERMISSOES_POR_PERFIL: Record<Perfil, Permissao[]> = {
-  ADMINISTRADOR: ['verEstudos', 'criarEstudos', 'editarEstudos', 'gerenciarUsuarios'],
-  COORDENADOR: ['verEstudos', 'criarEstudos', 'editarEstudos'],
-  PESQUISADOR: ['verEstudos'],
+  ADMINISTRADOR: ['verEstudos', 'gerenciarUsuarios'],
+  COORDENADOR: ['verEstudos'],
+  PESQUISADOR: ['verEstudos', 'criarEstudos', 'editarEstudos'],
   // Participante usa só o aplicativo móvel: nenhuma permissão no painel web
   PARTICIPANTE: [],
 }

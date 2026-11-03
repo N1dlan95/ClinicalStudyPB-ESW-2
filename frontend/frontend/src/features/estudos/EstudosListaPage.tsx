@@ -4,26 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAutorizacao } from '../auth/useAutorizacao'
 import { isoParaBR } from './datas'
 import { listarEstudos } from './estudosService'
-import { ROTULO_STATUS, type Estudo, type StatusEstudo } from './tipos'
-
-function BarraOcupacao({ incluidos, limite }: { incluidos: number; limite: number }) {
-  const lotado = limite > 0 && incluidos >= limite
-  const percentual = limite > 0 ? Math.min(100, Math.round((incluidos / limite) * 100)) : 0
-  return (
-    <div className="ocupacao">
-      <span className={lotado ? 'ocupacao__texto ocupacao__texto--lotado' : 'ocupacao__texto'}>
-        {incluidos} de {limite}
-        {lotado && ' · lotado'}
-      </span>
-      <div className="barra">
-        <div
-          className={lotado ? 'barra__preenchida barra__preenchida--lotado' : 'barra__preenchida'}
-          style={{ width: `${percentual}%` }}
-        />
-      </div>
-    </div>
-  )
-}
+import { ROTULO_ESTADO, type EstadoEstudo, type Estudo } from './tipos'
 
 export function EstudosListaPage() {
   const { pode } = useAutorizacao()
@@ -31,7 +12,7 @@ export function EstudosListaPage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   const [busca, setBusca] = useState('')
-  const [filtroStatus, setFiltroStatus] = useState<StatusEstudo | 'todos'>('todos')
+  const [filtroStatus, setFiltroStatus] = useState<EstadoEstudo | 'todos'>('todos')
 
   useEffect(() => {
     let ativo = true
@@ -39,8 +20,8 @@ export function EstudosListaPage() {
       .then((dados) => {
         if (ativo) setEstudos(dados)
       })
-      .catch(() => {
-        if (ativo) setErro('Não foi possível carregar os estudos. Verifique sua conexão.')
+      .catch((e: Error) => {
+        if (ativo) setErro(`Não foi possível carregar os estudos. ${e.message}`)
       })
       .finally(() => {
         if (ativo) setCarregando(false)
@@ -53,9 +34,9 @@ export function EstudosListaPage() {
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase()
     return estudos.filter((e) => {
-      if (filtroStatus !== 'todos' && e.status !== filtroStatus) return false
+      if (filtroStatus !== 'todos' && e.estado !== filtroStatus) return false
       if (!termo) return true
-      return [e.titulo, e.codigoProtocolo, e.pesquisadorNome].some((campo) =>
+      return [e.titulo, e.objetivo, e.responsavel.nome].some((campo) =>
         campo.toLowerCase().includes(termo),
       )
     })
@@ -67,7 +48,7 @@ export function EstudosListaPage() {
         <div>
           <h1>Estudos</h1>
           <p className="pagina__subtitulo">
-            Estudos clínicos cadastrados, responsável e ocupação de vagas.
+            Estudos clínicos cadastrados, responsável, período e limite de vagas.
           </p>
         </div>
         {pode('criarEstudos') && (
@@ -81,19 +62,19 @@ export function EstudosListaPage() {
         <input
           className="pn-campo__entrada filtros__busca"
           type="search"
-          placeholder="Buscar por título, protocolo ou responsável"
+          placeholder="Buscar por título, objetivo ou responsável"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
         <select
           className="pn-campo__entrada filtros__status"
           value={filtroStatus}
-          onChange={(e) => setFiltroStatus(e.target.value as StatusEstudo | 'todos')}
+          onChange={(e) => setFiltroStatus(e.target.value as EstadoEstudo | 'todos')}
         >
-          <option value="todos">Todos os status</option>
-          {(Object.keys(ROTULO_STATUS) as StatusEstudo[]).map((status) => (
-            <option key={status} value={status}>
-              {ROTULO_STATUS[status]}
+          <option value="todos">Todos os estados</option>
+          {(Object.keys(ROTULO_ESTADO) as EstadoEstudo[]).map((estado) => (
+            <option key={estado} value={estado}>
+              {ROTULO_ESTADO[estado]}
             </option>
           ))}
         </select>
@@ -108,8 +89,8 @@ export function EstudosListaPage() {
               <th>Estudo</th>
               <th>Responsável</th>
               <th>Período</th>
-              <th>Participantes</th>
-              <th>Status</th>
+              <th>Vagas</th>
+              <th>Estado</th>
               <th />
             </tr>
           </thead>
@@ -118,23 +99,21 @@ export function EstudosListaPage() {
               <tr key={estudo.id}>
                 <td>
                   <strong>{estudo.titulo}</strong>
-                  <small>Protocolo {estudo.codigoProtocolo}</small>
+                  <small className="tabela__resumo">{estudo.objetivo}</small>
                 </td>
-                <td>{estudo.pesquisadorNome}</td>
+                <td>{estudo.responsavel.nome}</td>
                 <td>
-                  {isoParaBR(estudo.dataInicio)} – {isoParaBR(estudo.dataTermino)}
-                </td>
-                <td>
-                  <BarraOcupacao
-                    incluidos={estudo.participantesIncluidos}
-                    limite={estudo.limiteParticipantes}
-                  />
+                  {isoParaBR(estudo.dataInicio)} – {estudo.dataFim ? isoParaBR(estudo.dataFim) : 'sem data'}
                 </td>
                 <td>
-                  <span className={`selo selo--${estudo.status}`}>{ROTULO_STATUS[estudo.status]}</span>
+                  {estudo.limiteParticipantes} {estudo.limiteParticipantes === 1 ? 'vaga' : 'vagas'}
+                </td>
+                <td>
+                  <span className={`selo selo--${estudo.estado.toLowerCase()}`}>{ROTULO_ESTADO[estudo.estado]}</span>
                 </td>
                 <td className="tabela__acao">
-                  {pode('editarEstudos') && (
+                  {/* Estudo encerrado não pode ser editado (openapi.yaml, PUT /estudos/{id}) */}
+                  {pode('editarEstudos') && estudo.estado !== 'ENCERRADO' && (
                     <Link to={`/estudos/${estudo.id}/editar`} className="link">
                       Editar
                     </Link>

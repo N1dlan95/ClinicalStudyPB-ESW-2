@@ -1,0 +1,28 @@
+/* Estilos das telas de candidatos (task 3559). Tabela, filtros e formulário reaproveitam o estudos.css */
+.resumo-estudo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; padding: 12px 16px; }
+.resumo-estudo small { color: var(--texto-suave); font-size: 11px; }
+.resumo-estudo__titulo { display: flex; align-items: center; gap: 8px; }
+.resumo-estudo__titulo strong { font-size: 15px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 7px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--texto);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--vinho); }
+.chip--ativo { border-color: var(--vinho); background: var(--vinho); color: #fff; font-weight: 600; }
+
+/* Status do candidato (MER-v1.md, seção 4.2) */
+.selo--candidato-cadastrado { background: #f3f6fa; color: #34495e; }
+.selo--candidato-elegivel { background: #e4eefb; color: #1f4f8f; }
+.selo--candidato-inelegivel { background: var(--erro-fundo); color: var(--erro); }
+.selo--candidato-incluido { background: #e3f4e6; color: #2e7d32; }
+.selo--candidato-retirado { background: #ececec; color: #555; }
+
+.botao:disabled { opacity: 0.55; cursor: not-allowed; }

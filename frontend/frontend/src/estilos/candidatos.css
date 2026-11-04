@@ -51,3 +51,21 @@
 .dialogo { width: 100%; max-width: 440px; padding: 22px 24px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); }
 .dialogo h2 { margin: 0 0 10px; font-size: 18px; }
 .dialogo__acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* ---------- Inclusão e contador de vagas (task 3566) ---------- */
+.detalhe__resumo, .lista__resumo { display: flex; gap: 12px; align-items: stretch; margin-bottom: 14px; }
+.detalhe__resumo .dados-candidato, .lista__resumo .resumo-estudo { flex: 1; margin-bottom: 0; }
+.contador-vagas { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 260px; flex-shrink: 0; padding: 12px 16px; }
+.contador-vagas small { color: var(--texto-suave); font-size: 10px; }
+.contador-vagas__linha { display: flex; justify-content: space-between; align-items: baseline; }
+.contador-vagas__linha strong { font-size: 18px; }
+.contador-vagas__numero--lotado, .contador-vagas__resto--lotado { color: var(--erro); }
+.contador-vagas__resto { color: var(--texto-suave); font-size: 11px; font-weight: 600; }
+.contador-vagas__resto--lotado { font-size: 11px; font-weight: 600; }
+.cartao__texto--erro { color: var(--erro); }
+.botao--pequeno { padding: 5px 12px; font-size: 12px; }
+.tabela__acoes { display: inline-flex; align-items: center; gap: 12px; }
+@media (max-width: 720px) {
+  .detalhe__resumo, .lista__resumo { flex-direction: column; }
+  .contador-vagas { width: auto; }
+}

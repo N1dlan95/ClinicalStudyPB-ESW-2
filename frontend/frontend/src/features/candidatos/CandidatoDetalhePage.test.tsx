@@ -5,13 +5,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { buscarEstudo } from '../estudos/estudosService'
 import type { Estudo } from '../estudos/tipos'
 import { CandidatoDetalhePage } from './CandidatoDetalhePage'
-import { ErroCandidatoApi, buscarCandidato, registrarConsentimento } from './candidatosService'
+import { ErroCandidatoApi, buscarCandidato, contarIncluidos, incluirCandidato, registrarConsentimento } from './candidatosService'
 import type { Candidato } from './tipos'
 
 vi.mock('../estudos/estudosService', () => ({ buscarEstudo: vi.fn() }))
 vi.mock('./candidatosService', async (importOriginal) => {
   const original = await importOriginal<typeof import('./candidatosService')>()
-  return { ...original, buscarCandidato: vi.fn(), registrarConsentimento: vi.fn() }
+  return { ...original, buscarCandidato: vi.fn(), registrarConsentimento: vi.fn(), contarIncluidos: vi.fn(), incluirCandidato: vi.fn() }
 })
 
 const ESTUDO: Estudo = {
@@ -49,6 +49,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(buscarEstudo).mockResolvedValue(ESTUDO)
   vi.mocked(buscarCandidato).mockResolvedValue(ELEGIVEL)
+  vi.mocked(contarIncluidos).mockResolvedValue(18)
 })
 
 describe('CandidatoDetalhePage – consentimento', () => {
@@ -123,5 +124,70 @@ describe('CandidatoDetalhePage – consentimento', () => {
 
     expect(await screen.findByText(/só pode ser registrado para candidato elegível/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Registrar consentimento' })).not.toBeInTheDocument()
+  })
+})
+
+const COM_CONSENTIMENTO: Candidato = {
+  ...ELEGIVEL,
+  consentimento: { registradoEm: '2026-11-03', registradoPor: 'Carlos Coordenador' },
+}
+
+describe('CandidatoDetalhePage – inclusão', () => {
+  it('pede o consentimento antes de liberar a inclusão', async () => {
+    renderizar()
+
+    expect(await screen.findByText('18 de 40 vagas')).toBeInTheDocument()
+    expect(screen.getByText('Registre o consentimento do candidato antes de incluir.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incluir no estudo' })).toBeDisabled()
+  })
+
+  it('inclui após confirmar e mostra as vagas ocupadas', async () => {
+    vi.mocked(buscarCandidato)
+      .mockResolvedValueOnce(COM_CONSENTIMENTO)
+      .mockResolvedValueOnce({ ...COM_CONSENTIMENTO, status: 'INCLUIDO', dataInclusao: '2026-11-04' })
+    vi.mocked(incluirCandidato).mockResolvedValue({ vagasOcupadas: 19, limiteParticipantes: 40 })
+    renderizar()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Incluir no estudo' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar inclusão' }))
+
+    expect(incluirCandidato).toHaveBeenCalledWith(3)
+    expect(await screen.findByText('19 de 40 vagas')).toBeInTheDocument()
+    expect(screen.getByText(/em 04\/11\/2026/)).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Candidato incluído no estudo.')
+    expect(screen.queryByRole('button', { name: 'Incluir no estudo' })).not.toBeInTheDocument()
+  })
+
+  it('bloqueia a inclusão com vagas esgotadas', async () => {
+    vi.mocked(buscarCandidato).mockResolvedValue(COM_CONSENTIMENTO)
+    vi.mocked(contarIncluidos).mockResolvedValue(40)
+    renderizar()
+
+    expect(await screen.findByText(/Todas as vagas do estudo estão ocupadas/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incluir no estudo' })).toBeDisabled()
+  })
+
+  it('bloqueia a inclusão com o estudo fora de recrutamento', async () => {
+    vi.mocked(buscarCandidato).mockResolvedValue(COM_CONSENTIMENTO)
+    vi.mocked(buscarEstudo).mockResolvedValue({ ...ESTUDO, estado: 'EXECUCAO' })
+    renderizar()
+
+    expect(await screen.findByText('A inclusão só fica liberada quando o estudo estiver em Recrutamento.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incluir no estudo' })).toBeDisabled()
+  })
+
+  it('mostra a mensagem do bloqueio quando a API recusa a inclusão', async () => {
+    vi.mocked(buscarCandidato).mockResolvedValue(COM_CONSENTIMENTO)
+    vi.mocked(incluirCandidato).mockRejectedValue(
+      new ErroCandidatoApi('A operação conflita com uma regra do estudo.', 409, 'CONSENTIMENTO_NAO_REGISTRADO', {}),
+    )
+    renderizar()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Incluir no estudo' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar inclusão' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Consentimento não registrado. Registre o consentimento do candidato antes de incluir.',
+    )
   })
 })

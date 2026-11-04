@@ -30,6 +30,13 @@ export interface Candidato {
   dataNascimento: string // ISO: aaaa-mm-dd
   status: StatusCandidato
   consentimento?: Consentimento | null // ausente ou null: ainda não registrado
+  dataInclusao?: string | null // ISO; preenchida quando o status vira INCLUIDO (task 3565)
+}
+
+// Resposta da inclusão (task 3565): vagas ocupadas e total depois de incluir
+export interface ResultadoInclusao {
+  vagasOcupadas: number
+  limiteParticipantes: number
 }
 
 // Dados enviados ao cadastrar/editar. O status não vem do cliente (muda pela avaliação e inclusão).

@@ -5,11 +5,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { buscarEstudo } from '../estudos/estudosService'
 import type { Estudo } from '../estudos/tipos'
 import { CandidatosListaPage } from './CandidatosListaPage'
-import { listarCandidatos } from './candidatosService'
+import { ErroCandidatoApi, contarIncluidos, incluirCandidato, listarCandidatos } from './candidatosService'
 import type { Candidato } from './tipos'
 
 vi.mock('../estudos/estudosService', () => ({ buscarEstudo: vi.fn() }))
-vi.mock('./candidatosService', () => ({ listarCandidatos: vi.fn() }))
+vi.mock('./candidatosService', async (importOriginal) => {
+  const original = await importOriginal<typeof import('./candidatosService')>()
+  return { ...original, listarCandidatos: vi.fn(), contarIncluidos: vi.fn(), incluirCandidato: vi.fn() }
+})
 
 const ESTUDO: Estudo = {
   id: 7,
@@ -24,6 +27,7 @@ const ESTUDO: Estudo = {
 
 const CANDIDATOS: Candidato[] = [
   { id: 1, nome: 'Maria Souza', email: 'maria@exemplo.test', telefone: null, dataNascimento: '1988-03-14', status: 'ELEGIVEL' },
+  { id: 3, nome: 'Ana Ribeiro', email: 'ana@exemplo.test', telefone: null, dataNascimento: '1995-05-22', status: 'ELEGIVEL', consentimento: { registradoEm: '2026-11-03', registradoPor: 'Carlos Coordenador' } },
   { id: 2, nome: 'João Lima', email: 'joao@exemplo.test', telefone: '(83) 99999-0000', dataNascimento: '1990-01-02', status: 'CADASTRADO' },
 ]
 
@@ -41,6 +45,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(buscarEstudo).mockResolvedValue(ESTUDO)
   vi.mocked(listarCandidatos).mockResolvedValue(CANDIDATOS)
+  vi.mocked(contarIncluidos).mockResolvedValue(18)
 })
 
 describe('CandidatosListaPage', () => {
@@ -51,7 +56,7 @@ describe('CandidatosListaPage', () => {
     expect(within(linha).getByText('Elegível')).toBeInTheDocument()
     expect(within(linha).getByText('Pendente')).toBeInTheDocument()
     expect(within(linha).getByRole('link', { name: 'Ver detalhes' })).toHaveAttribute('href', '/estudos/7/candidatos/1')
-    expect(screen.getByText('Mostrando 2 de 2 candidatos')).toBeInTheDocument()
+    expect(screen.getByText('Mostrando 3 de 3 candidatos')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '+ Novo candidato' })).toHaveAttribute('href', '/estudos/7/candidatos/novo')
   })
 
@@ -88,5 +93,50 @@ describe('CandidatosListaPage', () => {
     renderizar()
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível carregar os candidatos.')
+  })
+
+  it('mostra o contador de vagas e o botão Incluir só para quem já pode ser incluído', async () => {
+    renderizar()
+
+    expect(await screen.findByText('18 de 40 vagas')).toBeInTheDocument()
+    expect(screen.getByText('22 livres')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incluir Ana Ribeiro' })).toBeEnabled()
+    // Maria está elegível, mas sem consentimento; João ainda não foi avaliado
+    expect(screen.queryByRole('button', { name: 'Incluir Maria Souza' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Incluir João Lima' })).not.toBeInTheDocument()
+  })
+
+  it('inclui após confirmar e atualiza o contador e o status', async () => {
+    vi.mocked(incluirCandidato).mockResolvedValue({ vagasOcupadas: 19, limiteParticipantes: 40 })
+    renderizar()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Incluir Ana Ribeiro' }))
+    expect(screen.getByRole('dialog', { name: 'Incluir no estudo?' })).toHaveTextContent('19 de 40 depois da inclusão')
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar inclusão' }))
+
+    expect(incluirCandidato).toHaveBeenCalledWith(3)
+    expect(await screen.findByText('19 de 40 vagas')).toBeInTheDocument()
+    expect(within(screen.getByText('Ana Ribeiro').closest('tr')!).getByText('Incluído')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Vagas ocupadas: 19 de 40')
+  })
+
+  it('desabilita o Incluir quando as vagas estão esgotadas', async () => {
+    vi.mocked(contarIncluidos).mockResolvedValue(40)
+    renderizar()
+
+    expect(await screen.findByText('esgotadas')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incluir Ana Ribeiro' })).toBeDisabled()
+  })
+
+  it('mostra a mensagem específica do bloqueio devolvido pela API', async () => {
+    vi.mocked(incluirCandidato).mockRejectedValue(
+      new ErroCandidatoApi('Não há vagas disponíveis no estudo', 409, 'VAGAS_ESGOTADAS', {}),
+    )
+    renderizar()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Incluir Ana Ribeiro' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar inclusão' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Vagas esgotadas. Não há vagas disponíveis no estudo')
   })
 })

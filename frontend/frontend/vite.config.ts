@@ -12,6 +12,7 @@ export default defineConfig({
   // Testes de componente (Vitest + Testing Library): rodam num navegador simulado (jsdom)
   test: {
     environment: 'jsdom',
+    setupFiles: ['./src/setupTests.ts'],
     globals: true,
     coverage: {
       provider: 'v8',

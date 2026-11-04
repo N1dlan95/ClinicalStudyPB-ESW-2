@@ -1,39 +1,45 @@
 services:
-  db:
-    image: postgres:16
+  database:
+    image: postgres:17-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: clinicalstudy
+      POSTGRES_USER: clinical
+      POSTGRES_PASSWORD: clinical
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U clinical -d clinicalstudy"]
       interval: 5s
       timeout: 5s
-      retries: 20
-      start_period: 40s
+      retries: 10
 
   backend:
-    build: ./backend/clinicalstudypb-api
+    build:
+      context: ./backend/clinicalstudypb-api
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/clinicalstudy
+      SPRING_DATASOURCE_USERNAME: clinical
+      SPRING_DATASOURCE_PASSWORD: clinical
+      JWT_SECRET: ${JWT_SECRET:-clinicalstudypb-segredo-de-desenvolvimento-nao-usar-em-producao}
+      JWT_EXPIRACAO: ${JWT_EXPIRACAO:-8h}
+      CORS_ORIGENS: ${CORS_ORIGENS:-http://localhost:3000}
+    depends_on:
+      database:
+        condition: service_healthy
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
-    build: ./frontend/frontend
-    ports:
-      - "3000:80"
+    build:
+      context: ./frontend/frontend
+      args:
+        VITE_API_URL: /api
     depends_on:
       - backend
+    ports:
+      - "3000:80"
 
 volumes:
-  db_data:
+  postgres-data:

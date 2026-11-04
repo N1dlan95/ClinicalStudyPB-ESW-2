@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Sprints/sprint-1.md",
+                "file": "api/como-acessar-contrato-api.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "sprint-1"
+              "title": "como-acessar-contrato-api"
             }
           }
         ]
@@ -190,8 +190,13 @@
   },
   "active": "7da7570ae07779bd",
   "lastOpenFiles": [
-    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Sprints/sprint-1.md",
+    "Diagramas/como-acessar-contrato-api.md",
+    "api/openapi.yaml",
+    "api/como-acessar-contrato-api.md",
+    "api",
+    "Nova pasta",
+    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Sprints/Sem título.md",
     "Sem título.md",
     "Contexto-Geral/ProjetoES2-2026.2.pdf.crdownload",

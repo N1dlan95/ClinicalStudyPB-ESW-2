@@ -1,2 +1,4 @@
-node_modules
-dist
+target
+.git
+.idea
+*.iml

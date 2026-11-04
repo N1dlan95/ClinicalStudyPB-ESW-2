@@ -144,6 +144,30 @@ class AutorizacaoTest {
 		mvc.perform(comToken(put("/estudos/1"), token)).andExpect(status().isForbidden());
 	}
 
+	// ---- Candidatos (RF08): somente coordenador. O controller não é carregado aqui,
+	// então acesso liberado responde 404 e acesso negado responde 403.
+
+	@Test
+	void coordenadorGerenciaCandidatos() throws Exception {
+		String token = tokenDe(Perfil.COORDENADOR);
+
+		mvc.perform(comToken(get("/estudos/1/candidatos"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(get("/estudos/1/candidatos/2"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(post("/estudos/1/candidatos"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(put("/estudos/1/candidatos/2"), token)).andExpect(status().isNotFound());
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Perfil.class, names = "COORDENADOR", mode = EnumSource.Mode.EXCLUDE)
+	void outrosPerfisNaoAcessamCandidatos(Perfil perfil) throws Exception {
+		String token = tokenDe(perfil);
+
+		mvc.perform(comToken(get("/estudos/1/candidatos"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(get("/estudos/1/candidatos/2"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(post("/estudos/1/candidatos"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(put("/estudos/1/candidatos/2"), token)).andExpect(status().isForbidden());
+	}
+
 	// ---- Rotas sem regra e CORS
 
 	@Test

@@ -1,0 +1,44 @@
+// Candidatos de um estudo (RF08).
+// CONTRATO PROVISÓRIO: a API de candidatos está sendo feita na task 3558 (backend) e ainda não está
+// no openapi.yaml. Os formatos abaixo seguem a descrição dessa task: candidato com nome, e-mail,
+// telefone, data de nascimento e status, nas rotas /estudos/{id}/candidatos, com filtro por status.
+// Quando o contrato sair, ajuste só este arquivo e o candidatosService.ts.
+
+// Estados do candidato (MER-v1.md, seção 4.2)
+export type StatusCandidato = 'CADASTRADO' | 'ELEGIVEL' | 'INELEGIVEL' | 'INCLUIDO' | 'RETIRADO'
+
+export const ROTULO_STATUS_CANDIDATO: Record<StatusCandidato, string> = {
+  CADASTRADO: 'Cadastrado',
+  ELEGIVEL: 'Elegível',
+  INELEGIVEL: 'Inelegível',
+  INCLUIDO: 'Incluído',
+  RETIRADO: 'Retirado',
+}
+
+export interface Candidato {
+  id: number
+  nome: string
+  email: string
+  telefone: string | null
+  dataNascimento: string // ISO: aaaa-mm-dd
+  status: StatusCandidato
+}
+
+// Dados enviados ao cadastrar/editar. O status não vem do cliente (muda pela avaliação e inclusão).
+export interface CandidatoEntrada {
+  nome: string
+  email: string
+  telefone: string | null
+  dataNascimento: string
+}
+
+// Estado dos campos do formulário (tudo texto, como o usuário digita)
+export interface FormularioCandidato {
+  nome: string
+  email: string
+  telefone: string
+  dataNascimento: string // dd/mm/aaaa
+}
+
+export type CampoCandidato = keyof FormularioCandidato
+export type ErrosCandidato = Partial<Record<CampoCandidato, string>>

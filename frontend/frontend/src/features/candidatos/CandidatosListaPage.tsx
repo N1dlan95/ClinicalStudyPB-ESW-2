@@ -5,7 +5,10 @@ import { Link, useParams } from 'react-router-dom'
 import { isoParaBR } from '../estudos/datas'
 import { buscarEstudo } from '../estudos/estudosService'
 import { ROTULO_ESTADO, type Estudo } from '../estudos/tipos'
-import { listarCandidatos } from './candidatosService'
+import { contarIncluidos, incluirCandidato, listarCandidatos, traduzirErro } from './candidatosService'
+import { ConfirmacaoDialogo } from './ConfirmacaoDialogo'
+import { ContadorVagas } from './ContadorVagas'
+import { bloqueioInclusao, mensagemErroInclusao } from './inclusao'
 import { dataConsentimento } from './consentimento'
 import { ROTULO_STATUS_CANDIDATO, type Candidato, type StatusCandidato } from './tipos'
 
@@ -20,6 +23,11 @@ export function CandidatosListaPage() {
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
+  const [ocupadas, setOcupadas] = useState<number | null>(null)
+  const [incluir, setIncluir] = useState<Candidato | null>(null)
+  const [incluindo, setIncluindo] = useState(false)
+  const [erroInclusao, setErroInclusao] = useState<{ titulo: string; texto: string } | null>(null)
+  const [sucesso, setSucesso] = useState('')
 
   useEffect(() => {
     let ativo = true
@@ -30,6 +38,12 @@ export function CandidatosListaPage() {
       .catch((e: Error) => {
         if (ativo) setErro(`Não foi possível carregar o estudo. ${e.message}`)
       })
+    // O contador é um extra: se falhar, a tela mostra só o limite
+    contarIncluidos(idEstudo)
+      .then((n) => {
+        if (ativo) setOcupadas(n)
+      })
+      .catch(() => {})
     return () => {
       ativo = false
     }
@@ -62,6 +76,28 @@ export function CandidatosListaPage() {
     return candidatos.filter((c) => [c.nome, c.email].some((v) => v.toLowerCase().includes(termo)))
   }, [candidatos, busca])
 
+  async function confirmarInclusao() {
+    if (!incluir) return
+    const alvo = incluir
+    setIncluindo(true)
+    setErroInclusao(null)
+    setSucesso('')
+    try {
+      const resultado = await incluirCandidato(alvo.id)
+      setOcupadas(resultado.vagasOcupadas)
+      setEstudo((e) => (e ? { ...e, limiteParticipantes: resultado.limiteParticipantes } : e))
+      setCandidatos((lista) => lista.map((c) => (c.id === alvo.id ? { ...c, status: 'INCLUIDO' } : c)))
+      setSucesso(
+        `${alvo.nome} foi incluído(a) no estudo. Vagas ocupadas: ${resultado.vagasOcupadas} de ${resultado.limiteParticipantes}.`,
+      )
+    } catch (e) {
+      setErroInclusao(mensagemErroInclusao(traduzirErro(e)))
+    } finally {
+      setIncluindo(false)
+      setIncluir(null)
+    }
+  }
+
   // Cadastro só com o estudo em RECRUTAMENTO (regra da task 3558)
   const emRecrutamento = estudo?.estado === 'RECRUTAMENTO'
 
@@ -87,6 +123,7 @@ export function CandidatosListaPage() {
       </div>
 
       {estudo && (
+        <div className="lista__resumo">
         <div className="cartao resumo-estudo">
           <small>Estudo</small>
           <div className="resumo-estudo__titulo">
@@ -94,8 +131,10 @@ export function CandidatosListaPage() {
             <span className={`selo selo--${estudo.estado.toLowerCase()}`}>{ROTULO_ESTADO[estudo.estado]}</span>
           </div>
           <small>
-            Responsável: {estudo.responsavel.nome} · {estudo.limiteParticipantes} vagas
+            Responsável: {estudo.responsavel.nome}
           </small>
+        </div>
+        <ContadorVagas ocupadas={ocupadas} limite={estudo.limiteParticipantes} />
         </div>
       )}
 
@@ -139,6 +178,16 @@ export function CandidatosListaPage() {
           {erro}
         </div>
       )}
+      {erroInclusao && (
+        <div className="aviso aviso--erro" role="alert">
+          <strong>{erroInclusao.titulo}.</strong> {erroInclusao.texto}
+        </div>
+      )}
+      {sucesso && (
+        <div className="aviso aviso--sucesso" role="status">
+          {sucesso}
+        </div>
+      )}
 
       <div className="cartao cartao--tabela">
         <table className="tabela">
@@ -177,9 +226,28 @@ export function CandidatosListaPage() {
                     )}
                   </td>
                   <td className="tabela__acao">
-                    <Link to={`/estudos/${idEstudo}/candidatos/${c.id}`} className="link">
-                      Ver detalhes
-                    </Link>
+                    <span className="tabela__acoes">
+                      <Link to={`/estudos/${idEstudo}/candidatos/${c.id}`} className="link">
+                        Ver detalhes
+                      </Link>
+                      {/* "Incluir" aparece para quem já pode ser incluído; com vagas esgotadas fica desabilitado */}
+                      {(() => {
+                        const bloqueio = bloqueioInclusao(c, estudo, ocupadas)
+                        if (bloqueio !== null && bloqueio !== 'VAGAS_ESGOTADAS') return null
+                        return (
+                          <button
+                            type="button"
+                            className="botao botao--primario botao--pequeno"
+                            disabled={bloqueio === 'VAGAS_ESGOTADAS'}
+                            title={bloqueio === 'VAGAS_ESGOTADAS' ? 'Vagas esgotadas' : undefined}
+                            aria-label={`Incluir ${c.nome}`}
+                            onClick={() => setIncluir(c)}
+                          >
+                            Incluir
+                          </button>
+                        )
+                      })()}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -200,6 +268,23 @@ export function CandidatosListaPage() {
           </tbody>
         </table>
       </div>
+
+      {incluir && (
+        <ConfirmacaoDialogo
+          titulo="Incluir no estudo?"
+          rotuloConfirmar="Confirmar inclusão"
+          rotuloConfirmando="Incluindo…"
+          confirmando={incluindo}
+          aoConfirmar={confirmarInclusao}
+          aoCancelar={() => setIncluir(null)}
+        >
+          <p className="cartao__texto">
+            {incluir.nome} vai ocupar uma vaga
+            {estudo && ocupadas !== null ? ` (${ocupadas + 1} de ${estudo.limiteParticipantes} depois da inclusão)` : ''}{' '}
+            e passa a participar do estudo.
+          </p>
+        </ConfirmacaoDialogo>
+      )}
 
       {!carregando && (
         <p className="contagem">

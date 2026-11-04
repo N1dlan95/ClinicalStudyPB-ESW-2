@@ -5,6 +5,7 @@ export function ConfirmacaoDialogo({
   titulo,
   children,
   rotuloConfirmar,
+  rotuloConfirmando = 'Salvando…',
   confirmando,
   aoConfirmar,
   aoCancelar,
@@ -12,6 +13,7 @@ export function ConfirmacaoDialogo({
   titulo: string
   children: ReactNode
   rotuloConfirmar: string
+  rotuloConfirmando?: string
   confirmando?: boolean
   aoConfirmar: () => void
   aoCancelar: () => void
@@ -38,7 +40,7 @@ export function ConfirmacaoDialogo({
             Cancelar
           </button>
           <button type="button" className="botao botao--primario" onClick={aoConfirmar} disabled={confirmando}>
-            {confirmando ? 'Registrando…' : rotuloConfirmar}
+            {confirmando ? rotuloConfirmando : rotuloConfirmar}
           </button>
         </div>
       </div>

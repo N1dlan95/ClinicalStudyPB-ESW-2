@@ -5,6 +5,7 @@ import type {
   Candidato,
   CandidatoEntrada,
   ErrosCandidato,
+  ResultadoInclusao,
   StatusCandidato,
 } from './tipos'
 
@@ -113,4 +114,16 @@ export function atualizarCandidato(estudoId: number, id: number, dados: Candidat
 export async function registrarConsentimento(estudoId: number, candidatoId: number): Promise<Candidato> {
   await chamar(() => api.post(`/candidatos/${candidatoId}/consentimento`))
   return buscarCandidato(estudoId, candidatoId)
+}
+
+// Vagas ocupadas = candidatos INCLUIDO no estudo
+export async function contarIncluidos(estudoId: number): Promise<number> {
+  return (await listarCandidatos(estudoId, 'INCLUIDO')).length
+}
+
+// RF11: inclui o candidato no estudo (task 3565). O backend valida, nesta ordem: estudo em
+// RECRUTAMENTO, candidato ELEGIVEL, consentimento registrado e vaga disponível; muda o status
+// para INCLUIDO e devolve as vagas ocupadas e o total.
+export function incluirCandidato(candidatoId: number): Promise<ResultadoInclusao> {
+  return chamar(() => api.post<ResultadoInclusao>(`/candidatos/${candidatoId}/inclusao`))
 }

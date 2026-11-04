@@ -7,6 +7,8 @@ import {
   buscarCandidato,
   criarCandidato,
   listarCandidatos,
+  contarIncluidos,
+  incluirCandidato,
   registrarConsentimento,
 } from './candidatosService'
 import type { Candidato, CandidatoEntrada } from './tipos'
@@ -123,5 +125,19 @@ describe('candidatosService', () => {
 
     await expect(registrarConsentimento(7, 3)).rejects.toThrow('O consentimento já foi registrado')
     expect(apiMock.get).not.toHaveBeenCalled()
+  })
+
+  it('inclui o candidato e devolve vagas ocupadas e total', async () => {
+    apiMock.post.mockResolvedValue({ data: { vagasOcupadas: 19, limiteParticipantes: 40 } })
+
+    await expect(incluirCandidato(3)).resolves.toEqual({ vagasOcupadas: 19, limiteParticipantes: 40 })
+    expect(apiMock.post).toHaveBeenCalledWith('/candidatos/3/inclusao')
+  })
+
+  it('conta as vagas ocupadas pelos candidatos INCLUIDO', async () => {
+    apiMock.get.mockResolvedValue({ data: { content: [CANDIDATO, CANDIDATO], number: 0, size: 100, totalElements: 2, totalPages: 1 } })
+
+    await expect(contarIncluidos(7)).resolves.toBe(2)
+    expect(apiMock.get).toHaveBeenCalledWith('/estudos/7/candidatos', { params: { size: 100, status: 'INCLUIDO' } })
   })
 })

@@ -52,6 +52,14 @@ public class Candidato {
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 
+	// RF09: quando e por quem foi feita a avaliação de elegibilidade mais recente
+	@Column(name = "avaliado_em")
+	private LocalDateTime avaliadoEm;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "avaliado_por_id")
+	private Usuario avaliadoPor;
+
 	@Column(name = "criado_em", nullable = false, updatable = false)
 	private LocalDateTime criadoEm;
 
@@ -84,6 +92,21 @@ public class Candidato {
 		this.email = email;
 		this.telefone = telefone;
 		this.dataNascimento = dataNascimento;
+	}
+
+	// RF09: o resultado da avaliação vira o status do candidato (ELEGIVEL ou INELEGIVEL)
+	public void registrarAvaliacao(boolean elegivel, Usuario avaliador) {
+		this.status = elegivel ? StatusCandidato.ELEGIVEL : StatusCandidato.INELEGIVEL;
+		this.avaliadoPor = avaliador;
+		this.avaliadoEm = LocalDateTime.now();
+	}
+
+	public LocalDateTime getAvaliadoEm() {
+		return avaliadoEm;
+	}
+
+	public Usuario getAvaliadoPor() {
+		return avaliadoPor;
 	}
 
 	public Long getId() {

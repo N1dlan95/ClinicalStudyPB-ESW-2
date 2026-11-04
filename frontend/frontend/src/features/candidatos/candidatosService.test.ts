@@ -7,6 +7,7 @@ import {
   buscarCandidato,
   criarCandidato,
   listarCandidatos,
+  registrarConsentimento,
 } from './candidatosService'
 import type { Candidato, CandidatoEntrada } from './tipos'
 
@@ -103,5 +104,24 @@ describe('candidatosService', () => {
     const erro = (await criarCandidato(7, ENTRADA).catch((e: unknown) => e)) as ErroCandidatoApi
     expect(erro.errosCampos).toEqual({})
     expect(erro.message).toBe('O estudo não está em recrutamento')
+  })
+
+  it('registra o consentimento na rota do backend e devolve o candidato atualizado', async () => {
+    const comConsentimento = { ...CANDIDATO, status: 'ELEGIVEL' as const, consentimento: { registradoEm: '2026-11-04T10:00:00-03:00', registradoPor: 'Carlos Coordenador' } }
+    apiMock.post.mockResolvedValue({ data: {} })
+    apiMock.get.mockResolvedValue({ data: comConsentimento })
+
+    await expect(registrarConsentimento(7, 3)).resolves.toEqual(comConsentimento)
+    expect(apiMock.post).toHaveBeenCalledWith('/candidatos/3/consentimento')
+    expect(apiMock.get).toHaveBeenCalledWith('/estudos/7/candidatos/3')
+  })
+
+  it('traduz a recusa do backend ao registrar consentimento duplicado', async () => {
+    apiMock.post.mockRejectedValue(
+      erroDaApi(409, { codigo: 'CONSENTIMENTO_JA_REGISTRADO', mensagem: 'O consentimento já foi registrado' }),
+    )
+
+    await expect(registrarConsentimento(7, 3)).rejects.toThrow('O consentimento já foi registrado')
+    expect(apiMock.get).not.toHaveBeenCalled()
   })
 })

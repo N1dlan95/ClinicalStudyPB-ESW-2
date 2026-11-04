@@ -26,3 +26,28 @@
 .selo--candidato-retirado { background: #ececec; color: #555; }
 
 .botao:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ---------- Detalhe do candidato (task 3564) ---------- */
+.aviso--sucesso { background: #e3f4e6; border: 1px solid #b9e0c0; color: #2e7d32; }
+.dados-candidato { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-bottom: 14px; padding: 12px 16px; }
+.dados-candidato small { display: block; color: var(--texto-suave); font-size: 10px; }
+.dados-candidato strong { font-size: 12px; font-weight: 500; }
+.detalhe__colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.cartao--secao { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px 20px; }
+.cartao--secao h2 { margin: 0; font-size: 14px; }
+.cartao__texto { margin: 0; color: var(--texto-suave); font-size: 12px; line-height: 1.5; }
+.consentimento__registrado { margin: 0; color: #2e7d32; font-size: 12px; }
+.consentimento-lista--pendente { color: #8a5a00; }
+
+.dialogo__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(43, 35, 40, 0.45);
+}
+.dialogo { width: 100%; max-width: 440px; padding: 22px 24px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); }
+.dialogo h2 { margin: 0 0 10px; font-size: 18px; }
+.dialogo__acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }

@@ -15,6 +15,13 @@ export const ROTULO_STATUS_CANDIDATO: Record<StatusCandidato, string> = {
   RETIRADO: 'Retirado',
 }
 
+// Consentimento simulado (RF10). Backend: task 3563, POST /candidatos/{id}/consentimento,
+// que grava a data e o usuário que registrou.
+export interface Consentimento {
+  registradoEm: string // ISO (data ou data e hora)
+  registradoPor: string | null // nome de quem registrou
+}
+
 export interface Candidato {
   id: number
   nome: string
@@ -22,6 +29,7 @@ export interface Candidato {
   telefone: string | null
   dataNascimento: string // ISO: aaaa-mm-dd
   status: StatusCandidato
+  consentimento?: Consentimento | null // ausente ou null: ainda não registrado
 }
 
 // Dados enviados ao cadastrar/editar. O status não vem do cliente (muda pela avaliação e inclusão).

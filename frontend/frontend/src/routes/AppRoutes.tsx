@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ExigePermissao, RotaProtegida } from '../features/auth/RotaProtegida'
 import { useAutorizacao } from '../features/auth/useAutorizacao'
+import { CandidatoDetalhePage } from '../features/candidatos/CandidatoDetalhePage'
 import { CandidatoFormPage } from '../features/candidatos/CandidatoFormPage'
 import { CandidatosListaPage } from '../features/candidatos/CandidatosListaPage'
 import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
@@ -67,6 +68,14 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="gerenciarCandidatos">
                 <CandidatoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/:id"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoDetalhePage />
               </ExigePermissao>
             }
           />

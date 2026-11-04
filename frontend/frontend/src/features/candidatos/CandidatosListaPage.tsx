@@ -6,6 +6,7 @@ import { isoParaBR } from '../estudos/datas'
 import { buscarEstudo } from '../estudos/estudosService'
 import { ROTULO_ESTADO, type Estudo } from '../estudos/tipos'
 import { listarCandidatos } from './candidatosService'
+import { dataConsentimento } from './consentimento'
 import { ROTULO_STATUS_CANDIDATO, type Candidato, type StatusCandidato } from './tipos'
 
 const FILTROS: (StatusCandidato | 'TODOS')[] = ['TODOS', 'CADASTRADO', 'ELEGIVEL', 'INELEGIVEL', 'INCLUIDO']
@@ -147,6 +148,7 @@ export function CandidatosListaPage() {
               <th>Nascimento</th>
               <th>Telefone</th>
               <th>Status</th>
+              <th>Consentimento</th>
               <th />
             </tr>
           </thead>
@@ -165,23 +167,32 @@ export function CandidatosListaPage() {
                       {ROTULO_STATUS_CANDIDATO[c.status]}
                     </span>
                   </td>
+                  <td>
+                    {c.consentimento ? (
+                      `Registrado em ${dataConsentimento(c.consentimento.registradoEm)}`
+                    ) : c.status === 'ELEGIVEL' ? (
+                      <span className="consentimento-lista--pendente">Pendente</span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="tabela__acao">
-                    <Link to={`/estudos/${idEstudo}/candidatos/${c.id}/editar`} className="link">
-                      Editar
+                    <Link to={`/estudos/${idEstudo}/candidatos/${c.id}`} className="link">
+                      Ver detalhes
                     </Link>
                   </td>
                 </tr>
               ))}
             {!carregando && filtrados.length === 0 && (
               <tr>
-                <td colSpan={5} className="tabela__vazia">
+                <td colSpan={6} className="tabela__vazia">
                   Nenhum candidato encontrado.
                 </td>
               </tr>
             )}
             {carregando && (
               <tr>
-                <td colSpan={5} className="tabela__vazia">
+                <td colSpan={6} className="tabela__vazia">
                   Carregando candidatos…
                 </td>
               </tr>

@@ -31,6 +31,7 @@ function renderizar(rota = '/estudos/7/candidatos/novo') {
         <Route path="/estudos/:estudoId/candidatos/novo" element={<CandidatoFormPage />} />
         <Route path="/estudos/:estudoId/candidatos/:id/editar" element={<CandidatoFormPage />} />
         <Route path="/estudos/:estudoId/candidatos" element={<p>Lista de candidatos</p>} />
+        <Route path="/estudos/:estudoId/candidatos/:id" element={<p>Detalhe do candidato</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -125,5 +126,6 @@ describe('CandidatoFormPage – edição', () => {
       telefone: null,
       dataNascimento: '1990-01-02',
     })
+    expect(await screen.findByText('Detalhe do candidato')).toBeInTheDocument()
   })
 })

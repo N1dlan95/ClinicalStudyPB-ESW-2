@@ -106,3 +106,11 @@ export function criarCandidato(estudoId: number, dados: CandidatoEntrada): Promi
 export function atualizarCandidato(estudoId: number, id: number, dados: CandidatoEntrada): Promise<Candidato> {
   return chamar(() => api.put<Candidato>(`${rota(estudoId)}/${id}`, dados))
 }
+
+// RF10: registra o consentimento simulado. Regras do backend (task 3563): só para candidato
+// ELEGIVEL e sem registro anterior. Depois do registro, busca o candidato de novo para mostrar
+// a data e o responsável exatamente como ficaram gravados.
+export async function registrarConsentimento(estudoId: number, candidatoId: number): Promise<Candidato> {
+  await chamar(() => api.post(`/candidatos/${candidatoId}/consentimento`))
+  return buscarCandidato(estudoId, candidatoId)
+}

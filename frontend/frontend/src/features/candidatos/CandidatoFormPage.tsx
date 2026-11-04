@@ -130,9 +130,13 @@ export function CandidatoFormPage() {
 
     setSalvando(true)
     try {
-      if (id) await atualizarCandidato(idEstudo, Number(id), dados)
-      else await criarCandidato(idEstudo, dados)
-      navegar(voltar)
+      if (id) {
+        await atualizarCandidato(idEstudo, Number(id), dados)
+        navegar(`${voltar}/${id}`)
+      } else {
+        await criarCandidato(idEstudo, dados)
+        navegar(voltar)
+      }
     } catch (erro) {
       const erroApi = traduzirErro(erro)
       if (mostrarErros(erroApi.errosCampos) > 0) return

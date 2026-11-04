@@ -49,7 +49,8 @@ describe('CandidatosListaPage', () => {
 
     const linha = (await screen.findByText('Maria Souza')).closest('tr')!
     expect(within(linha).getByText('Elegível')).toBeInTheDocument()
-    expect(within(linha).getByRole('link', { name: 'Editar' })).toHaveAttribute('href', '/estudos/7/candidatos/1/editar')
+    expect(within(linha).getByText('Pendente')).toBeInTheDocument()
+    expect(within(linha).getByRole('link', { name: 'Ver detalhes' })).toHaveAttribute('href', '/estudos/7/candidatos/1')
     expect(screen.getByText('Mostrando 2 de 2 candidatos')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '+ Novo candidato' })).toHaveAttribute('href', '/estudos/7/candidatos/novo')
   })

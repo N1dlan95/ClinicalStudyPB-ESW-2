@@ -55,6 +55,9 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.GET, "/estudos", "/estudos/**").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				.requestMatchers(HttpMethod.POST, "/estudos").hasRole(PESQUISADOR)
 				.requestMatchers(HttpMethod.PUT, "/estudos/**").hasRole(PESQUISADOR)
+				// RF05: o pesquisador cadastra e remove critérios (o PUT já vale pela regra de /estudos/**; o GET, também)
+				.requestMatchers(HttpMethod.POST, "/estudos/*/criterios").hasRole(PESQUISADOR)
+				.requestMatchers(HttpMethod.DELETE, "/estudos/*/criterios/*").hasRole(PESQUISADOR)
 				// Rota sem regra explícita fica bloqueada até ser liberada aqui
 				.anyRequest().denyAll())
 			.oauth2ResourceServer(servidor -> servidor

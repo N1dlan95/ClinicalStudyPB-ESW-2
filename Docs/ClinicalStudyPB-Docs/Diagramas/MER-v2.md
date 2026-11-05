@@ -236,7 +236,7 @@ O Flyway aplica em ordem e não aceita dois arquivos com o mesmo número. Cada t
 | V3 | `estudo` | 3238 | Na develop |
 | V4 | `candidato` | 3558 | PR aberto |
 | V5 | `criterio` | 3550 | Reservada |
-| V6 | `visita_prevista` e `atividade` | 3552 | Reservada |
+| V6 | `visita_prevista` e `atividade` | 3552 | Implementada |
 | V7 | `avaliacao_criterio` + `candidato.avaliado_em/avaliado_por_id` | 3560 | Reservada |
 | V8 | `candidato.consentimento_*` | 3563 | Reservada |
 | V9 | `candidato.data_inclusao` | 3565 | Reservada |

@@ -12,7 +12,8 @@ public record CandidatoResponse(
 		String email,
 		String telefone,
 		LocalDate dataNascimento,
-		StatusCandidato status) {
+		StatusCandidato status,
+		LocalDate dataInclusao) {
 
 	public static CandidatoResponse de(Candidato candidato) {
 		return new CandidatoResponse(
@@ -22,7 +23,8 @@ public record CandidatoResponse(
 				candidato.getEmail(),
 				candidato.getTelefone(),
 				candidato.getDataNascimento(),
-				candidato.getStatus());
+				candidato.getStatus(),
+				candidato.getDataInclusao());
 	}
 
 }

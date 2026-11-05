@@ -63,10 +63,14 @@ public class AvaliacaoService {
 			throw new RegraNegocioException("ESTUDO_FORA_DE_RECRUTAMENTO",
 					"Só é possível avaliar candidatos com o estudo em recrutamento", HttpStatus.CONFLICT);
 		}
-		// Quando o consentimento existir (task 3563), também bloquear quem já consentiu (MER-v2, seção 4)
 		if (candidato.getStatus() == StatusCandidato.INCLUIDO || candidato.getStatus() == StatusCandidato.RETIRADO) {
 			throw new RegraNegocioException("CANDIDATO_JA_INCLUIDO",
 					"Candidato incluído ou retirado não pode ser reavaliado", HttpStatus.CONFLICT);
+		}
+		// O consentimento vale para a avaliação em que o candidato foi considerado elegível (MER-v2, seção 4)
+		if (candidato.isConsentimentoRegistrado()) {
+			throw new RegraNegocioException("CANDIDATO_COM_CONSENTIMENTO",
+					"Candidato com consentimento registrado não pode ser reavaliado", HttpStatus.CONFLICT);
 		}
 		List<Criterio> criteriosDoEstudo = criteriosDoEstudo(candidato);
 		if (criteriosDoEstudo.stream().noneMatch(criterio -> criterio.getTipo() == TipoCriterio.INCLUSAO)) {

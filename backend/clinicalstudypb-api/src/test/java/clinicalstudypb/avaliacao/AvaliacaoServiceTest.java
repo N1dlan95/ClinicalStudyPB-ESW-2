@@ -216,6 +216,17 @@ class AvaliacaoServiceTest {
 	}
 
 	@Test
+	void candidatoComConsentimentoNaoEReavaliado() {
+		candidato = candidato(estudo, StatusCandidato.ELEGIVEL);
+		candidato.registrarConsentimento(coordenador);
+		when(candidatos.findById(5L)).thenReturn(Optional.of(candidato));
+
+		assertThatThrownBy(() -> servico.avaliar(5L, respostas(r(11L, true)), COORDENADOR_ID))
+				.isInstanceOfSatisfying(RegraNegocioException.class,
+						ex -> assertThat(ex.getCodigo()).isEqualTo("CANDIDATO_COM_CONSENTIMENTO"));
+	}
+
+	@Test
 	void candidatoInexistenteLancaNaoEncontrado() {
 		when(candidatos.findById(99L)).thenReturn(Optional.empty());
 

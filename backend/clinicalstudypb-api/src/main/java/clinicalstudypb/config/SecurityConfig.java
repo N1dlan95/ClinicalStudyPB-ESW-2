@@ -55,6 +55,8 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.GET, "/estudos", "/estudos/**").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				.requestMatchers(HttpMethod.POST, "/estudos").hasRole(PESQUISADOR)
 				.requestMatchers(HttpMethod.PUT, "/estudos/**").hasRole(PESQUISADOR)
+				// RF06: o pesquisador define visitas previstas e suas atividades.
+				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)
 				// Rota sem regra explícita fica bloqueada até ser liberada aqui
 				.anyRequest().denyAll())
 			.oauth2ResourceServer(servidor -> servidor

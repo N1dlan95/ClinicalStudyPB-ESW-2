@@ -15,16 +15,20 @@ import clinicalstudypb.estudo.Estudo;
 import clinicalstudypb.estudo.EstudoService;
 import clinicalstudypb.visitaprevista.dto.AtividadeRequest;
 import clinicalstudypb.visitaprevista.dto.VisitaPrevistaRequest;
+import jakarta.persistence.EntityManager;
 
 @Service
 public class VisitaPrevistaService {
 
 	private final VisitaPrevistaRepository repositorio;
 	private final EstudoService estudos;
+	private final EntityManager entityManager;
 
-	public VisitaPrevistaService(VisitaPrevistaRepository repositorio, EstudoService estudos) {
+	public VisitaPrevistaService(VisitaPrevistaRepository repositorio, EstudoService estudos,
+			EntityManager entityManager) {
 		this.repositorio = repositorio;
 		this.estudos = estudos;
+		this.entityManager = entityManager;
 	}
 
 	@Transactional(readOnly = true)
@@ -43,9 +47,10 @@ public class VisitaPrevistaService {
 	@Transactional
 	public VisitaPrevista criar(Long estudoId, VisitaPrevistaRequest dados) {
 		Estudo estudo = estudos.buscar(estudoId);
+		validarEstudoAberto(estudo);
 		validarOrdens(dados);
 		if (repositorio.existsByEstudoIdAndOrdem(estudoId, dados.ordem())) {
-			throw ordemRepetida("estudoId", "Já existe uma visita prevista com esta ordem no estudo");
+			throw ordemRepetida("ordem", "Já existe uma visita prevista com esta ordem no estudo");
 		}
 		VisitaPrevista visita = new VisitaPrevista(estudo, dados.ordem(), dados.nome().trim(),
 				dados.diaPrevisto(), dados.janelaDias(), normalizarDescricao(dados.descricao()));
@@ -56,19 +61,24 @@ public class VisitaPrevistaService {
 	@Transactional
 	public VisitaPrevista atualizar(Long estudoId, Long id, VisitaPrevistaRequest dados) {
 		VisitaPrevista visita = buscar(estudoId, id);
+		validarEstudoAberto(visita.getEstudo());
 		validarOrdens(dados);
 		if (repositorio.existsByEstudoIdAndOrdemAndIdNot(estudoId, dados.ordem(), id)) {
 			throw ordemRepetida("ordem", "Já existe uma visita prevista com esta ordem no estudo");
 		}
 		visita.atualizarDados(dados.ordem(), dados.nome().trim(), dados.diaPrevisto(), dados.janelaDias(),
 				normalizarDescricao(dados.descricao()));
-		visita.substituirAtividades(criarAtividades(dados.atividades()));
+		visita.limparAtividades();
+		entityManager.flush();
+		adicionarAtividades(visita, dados.atividades());
 		return visita;
 	}
 
 	@Transactional
 	public void excluir(Long estudoId, Long id) {
-		repositorio.delete(buscar(estudoId, id));
+		VisitaPrevista visita = buscar(estudoId, id);
+		validarEstudoAberto(visita.getEstudo());
+		repositorio.delete(visita);
 	}
 
 	private static void validarOrdens(VisitaPrevistaRequest dados) {
@@ -103,6 +113,17 @@ public class VisitaPrevistaService {
 		return dados.stream()
 				.map(atividade -> new Atividade(atividade.ordem(), atividade.descricao().trim()))
 				.toList();
+	}
+
+	private static void adicionarAtividades(VisitaPrevista visita, List<AtividadeRequest> dados) {
+		visita.substituirAtividades(criarAtividades(dados));
+	}
+
+	private static void validarEstudoAberto(Estudo estudo) {
+		if (estudo.isEncerrado()) {
+			throw new RegraNegocioException("ESTUDO_ENCERRADO",
+					"Não é possível alterar visitas previstas de um estudo encerrado", HttpStatus.CONFLICT);
+		}
 	}
 
 	private static String normalizarDescricao(String descricao) {

@@ -76,6 +76,10 @@ public class VisitaPrevista {
 		}
 	}
 
+	public void limparAtividades() {
+		atividades.clear();
+	}
+
 	public Long getId() {
 		return id;
 	}

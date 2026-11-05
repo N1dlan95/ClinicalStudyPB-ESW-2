@@ -17,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.http.HttpStatus;
+import jakarta.persistence.EntityManager;
 
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
@@ -35,12 +37,15 @@ class VisitaPrevistaServiceTest {
 	@Mock
 	private EstudoService estudos;
 
+	@Mock
+	private EntityManager entityManager;
+
 	private VisitaPrevistaService servico;
 	private Estudo estudo;
 
 	@BeforeEach
 	void configurar() {
-		servico = new VisitaPrevistaService(repositorio, estudos);
+		servico = new VisitaPrevistaService(repositorio, estudos, entityManager);
 		estudo = mock(Estudo.class);
 		ReflectionTestUtils.setField(estudo, "id", 1L);
 	}
@@ -153,6 +158,61 @@ class VisitaPrevistaServiceTest {
 		servico.excluir(1L, 1L);
 
 		verify(repositorio).delete(any(VisitaPrevista.class));
+	}
+
+	@Test
+	void criarEmEstudoEncerradoFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(estudo.isEncerrado()).thenReturn(true);
+
+		assertThatThrownBy(() -> servico.criar(1L, dados(1, List.of())))
+				.isInstanceOf(RegraNegocioException.class)
+				.satisfies(erro -> {
+					RegraNegocioException excecao = (RegraNegocioException) erro;
+					assertThat(excecao.getCodigo()).isEqualTo("ESTUDO_ENCERRADO");
+					assertThat(excecao.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(excecao.getMessage()).isEqualTo(
+							"Não é possível alterar visitas previstas de um estudo encerrado");
+				});
+		verify(repositorio, never()).save(any());
+	}
+
+	@Test
+	void atualizarEmEstudoEncerradoFalha() {
+		VisitaPrevista existente = visita(1L, 1);
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(existente));
+		when(estudo.isEncerrado()).thenReturn(true);
+
+		assertThatThrownBy(() -> servico.atualizar(1L, 1L, dados(1, List.of())))
+				.isInstanceOf(RegraNegocioException.class)
+				.satisfies(erro -> {
+					RegraNegocioException excecao = (RegraNegocioException) erro;
+					assertThat(excecao.getCodigo()).isEqualTo("ESTUDO_ENCERRADO");
+					assertThat(excecao.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(excecao.getMessage()).isEqualTo(
+							"Não é possível alterar visitas previstas de um estudo encerrado");
+				});
+		verify(entityManager, never()).flush();
+	}
+
+	@Test
+	void excluirEmEstudoEncerradoFalha() {
+		VisitaPrevista existente = visita(1L, 1);
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(existente));
+		when(estudo.isEncerrado()).thenReturn(true);
+
+		assertThatThrownBy(() -> servico.excluir(1L, 1L))
+				.isInstanceOf(RegraNegocioException.class)
+				.satisfies(erro -> {
+					RegraNegocioException excecao = (RegraNegocioException) erro;
+					assertThat(excecao.getCodigo()).isEqualTo("ESTUDO_ENCERRADO");
+					assertThat(excecao.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(excecao.getMessage()).isEqualTo(
+							"Não é possível alterar visitas previstas de um estudo encerrado");
+				});
+		verify(repositorio, never()).delete(any());
 	}
 
 	private static VisitaPrevistaRequest dados(int ordem, List<AtividadeRequest> atividades) {

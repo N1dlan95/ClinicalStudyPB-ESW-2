@@ -51,6 +51,8 @@ public class SecurityConfig {
 				// RF08: candidatos de um estudo, somente coordenador. Fica antes das regras de /estudos/**,
 				// porque a primeira regra que combina com a rota é a que vale.
 				.requestMatchers("/estudos/*/candidatos", "/estudos/*/candidatos/**").hasRole(COORDENADOR)
+				// RF09 a RF11: avaliação, consentimento e inclusão de candidatos, somente coordenador
+				.requestMatchers("/candidatos/**").hasRole(COORDENADOR)
 				// RF06: visitas previstas, somente pesquisador. Esta regra precede /estudos/**.
 				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)
 				// RF04: o pesquisador cadastra e edita estudos; pesquisador, coordenador e administrador consultam

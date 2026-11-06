@@ -52,6 +52,26 @@ public class Candidato {
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 
+	// RF09: quando e por quem foi feita a avaliação de elegibilidade mais recente
+	@Column(name = "avaliado_em")
+	private LocalDateTime avaliadoEm;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "avaliado_por_id")
+	private Usuario avaliadoPor;
+
+	// RF10: quando e por quem o consentimento simulado foi registrado
+	@Column(name = "consentimento_registrado_em")
+	private LocalDateTime consentimentoRegistradoEm;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "consentimento_registrado_por_id")
+	private Usuario consentimentoRegistradoPor;
+
+	// RF11: preenchida quando o candidato é incluído no estudo
+	@Column(name = "data_inclusao")
+	private LocalDate dataInclusao;
+
 	@Column(name = "criado_em", nullable = false, updatable = false)
 	private LocalDateTime criadoEm;
 
@@ -84,6 +104,49 @@ public class Candidato {
 		this.email = email;
 		this.telefone = telefone;
 		this.dataNascimento = dataNascimento;
+	}
+
+	// RF09: o resultado da avaliação vira o status do candidato (ELEGIVEL ou INELEGIVEL)
+	public void registrarAvaliacao(boolean elegivel, Usuario avaliador) {
+		this.status = elegivel ? StatusCandidato.ELEGIVEL : StatusCandidato.INELEGIVEL;
+		this.avaliadoPor = avaliador;
+		this.avaliadoEm = LocalDateTime.now();
+	}
+
+	// RF10: as validações do registro ficam no ConsentimentoService
+	public void registrarConsentimento(Usuario responsavel) {
+		this.consentimentoRegistradoPor = responsavel;
+		this.consentimentoRegistradoEm = LocalDateTime.now();
+	}
+
+	public boolean isConsentimentoRegistrado() {
+		return consentimentoRegistradoEm != null;
+	}
+
+	public LocalDateTime getConsentimentoRegistradoEm() {
+		return consentimentoRegistradoEm;
+	}
+
+	public Usuario getConsentimentoRegistradoPor() {
+		return consentimentoRegistradoPor;
+	}
+
+	// RF11: as validações da inclusão ficam no InclusaoService
+	public void incluir() {
+		this.status = StatusCandidato.INCLUIDO;
+		this.dataInclusao = LocalDate.now();
+	}
+
+	public LocalDate getDataInclusao() {
+		return dataInclusao;
+	}
+
+	public LocalDateTime getAvaliadoEm() {
+		return avaliadoEm;
+	}
+
+	public Usuario getAvaliadoPor() {
+		return avaliadoPor;
 	}
 
 	public Long getId() {

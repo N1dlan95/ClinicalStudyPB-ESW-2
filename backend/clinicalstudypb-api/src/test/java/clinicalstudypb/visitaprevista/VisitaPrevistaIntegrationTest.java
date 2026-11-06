@@ -7,14 +7,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import clinicalstudypb.auth.TokenService;
@@ -23,7 +27,6 @@ import clinicalstudypb.estudo.EstudoRepository;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.Usuario;
 import clinicalstudypb.usuario.UsuarioRepository;
-import jakarta.persistence.EntityManager;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,20 +53,21 @@ class VisitaPrevistaIntegrationTest {
 	private VisitaPrevistaRepository visitas;
 
 	@Autowired
-	private EntityManager entityManager;
+	private JdbcTemplate jdbc;
 
+	private final List<Long> usuariosCriados = new ArrayList<>();
+
+	private String sufixo;
+	private Usuario responsavel;
 	private Long estudoId;
 	private Long visitaId;
 
 	@BeforeEach
 	void prepararDados() {
-		visitas.deleteAll();
-		estudos.deleteAll();
-		usuarios.deleteAll();
-		entityManager.flush();
-
-		Usuario responsavel = usuarios.save(
-				new Usuario("Responsável RF06", "responsavel.rf06@clinical.test", null, Perfil.PESQUISADOR, "hash"));
+		sufixo = UUID.randomUUID().toString();
+		responsavel = usuarios.save(
+				new Usuario("Responsável RF06", "responsavel." + sufixo + "@clinical.test", null, Perfil.PESQUISADOR, "hash"));
+		usuariosCriados.add(responsavel.getId());
 		Estudo estudo = estudos.save(new Estudo("Estudo RF06", "Objetivo do teste de integração",
 				responsavel, LocalDate.now(), null, 10));
 		estudoId = estudo.getId();
@@ -72,6 +76,14 @@ class VisitaPrevistaIntegrationTest {
 				"Avaliação inicial");
 		visita.substituirAtividades(List.of(new Atividade(1, "Coleta de sangue")));
 		visitaId = visitas.saveAndFlush(visita).getId();
+	}
+
+	// Apaga só o que o teste criou: o banco é compartilhado com os outros testes de integração
+	@AfterEach
+	void limparDados() {
+		jdbc.update("delete from visita_prevista where estudo_id = ?", estudoId);
+		jdbc.update("delete from estudo where id = ?", estudoId);
+		usuariosCriados.forEach(id -> jdbc.update("delete from usuario where id = ?", id));
 	}
 
 	@Test
@@ -94,9 +106,10 @@ class VisitaPrevistaIntegrationTest {
 	void pesquisadorGerenciaVisitasPrevistas() throws Exception {
 		mvc.perform(comToken(get("/estudos/" + estudoId + "/visitas-previstas"), Perfil.PESQUISADOR))
 				.andExpect(status().isOk());
+		// Ordem 2: a ordem 1 já é da visita criada em prepararDados, e o serviço não aceita repetição
 		mvc.perform(comToken(post("/estudos/" + estudoId + "/visitas-previstas")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(CORPO_VISITA), Perfil.PESQUISADOR))
+				.content(CORPO_VISITA.replace("\"ordem\":1,\"nome\"", "\"ordem\":2,\"nome\"")), Perfil.PESQUISADOR))
 				.andExpect(status().isCreated());
 		mvc.perform(comToken(put("/estudos/" + estudoId + "/visitas-previstas/" + visitaId)
 				.contentType(MediaType.APPLICATION_JSON)
@@ -143,11 +156,14 @@ class VisitaPrevistaIntegrationTest {
 	private MockHttpServletRequestBuilder comToken(MockHttpServletRequestBuilder requisicao, Perfil perfil) {
 		Usuario usuario;
 		if (perfil == Perfil.PESQUISADOR) {
-			usuario = usuarios.findAll().getFirst();
+			usuario = responsavel;
 		} else {
-			String email = perfil.name().toLowerCase() + ".rf06@clinical.test";
-			usuario = usuarios.findByEmailIgnoreCase(email).orElseGet(() -> usuarios.save(
-					new Usuario(perfil.name(), email, null, perfil, "hash")));
+			String email = perfil.name().toLowerCase() + "." + sufixo + "@clinical.test";
+			usuario = usuarios.findByEmailIgnoreCase(email).orElseGet(() -> {
+				Usuario criado = usuarios.save(new Usuario(perfil.name(), email, null, perfil, "hash"));
+				usuariosCriados.add(criado.getId());
+				return criado;
+			});
 		}
 		return requisicao.header("Authorization", "Bearer " + tokens.gerar(usuario).valor());
 	}

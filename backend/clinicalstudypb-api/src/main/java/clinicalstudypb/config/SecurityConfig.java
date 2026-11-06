@@ -55,6 +55,8 @@ public class SecurityConfig {
 				.requestMatchers("/candidatos/**").hasRole(COORDENADOR)
 				// RF06: visitas previstas, somente pesquisador. Esta regra precede /estudos/**.
 				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)
+				// RF07: mudança de estado, antes das regras genéricas de /estudos/**
+				.requestMatchers(HttpMethod.PATCH, "/estudos/*/estado").hasRole(PESQUISADOR)
 				// RF04: o pesquisador cadastra e edita estudos; pesquisador, coordenador e administrador consultam
 				.requestMatchers(HttpMethod.GET, "/estudos", "/estudos/**").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				.requestMatchers(HttpMethod.POST, "/estudos").hasRole(PESQUISADOR)

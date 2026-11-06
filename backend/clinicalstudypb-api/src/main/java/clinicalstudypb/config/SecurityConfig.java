@@ -53,10 +53,15 @@ public class SecurityConfig {
 				.requestMatchers("/estudos/*/candidatos", "/estudos/*/candidatos/**").hasRole(COORDENADOR)
 				// RF09 a RF11: avaliação, consentimento e inclusão de candidatos, somente coordenador
 				.requestMatchers("/candidatos/**").hasRole(COORDENADOR)
+				// RF06: visitas previstas, somente pesquisador. Esta regra precede /estudos/**.
+				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)
 				// RF04: o pesquisador cadastra e edita estudos; pesquisador, coordenador e administrador consultam
 				.requestMatchers(HttpMethod.GET, "/estudos", "/estudos/**").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				.requestMatchers(HttpMethod.POST, "/estudos").hasRole(PESQUISADOR)
 				.requestMatchers(HttpMethod.PUT, "/estudos/**").hasRole(PESQUISADOR)
+				// RF05: o pesquisador cadastra e remove critérios (o PUT já vale pela regra de /estudos/**; o GET, também)
+				.requestMatchers(HttpMethod.POST, "/estudos/*/criterios").hasRole(PESQUISADOR)
+				.requestMatchers(HttpMethod.DELETE, "/estudos/*/criterios/*").hasRole(PESQUISADOR)
 				// Rota sem regra explícita fica bloqueada até ser liberada aqui
 				.anyRequest().denyAll())
 			.oauth2ResourceServer(servidor -> servidor

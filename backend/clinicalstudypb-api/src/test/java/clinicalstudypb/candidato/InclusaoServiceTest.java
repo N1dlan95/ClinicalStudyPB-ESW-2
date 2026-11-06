@@ -99,13 +99,25 @@ class InclusaoServiceTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = StatusCandidato.class, names = "ELEGIVEL", mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = StatusCandidato.class, names = { "CADASTRADO", "INELEGIVEL", "RETIRADO" })
 	void candidatoNaoElegivelGeraConflito(StatusCandidato status) {
 		prepararCandidato(EstadoEstudo.RECRUTAMENTO, status, true);
 
 		assertThatThrownBy(() -> servico.incluir(5L))
 				.isInstanceOfSatisfying(RegraNegocioException.class,
 						ex -> assertThat(ex.getCodigo()).isEqualTo("CANDIDATO_NAO_ELEGIVEL"));
+	}
+
+	@Test
+	void candidatoJaIncluidoGeraConflitoProprio() {
+		Candidato candidato = prepararCandidato(EstadoEstudo.RECRUTAMENTO, StatusCandidato.INCLUIDO, true);
+
+		assertThatThrownBy(() -> servico.incluir(5L))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("CANDIDATO_JA_INCLUIDO");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+				});
+		assertThat(candidato.getDataInclusao()).isNull();
 	}
 
 	@ParameterizedTest

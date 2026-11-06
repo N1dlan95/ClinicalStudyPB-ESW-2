@@ -244,7 +244,7 @@ class RecrutamentoIntegrationTest {
 		List<String> resultados = executarAoMesmoTempo(List.of(candidatoId, candidatoId, candidatoId, candidatoId));
 
 		assertThat(resultados).filteredOn("OK"::equals).hasSize(1);
-		assertThat(resultados).filteredOn("CANDIDATO_NAO_ELEGIVEL"::equals).hasSize(3);
+		assertThat(resultados).filteredOn("CANDIDATO_JA_INCLUIDO"::equals).hasSize(3);
 		assertThat(candidatos.countByEstudoIdAndStatus(estudoId, StatusCandidato.INCLUIDO)).isEqualTo(1);
 	}
 

@@ -36,6 +36,9 @@ public class InclusaoService {
 		if (estudo.getEstado() != EstadoEstudo.RECRUTAMENTO) {
 			throw conflito("ESTUDO_FORA_DE_RECRUTAMENTO", "Só é possível incluir candidatos com o estudo em recrutamento");
 		}
+		if (candidato.getStatus() == StatusCandidato.INCLUIDO) {
+			throw conflito("CANDIDATO_JA_INCLUIDO", "Este candidato já está incluído no estudo");
+		}
 		if (candidato.getStatus() != StatusCandidato.ELEGIVEL) {
 			throw conflito("CANDIDATO_NAO_ELEGIVEL", "Só é possível incluir candidatos avaliados como elegíveis");
 		}

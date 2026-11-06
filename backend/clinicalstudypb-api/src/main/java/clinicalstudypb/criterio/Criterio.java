@@ -68,8 +68,14 @@ public class Criterio {
 	void aoAtualizar() {
 		atualizadoEm = LocalDateTime.now();
 	}
-
-	public Long getId() {
+	
+	public void atualizar(TipoCriterio tipo, String descricao, int ordem) {
+		this.tipo = tipo;
+		this.descricao = descricao;
+		this.ordem = ordem;
+	}
+	
+		public Long getId() {
 		return id;
 	}
 

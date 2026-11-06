@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import java.util.List;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,10 @@ import clinicalstudypb.auth.TokenService;
 import clinicalstudypb.auth.TokensRevogados;
 import clinicalstudypb.config.erro.RespostaNaoAutenticado;
 import clinicalstudypb.config.erro.RespostaSemPermissao;
+import clinicalstudypb.estudo.Estudo;
+import clinicalstudypb.estudo.EstudoController;
+import clinicalstudypb.estudo.EstudoService;
+import clinicalstudypb.estudo.dto.EstudoEstadoRequest;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.PerfilController;
 import clinicalstudypb.usuario.Usuario;
@@ -42,7 +47,7 @@ import clinicalstudypb.usuario.UsuarioController;
 import clinicalstudypb.usuario.UsuarioService;
 
 // RF03: acesso permitido e negado por perfil, com tokens JWT reais (o perfil vem da claim do token)
-@WebMvcTest({ UsuarioController.class, PerfilController.class, AuthController.class })
+@WebMvcTest({ UsuarioController.class, PerfilController.class, AuthController.class, EstudoController.class })
 @Import({ SecurityConfig.class, JwtConfig.class, TokensRevogados.class, TokenService.class,
 		RespostaNaoAutenticado.class, RespostaSemPermissao.class })
 class AutorizacaoTest {
@@ -57,6 +62,9 @@ class AutorizacaoTest {
 	private UsuarioService usuarioService;
 
 	@MockitoBean
+	private EstudoService estudoService;
+
+	@MockitoBean
 	private AuthService authService;
 
 	@BeforeEach
@@ -65,6 +73,10 @@ class AutorizacaoTest {
 		when(usuarioService.buscar(any())).thenReturn(usuario(1L, Perfil.PESQUISADOR));
 		when(usuarioService.alterarAtivo(any(), any(Boolean.class))).thenReturn(usuario(1L, Perfil.PESQUISADOR));
 		when(usuarioService.listarPerfis()).thenReturn(List.of(Perfil.values()));
+		when(estudoService.listar(any(), any(), any())).thenReturn(Page.empty());
+		when(estudoService.buscar(any())).thenReturn(estudo(1L, Perfil.PESQUISADOR));
+		when(estudoService.alterarEstado(any(), any(EstudoEstadoRequest.class)))
+				.thenReturn(estudo(1L, Perfil.PESQUISADOR));
 	}
 
 	// ---- Usuários e perfis (RF01): somente administrador
@@ -119,7 +131,7 @@ class AutorizacaoTest {
 	@ParameterizedTest
 	@EnumSource(value = Perfil.class, names = { "PESQUISADOR", "COORDENADOR", "ADMINISTRADOR" })
 	void perfisDoPainelConsultamEstudos(Perfil perfil) throws Exception {
-		mvc.perform(comToken(get("/estudos"), tokenDe(perfil))).andExpect(status().isNotFound());
+		mvc.perform(comToken(get("/estudos"), tokenDe(perfil))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -132,8 +144,8 @@ class AutorizacaoTest {
 	void pesquisadorCadastraEEditaEstudos() throws Exception {
 		String token = tokenDe(Perfil.PESQUISADOR);
 
-		mvc.perform(comToken(post("/estudos"), token)).andExpect(status().isNotFound());
-		mvc.perform(comToken(put("/estudos/1"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(post("/estudos"), token)).andExpect(status().isBadRequest());
+		mvc.perform(comToken(put("/estudos/1"), token)).andExpect(status().isBadRequest());
 	}
 
 	@ParameterizedTest
@@ -143,6 +155,28 @@ class AutorizacaoTest {
 
 		mvc.perform(comToken(post("/estudos"), token)).andExpect(status().isForbidden());
 		mvc.perform(comToken(put("/estudos/1"), token)).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void pesquisadorAlteraEstadoDoEstudo() throws Exception {
+		mvc.perform(comToken(patch("/estudos/1/estado").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"estado\":\"RECRUTAMENTO\"}"), tokenDe(Perfil.PESQUISADOR)))
+				.andExpect(status().isOk());
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Perfil.class, names = "PESQUISADOR", mode = EnumSource.Mode.EXCLUDE)
+	void outrosPerfisNaoAlteramEstadoDoEstudo(Perfil perfil) throws Exception {
+		mvc.perform(comToken(patch("/estudos/1/estado").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"estado\":\"RECRUTAMENTO\"}"), tokenDe(perfil)))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void alteracaoDeEstadoSemTokenRetorna401() throws Exception {
+		mvc.perform(patch("/estudos/1/estado").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"estado\":\"RECRUTAMENTO\"}"))
+				.andExpect(status().isUnauthorized());
 	}
 
 	// ---- Candidatos (RF08): somente coordenador. O controller não é carregado aqui,
@@ -257,6 +291,14 @@ class AutorizacaoTest {
 		Usuario usuario = new Usuario("Teste", "teste@teste.com", null, perfil, "hash");
 		ReflectionTestUtils.setField(usuario, "id", id);
 		return usuario;
+	}
+
+	private static Estudo estudo(Long id, Perfil perfil) {
+		Usuario responsavel = usuario(2L, perfil);
+		Estudo estudo = new Estudo("Estudo autorizado", "Objetivo", responsavel,
+				LocalDate.now(), null, 10);
+		ReflectionTestUtils.setField(estudo, "id", id);
+		return estudo;
 	}
 
 }

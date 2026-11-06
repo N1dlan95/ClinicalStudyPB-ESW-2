@@ -186,6 +186,7 @@ class AutorizacaoTest {
 
 		mvc.perform(comToken(get("/candidatos/2/avaliacao"), token)).andExpect(status().isForbidden());
 		mvc.perform(comToken(put("/candidatos/2/avaliacao"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(post("/candidatos/2/consentimento"), token)).andExpect(status().isForbidden());
 		mvc.perform(comToken(post("/candidatos/2/inclusao"), token)).andExpect(status().isForbidden());
 	}
 

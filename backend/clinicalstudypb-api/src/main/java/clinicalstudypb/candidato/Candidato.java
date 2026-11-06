@@ -113,7 +113,7 @@ public class Candidato {
 		this.avaliadoEm = LocalDateTime.now();
 	}
 
-	// RF10: as regras de quem pode registrar ficam no serviço de consentimento (task 3563)
+	// RF10: as validações do registro ficam no ConsentimentoService
 	public void registrarConsentimento(Usuario responsavel) {
 		this.consentimentoRegistradoPor = responsavel;
 		this.consentimentoRegistradoEm = LocalDateTime.now();
@@ -121,6 +121,14 @@ public class Candidato {
 
 	public boolean isConsentimentoRegistrado() {
 		return consentimentoRegistradoEm != null;
+	}
+
+	public LocalDateTime getConsentimentoRegistradoEm() {
+		return consentimentoRegistradoEm;
+	}
+
+	public Usuario getConsentimentoRegistradoPor() {
+		return consentimentoRegistradoPor;
 	}
 
 	// RF11: as validações da inclusão ficam no InclusaoService

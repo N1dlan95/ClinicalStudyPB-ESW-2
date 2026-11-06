@@ -27,7 +27,6 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.jayway.jsonpath.JsonPath;
 
@@ -73,9 +72,6 @@ class RecrutamentoIntegrationTest {
 
 	@Autowired
 	private JdbcTemplate jdbc;
-
-	@Autowired
-	private TransactionTemplate transacao;
 
 	private Usuario coordenador;
 	private Usuario pesquisadora;
@@ -202,6 +198,44 @@ class RecrutamentoIntegrationTest {
 		assertThat(candidatos.findById(candidatoId).orElseThrow().getStatus()).isEqualTo(StatusCandidato.CADASTRADO);
 	}
 
+	// ---- Consentimento
+
+	@Test
+	void consentimentoExigeCandidatoElegivelEValeUmaVez() throws Exception {
+		Long candidatoId = cadastrarPelaApi("lia@teste.com");
+
+		mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/consentimento")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("CANDIDATO_NAO_ELEGIVEL"));
+
+		avaliarPelaApi(candidatoId, true, false).andExpect(status().isOk());
+		registrarConsentimento(candidatoId);
+
+		mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/consentimento")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("CONSENTIMENTO_JA_REGISTRADO"));
+		avaliarPelaApi(candidatoId, false, false)
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("CANDIDATO_COM_CONSENTIMENTO"));
+	}
+
+	@Test
+	void buscaEListagemDoCandidatoTrazemOConsentimento() throws Exception {
+		Long comConsentimento = candidatoProntoParaIncluir("com@teste.com");
+		Long semConsentimento = cadastrarPelaApi("sem@teste.com");
+
+		mvc.perform(comoCoordenador(get("/estudos/" + estudoId + "/candidatos/" + comConsentimento)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.consentimento.registradoEm").isNotEmpty())
+				.andExpect(jsonPath("$.consentimento.registradoPor").value("Coordenador Recrutamento"));
+		mvc.perform(comoCoordenador(get("/estudos/" + estudoId + "/candidatos/" + semConsentimento)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.consentimento").isEmpty());
+		mvc.perform(comoCoordenador(get("/estudos/" + estudoId + "/candidatos").param("status", "ELEGIVEL")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].consentimento.registradoPor").value("Coordenador Recrutamento"));
+	}
+
 	// ---- Limite de vagas
 
 	@Test
@@ -309,10 +343,10 @@ class RecrutamentoIntegrationTest {
 		return candidatoId;
 	}
 
-	// O endpoint de consentimento é da task 3563; aqui o registro é feito direto na entidade
-	private void registrarConsentimento(Long candidatoId) {
-		transacao.executeWithoutResult(status ->
-				candidatos.findById(candidatoId).orElseThrow().registrarConsentimento(coordenador));
+	private void registrarConsentimento(Long candidatoId) throws Exception {
+		mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/consentimento")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.consentimento.registradoPor").value("Coordenador Recrutamento"));
 	}
 
 	// A mudança de estado pela API é da task 3554; aqui o estado é definido direto no banco

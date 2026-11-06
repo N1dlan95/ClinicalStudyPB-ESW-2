@@ -26,5 +26,7 @@ describe('dataConsentimento', () => {
   it('mostra só a data, mesmo quando a API manda data e hora', () => {
     expect(dataConsentimento('2026-11-04T10:00:00-03:00')).toBe('04/11/2026')
     expect(dataConsentimento('2026-11-04')).toBe('04/11/2026')
+    // formato do LocalDateTime do backend (CandidatoResponse.Consentimento)
+    expect(dataConsentimento('2026-11-06T21:27:14.123456')).toBe('06/11/2026')
   })
 })

@@ -12,7 +12,7 @@ export function ContadorVagas({ ocupadas, limite }: { ocupadas: number | null; l
         </strong>
         {conhecido && (
           <span className={lotado ? 'contador-vagas__resto--lotado' : 'contador-vagas__resto'}>
-            {lotado ? 'esgotadas' : `${limite - ocupadas} livres`}
+            {lotado ? 'esgotadas' : `${limite - ocupadas} ${limite - ocupadas === 1 ? 'livre' : 'livres'}`}
           </span>
         )}
       </div>

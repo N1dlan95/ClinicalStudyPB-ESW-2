@@ -19,7 +19,7 @@ Sistema simplificado de gestão do ciclo de vida de estudos clínicos, desenvolv
 
 ## Sobre o projeto
 
-O ClinicalStudyPB reproduz, de forma simplificada, o ciclo de vida de um estudo clínico: o pesquisador cadastra o estudo, define critérios de inclusão e exclusão e visitas previstas, cadastra candidatos, avalia a elegibilidade, registra o consentimento e inclui participantes respeitando o limite de vagas.
+O ClinicalStudyPB reproduz, de forma simplificada, o ciclo de vida de um estudo clínico: o pesquisador cadastra o estudo e define os critérios de inclusão e exclusão e as visitas previstas; o coordenador cadastra os candidatos, avalia a elegibilidade, registra o consentimento e inclui participantes respeitando o limite de vagas.
 
 O desenvolvimento segue Scrum, com o board, as sprints e o burndown no Azure DevOps. A cada sprint os papéis da equipe rotacionam; testes, documentação e revisão de código são responsabilidade de todos.
 
@@ -41,9 +41,10 @@ A Release 1 (**Estrutura e recrutamento**) reúne as Sprints 1 e 2 e entrega uma
 | RF10 | Consentimento simulado | 2 |
 | RF11 | Inclusão com limite de vagas | 2 |
 
-**App mobile:** nesta release o app foi congelado. As telas de estudos, visitas e retirada (RF17 a RF20) não evoluíram e estão registradas no [README da release](realeases/release1/README.md).
+**App mobile:** o desenvolvimento foi congelado nesta release. Os requisitos RF17 a RF20 (estudos, visitas e retirada) ficam para a Release 2. A situação detalhada está no
+[README da Release 1](releases/README-release1.md).
 
-A situação final de cada requisito, as evidências e as capturas de tela estão no [README da release](realeases/release1/README.md).
+A situação final de cada requisito, as evidências e as capturas de tela estão no [README da release](releases/README-release1.md).
 
 ## Arquitetura
 
@@ -54,13 +55,13 @@ flowchart LR
     A -->|JPA| D[(PostgreSQL<br/>porta 5432)]
     A -. migrações .-> M[Flyway]
     M --> D
-    O[Swagger UI / OpenAPI] -. documenta .-> A
+    O[Contrato OpenAPI] -. documenta .-> A
 ```
 
 - **Frontend web:** telas por perfil (menus e rotas restritos conforme o perfil do usuário).
 - **Backend:** API REST organizada em pacotes por funcionalidade (por exemplo `estudo`, `candidato` e `visitaprevista`, além do pacote `config` com a segurança). A autenticação usa token JWT e o acesso às rotas é controlado por perfil.
 - **Banco de dados:** PostgreSQL, com o esquema criado e versionado pelo Flyway na inicialização da API.
-- **Contrato da API:** descrito em OpenAPI e exposto pelo Swagger UI.
+- **Contrato da API:** descrito em OpenAPI (`openapi.yaml`). O Swagger UI, gerado pelo springdoc-openapi, será adicionado ao backend na task 3580.
 
 O modelo de dados está em [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md`](Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md).
 
@@ -69,10 +70,10 @@ O modelo de dados está em [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md`](Doc
 | Camada | Tecnologia |
 | --- | --- |
 | Backend | Java 21, Spring Boot, Maven (wrapper `mvnw`), Spring Security com JWT, JPA/Hibernate, Flyway |
-| Banco de dados | PostgreSQL (em contêiner Docker) |
-| Frontend web | React + TypeScript (Vite), testes com Vitest |
-| Mobile | React Native + Expo (TypeScript) |
-| Documentação da API | OpenAPI e springdoc-openapi (Swagger UI) |
+| Banco de dados | PostgreSQL |
+| Frontend web | [CONFIRMAR framework], testes com Vitest |
+| Mobile | [CONFIRMAR tecnologia] (congelado nesta release) |
+| Documentação da API | Contrato OpenAPI (`openapi.yaml`); Swagger UI com springdoc-openapi previsto na task 3580 |
 | Testes e cobertura | JUnit e JaCoCo (backend), Vitest (frontend) |
 | Infraestrutura | Docker e Docker Compose |
 | Integração contínua | GitHub Actions (testes e cobertura a cada pull request) |
@@ -106,7 +107,16 @@ Os detalhes (logs, volumes, remoção dos dados e configuração de produção c
 
 ### Credenciais fictícias
 
-As contas de teste de cada perfil estão documentadas em [CONFIRMAR: link do documento de credenciais fictícias].
+A migração V2 cria um usuário de teste para cada perfil. Os dados são fictícios e valem apenas para o ambiente de desenvolvimento e avaliação.
+
+| Perfil | E-mail | Senha |
+| --- | --- | --- |
+| ADMINISTRADOR | `admin@clinicalstudypb.test` | `Senha@123` |
+| PESQUISADOR | `pesquisador@clinicalstudypb.test` | `Senha@123` |
+| COORDENADOR | `coordenador@clinicalstudypb.test` | `Senha@123` |
+| PARTICIPANTE | `participante@clinicalstudypb.test` | `Senha@123` |
+
+Nunca reutilize essas credenciais fora do ambiente de desenvolvimento.
 
 ## Testes e cobertura
 
@@ -119,14 +129,19 @@ Backend (na pasta `backend/clinicalstudypb-api`, com o banco no ar pelo Docker):
 
 O relatório do JaCoCo fica em `backend/clinicalstudypb-api/target/site/jacoco/index.html`. A meta da release é **cobertura de pelo menos 80% das linhas de negócio do backend**, com evidência no relatório de testes da release.
 
-Frontend (na pasta `frontend`): `npm test` [CONFIRMAR script].
+Frontend (na pasta `frontend`): 
+
+```bash
+npm test                 # roda os testes
+npm run test:coverage    # roda os testes e gera a cobertura
+```
 
 O GitHub Actions executa os testes e a cobertura a cada pull request, e um PR só é mesclado com a verificação verde e ao menos uma revisão.
 
 ## API e documentação interativa
 
 - **Base da API:** `http://localhost:8080/api`
-- **Swagger UI:** [CONFIRMAR: endereço, provavelmente `http://localhost:8080/api/swagger-ui.html`]
+- **Swagger UI:** ainda não disponível (task 3580). Quando o springdoc-openapi entrar no backend, o endereço esperado é `http://localhost:8080/api/swagger-ui.html` [CONFIRMAR].
 - **Contrato OpenAPI:** [`Docs/ClinicalStudyPB-Docs/api/openapi.yaml`](Docs/ClinicalStudyPB-Docs/api/openapi.yaml)
 - **Autenticação:** faça login para obter o token e envie-o no cabeçalho `Authorization: Bearer <token>`. As rotas são restritas por perfil.
 
@@ -135,14 +150,14 @@ O GitHub Actions executa os testes e a cobertura a cada pull request, e um PR s�
 ```text
 .
 ├── backend/                 # API Spring Boot (clinicalstudypb-api)
-├── frontend/                # aplicação web
+├── frontend/                # aplicação web (código e testes em frontend/frontend)
 ├── mobile/                  # app do participante (congelado na Release 1)
 ├── Docs/ClinicalStudyPB-Docs/
 │   ├── Contexto-Geral/      # contexto e requisitos
 │   ├── Diagramas/           # MER/DER (MER-v1, MER-v2)
 │   ├── Sprints/             # planejamento e registro de cada sprint
 │   └── api/                 # contrato OpenAPI
-├── realeases/               # documentação de cada release
+├── releases/               # documentação de cada release
 ├── .github/                 # workflows de CI
 ├── docker-compose.yml
 ├── DOCKER.md
@@ -152,7 +167,7 @@ O GitHub Actions executa os testes e a cobertura a cada pull request, e um PR s�
 ## Fluxo de trabalho
 
 - **Branches:** `master` guarda as releases e `develop` integra o trabalho. Cada task usa uma branch própria a partir da `develop`, com prefixo por tipo e o ID do Azure DevOps, por exemplo `feat/3552-backend-visitas-atividades` ou `docs/3581-readme-principal`.
-- **Commits:** mensagens no padrão `tipo(escopo): descrição (AB#ID)`, como `feat(visitas): expõe endpoints REST (AB#3552)`. O `AB#ID` liga o commit à task no Azure Boards.
+- **Commits:** mensagens no padrão `tipo(escopo): descrição (#ID)`, como `feat(visitas): expõe endpoints REST (#3552)`. O `#ID` liga o commit à task no Azure Boards.
 - **Pull requests:** sempre para a `develop`, com descrição, passos para testar e checklist do autor e do revisor. Exigem revisão cruzada de ao menos uma pessoa e o CI verde.
 - **Release:** a `develop` é mesclada na `master`, recebe a tag da release e um GitHub Release com o resumo e o link para a documentação.
 

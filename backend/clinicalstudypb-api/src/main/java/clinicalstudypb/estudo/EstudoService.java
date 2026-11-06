@@ -2,6 +2,9 @@ package clinicalstudypb.estudo;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +13,7 @@ import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.config.erro.ValidacaoException;
 import clinicalstudypb.estudo.dto.EstudoRequest;
+import clinicalstudypb.estudo.dto.EstudoEstadoRequest;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.Usuario;
 import clinicalstudypb.usuario.UsuarioRepository;
@@ -17,6 +21,8 @@ import clinicalstudypb.usuario.UsuarioRepository;
 // RF04: regras de cadastro e edição de estudos
 @Service
 public class EstudoService {
+
+	private static final Map<EstadoEstudo, Set<EstadoEstudo>> TRANSICOES = transicoesValidas();
 
 	private final EstudoRepository repositorio;
 	private final UsuarioRepository usuarios;
@@ -62,6 +68,28 @@ public class EstudoService {
 		estudo.atualizarDados(dados.titulo().trim(), dados.objetivo().trim(), responsavel,
 				dados.dataInicio(), dados.dataFim(), dados.limiteParticipantes());
 		return estudo;
+	}
+
+	@Transactional
+	public Estudo alterarEstado(Long id, EstudoEstadoRequest dados) {
+		Estudo estudo = buscar(id);
+		EstadoEstudo atual = estudo.getEstado();
+		EstadoEstudo novo = dados.estado();
+		if (!TRANSICOES.getOrDefault(atual, Set.of()).contains(novo)) {
+			throw new RegraNegocioException("TRANSICAO_ESTADO_INVALIDA",
+					"Transição de estado inválida: %s -> %s".formatted(atual, novo), HttpStatus.CONFLICT);
+		}
+		estudo.alterarEstado(novo);
+		return estudo;
+	}
+
+	private static Map<EstadoEstudo, Set<EstadoEstudo>> transicoesValidas() {
+		Map<EstadoEstudo, Set<EstadoEstudo>> transicoes = new EnumMap<>(EstadoEstudo.class);
+		transicoes.put(EstadoEstudo.PLANEJAMENTO, Set.of(EstadoEstudo.RECRUTAMENTO));
+		transicoes.put(EstadoEstudo.RECRUTAMENTO, Set.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.EXECUCAO));
+		transicoes.put(EstadoEstudo.EXECUCAO, Set.of(EstadoEstudo.ENCERRADO));
+		transicoes.put(EstadoEstudo.ENCERRADO, Set.of());
+		return Map.copyOf(transicoes);
 	}
 
 	private static void validarPeriodo(EstudoRequest dados) {

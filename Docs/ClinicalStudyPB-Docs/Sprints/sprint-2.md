@@ -6,7 +6,7 @@ tags:
 sprint: 2
 release: 1
 inicio: 2026-10-27
-fim: 2026-11-06
+fim: 2026-11-09
 lider-da-sprint: Mirelle Casimiro Silvino
 status: em andamento
 ---
@@ -54,7 +54,7 @@ status: em andamento
 
 ## 2. Duração da sprint
 
-- **Período:** 27/10/2026 a 06/11/2026 (02/11 é feriado)
+- **Período:** 27/10/2026 a 09/11/2026 (02/11 é feriado)
 - **Planning:** 27/10
 - **Prazos internos:** 29/10 (resposta da professora, task 3534) e 30/10 (contrato OpenAPI, task 3543)
 - **Checkpoint intermediário:** 03/11
@@ -67,8 +67,6 @@ status: em andamento
 > [!tip] Convenção
 > Número = ID da task no Azure DevOps · Responsável · Horas estimadas · Início → fim previsto (dia em que vai para Done, com PR revisado e Remaining Work = 0).
 
-> [!warning] Conferir no board antes de publicar
-> As tasks **3556** (testes unitários) e **3570** (testes de integração) estão divididas aqui entre duas pessoas cada (3556: Mirelle e Maria Eduarda; 3570: Adrielly e Arthur), mas no Azure podem estar como card único no nome da Adrielly. Ajuste este texto ou o board para os dois baterem. Apague este aviso depois.
 
 ### 3518 — Fechar dúvidas e modelo de dados de RF05–RF11 (Preparação)
 
@@ -88,6 +86,10 @@ status: em andamento
 - [ ] **T-43d (sem ID no board)** Congelar o app mobile: não evoluir as telas de estudos, visitas e retirada (RF17–RF20) e registrá-las no README da release · Arthur · 1h · 27/10 → 27/10
 - [ ] **3641** Sincronizar develop com a master antes da entrega (PRs #1, #2 e #9) · Arthur · 1h · 28/10 → 28/10
 - [ ] **3692** Corrigir permissões de estudos na web para que o pesquisador cadastre e edite (RF04) · Nidlan Hendell · 1h · 27/10 → 27/10
+- [ ] **3236** Testes unitários, de integração e de componente do cadastro de estudos · Adrielly · 5h · 30/10 → 04/11
+
+### 3224 — Gestão de estudos (RF04)
+
 - [ ] **3236** Testes unitários, de integração e de componente do cadastro de estudos · Adrielly · 5h · 30/10 → 04/11
 
 ### 3521 — Critérios de inclusão e exclusão (RF05)

@@ -2,6 +2,9 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ExigePermissao, RotaProtegida } from '../features/auth/RotaProtegida'
 import { useAutorizacao } from '../features/auth/useAutorizacao'
+import { CandidatoDetalhePage } from '../features/candidatos/CandidatoDetalhePage'
+import { CandidatoFormPage } from '../features/candidatos/CandidatoFormPage'
+import { CandidatosListaPage } from '../features/candidatos/CandidatosListaPage'
 import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
 import { EstudosListaPage } from '../features/estudos/EstudosListaPage'
 import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
@@ -49,6 +52,38 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="editarEstudos">
                 <EstudoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatosListaPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/novo"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/:id"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoDetalhePage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/:id/editar"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoFormPage />
               </ExigePermissao>
             }
           />

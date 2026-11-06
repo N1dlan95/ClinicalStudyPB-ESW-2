@@ -182,7 +182,7 @@ Colunas novas desta sprint:
 | RF05 | Critérios só pertencem a um estudo; cada estudo precisa de pelo menos um critério de inclusão para avaliar candidatos | service de critério / avaliação |
 | RF05 | Critério já usado em uma avaliação não pode ser excluído (FK de `avaliacao_criterio`) | banco |
 | RF06 | Ordem das visitas e das atividades sem repetição; `dia_previsto` ≥ 0 | banco + service |
-| RF07 | Estados: PLANEJAMENTO → RECRUTAMENTO → EXECUCAO → ENCERRADO (transições válidas na task 3554) | service de estudo |
+| RF07 | Estados válidos: PLANEJAMENTO, RECRUTAMENTO, EXECUCAO e ENCERRADO; transições: PLANEJAMENTO→RECRUTAMENTO, RECRUTAMENTO→PLANEJAMENTO/EXECUCAO e EXECUCAO→ENCERRADO; ENCERRADO é final; transição para o próprio estado é inválida | service de estudo |
 | RF08 | Candidato só é cadastrado com o estudo em RECRUTAMENTO; e-mail único no estudo | service + banco |
 | RF09 | Todos os critérios do estudo devem ser avaliados; resultado ELEGIVEL ou INELEGIVEL; grava quem avaliou e quando | service de avaliação |
 | RF09 | A avaliação pode ser refeita enquanto o candidato não tiver consentimento registrado; refazer substitui as respostas anteriores | service de avaliação |

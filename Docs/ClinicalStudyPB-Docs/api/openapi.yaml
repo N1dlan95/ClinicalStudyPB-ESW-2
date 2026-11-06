@@ -355,6 +355,106 @@ paths:
         "409":
           $ref: "#/components/responses/Conflito"
 
+  /estudos/{id}/visitas-previstas:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas previstas]
+      summary: Lista visitas previstas e atividades de um estudo (RF06)
+      description: Perfil permitido PESQUISADOR.
+      responses:
+        "200":
+          description: Visitas previstas do estudo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisitaPrevista"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Visitas previstas]
+      summary: Cadastra uma visita prevista (RF06)
+      description: Perfil permitido PESQUISADOR. A ordem da visita é única no estudo e a ordem das atividades é única na visita.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaPrevistaEntrada"
+      responses:
+        "201":
+          description: Visita prevista criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitaPrevista"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /estudos/{id}/visitas-previstas/{visitaId}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - name: visitaId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    put:
+      tags: [Visitas previstas]
+      summary: Atualiza uma visita prevista e substitui suas atividades (RF06)
+      description: Perfil permitido PESQUISADOR.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaPrevistaEntrada"
+      responses:
+        "200":
+          description: Visita prevista atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitaPrevista"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+    delete:
+      tags: [Visitas previstas]
+      summary: Exclui uma visita prevista (RF06)
+      description: Perfil permitido PESQUISADOR. As atividades são excluídas em cascata.
+      responses:
+        "204":
+          description: Visita prevista excluída
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -430,6 +530,88 @@ components:
             $ref: "#/components/schemas/Erro"
 
   schemas:
+    AtividadeEntrada:
+      type: object
+      required: [ordem, descricao]
+      properties:
+        ordem:
+          type: integer
+          minimum: 1
+        descricao:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    Atividade:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        ordem:
+          type: integer
+          minimum: 1
+        descricao:
+          type: string
+          maxLength: 500
+
+    VisitaPrevistaEntrada:
+      type: object
+      required: [ordem, nome, diaPrevisto]
+      properties:
+        ordem:
+          type: integer
+          minimum: 1
+        nome:
+          type: string
+          minLength: 3
+          maxLength: 120
+        diaPrevisto:
+          type: integer
+          minimum: 0
+        janelaDias:
+          type: integer
+          minimum: 0
+          nullable: true
+        descricao:
+          type: string
+          maxLength: 500
+          nullable: true
+        atividades:
+          type: array
+          items:
+            $ref: "#/components/schemas/AtividadeEntrada"
+
+    VisitaPrevista:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        ordem:
+          type: integer
+          minimum: 1
+        nome:
+          type: string
+          maxLength: 120
+        diaPrevisto:
+          type: integer
+          minimum: 0
+        janelaDias:
+          type: integer
+          minimum: 0
+          nullable: true
+        descricao:
+          type: string
+          maxLength: 500
+          nullable: true
+        atividades:
+          type: array
+          items:
+            $ref: "#/components/schemas/Atividade"
+
     PerfilTipo:
       type: string
       enum: [ADMINISTRADOR, PESQUISADOR, COORDENADOR, PARTICIPANTE]

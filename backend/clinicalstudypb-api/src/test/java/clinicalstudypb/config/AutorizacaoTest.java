@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import java.util.List;
 
@@ -142,6 +143,80 @@ class AutorizacaoTest {
 
 		mvc.perform(comToken(post("/estudos"), token)).andExpect(status().isForbidden());
 		mvc.perform(comToken(put("/estudos/1"), token)).andExpect(status().isForbidden());
+	}
+
+	// ---- Candidatos (RF08): somente coordenador. O controller não é carregado aqui,
+	// então acesso liberado responde 404 e acesso negado responde 403.
+
+	@Test
+	void coordenadorGerenciaCandidatos() throws Exception {
+		String token = tokenDe(Perfil.COORDENADOR);
+
+		mvc.perform(comToken(get("/estudos/1/candidatos"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(get("/estudos/1/candidatos/2"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(post("/estudos/1/candidatos"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(put("/estudos/1/candidatos/2"), token)).andExpect(status().isNotFound());
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Perfil.class, names = "COORDENADOR", mode = EnumSource.Mode.EXCLUDE)
+	void outrosPerfisNaoAcessamCandidatos(Perfil perfil) throws Exception {
+		String token = tokenDe(perfil);
+
+		mvc.perform(comToken(get("/estudos/1/candidatos"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(get("/estudos/1/candidatos/2"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(post("/estudos/1/candidatos"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(put("/estudos/1/candidatos/2"), token)).andExpect(status().isForbidden());
+	}
+
+	// ---- Avaliação, consentimento e inclusão (RF09 a RF11): somente coordenador
+
+	@Test
+	void coordenadorAvaliaCandidatos() throws Exception {
+		String token = tokenDe(Perfil.COORDENADOR);
+
+		mvc.perform(comToken(get("/candidatos/2/avaliacao"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(put("/candidatos/2/avaliacao"), token)).andExpect(status().isNotFound());
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Perfil.class, names = "COORDENADOR", mode = EnumSource.Mode.EXCLUDE)
+	void outrosPerfisNaoAvaliamCandidatos(Perfil perfil) throws Exception {
+		String token = tokenDe(perfil);
+
+		mvc.perform(comToken(get("/candidatos/2/avaliacao"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(put("/candidatos/2/avaliacao"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(post("/candidatos/2/consentimento"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(post("/candidatos/2/inclusao"), token)).andExpect(status().isForbidden());
+	}
+
+	// ---- Critérios (RF05): o controller não é carregado aqui, então acesso liberado responde 404 e negado responde 403
+
+	@Test
+	void pesquisadorGerenciaCriterios() throws Exception {
+		String token = tokenDe(Perfil.PESQUISADOR);
+
+		mvc.perform(comToken(get("/estudos/1/criterios"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(post("/estudos/1/criterios"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(put("/estudos/1/criterios/2"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(delete("/estudos/1/criterios/2"), token)).andExpect(status().isNotFound());
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Perfil.class, names = { "COORDENADOR", "ADMINISTRADOR" })
+	void coordenadorEAdministradorSoConsultamCriterios(Perfil perfil) throws Exception {
+		String token = tokenDe(perfil);
+
+		mvc.perform(comToken(get("/estudos/1/criterios"), token)).andExpect(status().isNotFound());
+		mvc.perform(comToken(post("/estudos/1/criterios"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(put("/estudos/1/criterios/2"), token)).andExpect(status().isForbidden());
+		mvc.perform(comToken(delete("/estudos/1/criterios/2"), token)).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void participanteNaoAcessaCriterios() throws Exception {
+		mvc.perform(comToken(get("/estudos/1/criterios"), tokenDe(Perfil.PARTICIPANTE)))
+				.andExpect(status().isForbidden());
 	}
 
 	// ---- Rotas sem regra e CORS

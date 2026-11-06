@@ -11,6 +11,9 @@ status: Em revisão
 
 # ClinicalStudyPB: dúvidas e decisões do MER
 
+> [!NOTE] Atualização
+> O modelo de RF05 a RF11 (Sprint 2), com diagrama, dicionário de dados e numeração das migrações, está em [[MER-v2]]. Este documento fica como registro da Sprint 1.
+
 > [!info] Objetivo
 > Reunir em um só lugar as dúvidas para a professora, as decisões já tomadas na modelagem, o espaço para o MER e os fluxos principais de informação. O que ainda está em aberto fica marcado para ser fechado depois da conversa com a professora.
 

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,8 +18,16 @@ import clinicalstudypb.config.erro.RespostaSemPermissao;
 import clinicalstudypb.estudo.EstudoController;
 import clinicalstudypb.estudo.EstudoService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springdoc.core.configuration.SpringDocConfiguration;
+import org.springdoc.core.properties.SpringDocConfigProperties;
+import org.springdoc.webmvc.core.configuration.SpringDocWebMvcConfiguration;
 
 @WebMvcTest(EstudoController.class)
+@ImportAutoConfiguration({
+		SpringDocConfiguration.class,
+		SpringDocConfigProperties.class,
+		SpringDocWebMvcConfiguration.class
+})
 @Import({ SecurityConfig.class, OpenApiConfig.class, JwtConfig.class, TokensRevogados.class, TokenService.class,
 		RespostaNaoAutenticado.class, RespostaSemPermissao.class })
 class OpenApiIntegrationTest {

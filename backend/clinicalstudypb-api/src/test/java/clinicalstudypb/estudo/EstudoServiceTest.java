@@ -184,6 +184,16 @@ class EstudoServiceTest {
 				.isInstanceOf(RecursoNaoEncontradoException.class);
 	}
 
+	// Task 3556: mudança de estado (RF07) de um estudo que não existe
+	@Test
+	void alterarEstadoDeEstudoInexistenteLancaNaoEncontrado() {
+		when(repositorio.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> servico.alterarEstado(99L, new EstudoEstadoRequest(EstadoEstudo.RECRUTAMENTO)))
+				.isInstanceOf(RecursoNaoEncontradoException.class)
+				.hasMessage("Estudo não encontrado");
+	}
+
 	// ---- Estados (RF07)
 
 	@Test

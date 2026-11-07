@@ -491,6 +491,21 @@ paths:
           $ref: "#/components/responses/NaoEncontrado"
         "409":
           $ref: "#/components/responses/Conflito"
+    delete:
+      tags: [Visitas previstas]
+      summary: Exclui uma visita prevista (RF06)
+      description: Perfil permitido PESQUISADOR. As atividades são excluídas em cascata.
+      responses:
+        "204":
+          description: Visita prevista excluída
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
 
   /estudos/{id}/criterios:
     parameters:
@@ -819,21 +834,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Inclusao"
-        "401":
-          $ref: "#/components/responses/NaoAutenticado"
-        "403":
-          $ref: "#/components/responses/SemPermissao"
-        "404":
-          $ref: "#/components/responses/NaoEncontrado"
-        "409":
-          $ref: "#/components/responses/Conflito"
-    delete:
-      tags: [Visitas previstas]
-      summary: Exclui uma visita prevista (RF06)
-      description: Perfil permitido PESQUISADOR. As atividades são excluídas em cascata.
-      responses:
-        "204":
-          description: Visita prevista excluída
         "401":
           $ref: "#/components/responses/NaoAutenticado"
         "403":

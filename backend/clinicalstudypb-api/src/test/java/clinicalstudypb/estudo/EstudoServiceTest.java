@@ -10,10 +10,14 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -203,36 +207,50 @@ class EstudoServiceTest {
 	}
 
 	@Test
-	void rejeitaTransicaoInvalida() {
-		Estudo existente = estudo(EstadoEstudo.PLANEJAMENTO);
+	void recrutamentoAvancaParaExecucao() {
+		Estudo existente = estudo(EstadoEstudo.RECRUTAMENTO);
 		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
 
-		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.EXECUCAO)))
-				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
-					assertThat(ex.getCodigo()).isEqualTo("TRANSICAO_ESTADO_INVALIDA");
-					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
-					assertThat(ex.getMessage()).contains("PLANEJAMENTO -> EXECUCAO");
-				});
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.EXECUCAO)).getEstado())
+				.isEqualTo(EstadoEstudo.EXECUCAO);
 	}
 
 	@Test
-	void rejeitaManterMesmoEstado() {
+	void execucaoAvancaParaEncerrado() {
 		Estudo existente = estudo(EstadoEstudo.EXECUCAO);
 		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
 
-		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.EXECUCAO)))
-				.isInstanceOf(RegraNegocioException.class)
-				.satisfies(ex -> assertThat(((RegraNegocioException) ex).getCodigo())
-						.isEqualTo("TRANSICAO_ESTADO_INVALIDA"));
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.ENCERRADO)).getEstado())
+				.isEqualTo(EstadoEstudo.ENCERRADO);
 	}
 
-	@Test
-	void encerradoNaoPermiteQualquerMudanca() {
-		Estudo existente = estudo(EstadoEstudo.ENCERRADO);
-		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+	@ParameterizedTest(name = "{0} -> {1} é inválida")
+	@MethodSource("transicoesInvalidas")
+	void rejeitaTodasAsTransicoesInvalidas(EstadoEstudo atual, EstadoEstudo novo) {
+		when(repositorio.findById(1L)).thenReturn(Optional.of(estudo(atual)));
 
-		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.PLANEJAMENTO)))
-				.isInstanceOf(RegraNegocioException.class);
+		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(novo)))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("TRANSICAO_ESTADO_INVALIDA");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(ex.getMessage()).contains(atual + " -> " + novo);
+				});
+	}
+
+	private static Stream<Arguments> transicoesInvalidas() {
+		return Stream.of(
+				Arguments.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.PLANEJAMENTO),
+				Arguments.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.EXECUCAO),
+				Arguments.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.ENCERRADO),
+				Arguments.of(EstadoEstudo.RECRUTAMENTO, EstadoEstudo.RECRUTAMENTO),
+				Arguments.of(EstadoEstudo.RECRUTAMENTO, EstadoEstudo.ENCERRADO),
+				Arguments.of(EstadoEstudo.EXECUCAO, EstadoEstudo.PLANEJAMENTO),
+				Arguments.of(EstadoEstudo.EXECUCAO, EstadoEstudo.RECRUTAMENTO),
+				Arguments.of(EstadoEstudo.EXECUCAO, EstadoEstudo.EXECUCAO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.PLANEJAMENTO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.RECRUTAMENTO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.EXECUCAO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.ENCERRADO));
 	}
 
 	@Test

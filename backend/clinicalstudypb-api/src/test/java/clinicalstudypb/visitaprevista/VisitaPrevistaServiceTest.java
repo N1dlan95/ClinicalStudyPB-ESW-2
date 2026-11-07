@@ -215,6 +215,96 @@ class VisitaPrevistaServiceTest {
 		verify(repositorio, never()).delete(any());
 	}
 
+	// ---- Task 3556: regras que ainda não tinham teste
+
+	@Test
+	void listarDeEstudoInexistenteLancaNaoEncontrado() {
+		when(estudos.buscar(99L)).thenThrow(new RecursoNaoEncontradoException("Estudo não encontrado"));
+
+		assertThatThrownBy(() -> servico.listar(99L)).isInstanceOf(RecursoNaoEncontradoException.class);
+		verify(repositorio, never()).findByEstudoIdOrderByOrdemAsc(any());
+	}
+
+	@Test
+	void criarComJanelaNegativaFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		VisitaPrevistaRequest dados = new VisitaPrevistaRequest(1, "Visita de triagem", 0, -1, null, List.of());
+
+		assertThatThrownBy(() -> servico.criar(1L, dados))
+				.isInstanceOfSatisfying(ValidacaoException.class,
+						ex -> assertThat(ex.getCampo()).isEqualTo("janelaDias"));
+		verify(repositorio, never()).save(any());
+	}
+
+	@Test
+	void criarComAtividadeSemOrdemFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+
+		assertThatThrownBy(() -> servico.criar(1L, dados(1, List.of(new AtividadeRequest(null, "Coleta de sangue")))))
+				.isInstanceOfSatisfying(ValidacaoException.class,
+						ex -> assertThat(ex.getCampo()).isEqualTo("atividades.ordem"));
+	}
+
+	@Test
+	void criarComAtividadeDeOrdemZeroFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+
+		assertThatThrownBy(() -> servico.criar(1L, dados(1, List.of(new AtividadeRequest(0, "Coleta de sangue")))))
+				.isInstanceOfSatisfying(ValidacaoException.class, ex -> {
+					assertThat(ex.getCampo()).isEqualTo("atividades.ordem");
+					assertThat(ex.getMessage()).isEqualTo("A ordem das atividades deve ser maior que zero");
+				});
+	}
+
+	@Test
+	void criarSemAtividadesEComDescricaoEmBrancoGuardaListaVaziaEDescricaoNula() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
+
+		VisitaPrevista criada = servico.criar(1L,
+				new VisitaPrevistaRequest(2, "  Visita de retorno  ", 30, null, "   ", null));
+
+		assertThat(criada.getNome()).isEqualTo("Visita de retorno");
+		assertThat(criada.getDescricao()).isNull();
+		assertThat(criada.getJanelaDias()).isNull();
+		assertThat(criada.getAtividades()).isEmpty();
+	}
+
+	@Test
+	void atualizarGravaARemocaoDasAtividadesAntesDeRecriar() {
+		VisitaPrevista existente = visita(1L, 1);
+		existente.substituirAtividades(List.of(new Atividade(1, "Atividade antiga")));
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(existente));
+
+		VisitaPrevista atualizada = servico.atualizar(1L, 1L,
+				dados(1, List.of(new AtividadeRequest(1, "Atividade nova"))));
+
+		// O flush evita que a atividade nova colida com a antiga de mesma ordem no índice único
+		verify(entityManager).flush();
+		assertThat(atualizada.getAtividades()).extracting(Atividade::getDescricao).containsExactly("Atividade nova");
+	}
+
+	@Test
+	void atualizarVisitaInexistenteLancaNaoEncontrado() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(99L, 1L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> servico.atualizar(1L, 99L, dados(1, List.of())))
+				.isInstanceOf(RecursoNaoEncontradoException.class)
+				.hasMessage("Visita prevista não encontrada");
+		verify(entityManager, never()).flush();
+	}
+
+	@Test
+	void excluirVisitaInexistenteLancaNaoEncontrado() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(99L, 1L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> servico.excluir(1L, 99L)).isInstanceOf(RecursoNaoEncontradoException.class);
+		verify(repositorio, never()).delete(any());
+	}
+
 	private static VisitaPrevistaRequest dados(int ordem, List<AtividadeRequest> atividades) {
 		return new VisitaPrevistaRequest(ordem, " Visita de triagem ", 0, 2, " Avaliação inicial ", atividades);
 	}

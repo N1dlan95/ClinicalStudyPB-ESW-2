@@ -14,6 +14,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -233,6 +235,56 @@ class EstudoServiceTest {
 
 		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.PLANEJAMENTO)))
 				.isInstanceOf(RegraNegocioException.class);
+	}
+
+	// Task 3556: todas as transições permitidas pelo RF07
+	@ParameterizedTest
+	@CsvSource({
+			"PLANEJAMENTO, RECRUTAMENTO",
+			"RECRUTAMENTO, PLANEJAMENTO",
+			"RECRUTAMENTO, EXECUCAO",
+			"EXECUCAO, ENCERRADO" })
+	void aplicaCadaTransicaoPermitida(EstadoEstudo atual, EstadoEstudo novo) {
+		when(repositorio.findById(1L)).thenReturn(Optional.of(estudo(atual)));
+
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(novo)).getEstado()).isEqualTo(novo);
+	}
+
+	// Task 3556: as demais combinações, incluindo pular etapas, voltar de EXECUCAO e sair de ENCERRADO
+	@ParameterizedTest
+	@CsvSource({
+			"PLANEJAMENTO, PLANEJAMENTO",
+			"PLANEJAMENTO, EXECUCAO",
+			"PLANEJAMENTO, ENCERRADO",
+			"RECRUTAMENTO, RECRUTAMENTO",
+			"RECRUTAMENTO, ENCERRADO",
+			"EXECUCAO, PLANEJAMENTO",
+			"EXECUCAO, RECRUTAMENTO",
+			"EXECUCAO, EXECUCAO",
+			"ENCERRADO, PLANEJAMENTO",
+			"ENCERRADO, RECRUTAMENTO",
+			"ENCERRADO, EXECUCAO",
+			"ENCERRADO, ENCERRADO" })
+	void rejeitaCadaTransicaoNaoPermitidaSemMudarOEstado(EstadoEstudo atual, EstadoEstudo novo) {
+		Estudo existente = estudo(atual);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(novo)))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("TRANSICAO_ESTADO_INVALIDA");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(ex.getMessage()).contains(atual + " -> " + novo);
+				});
+		assertThat(existente.getEstado()).isEqualTo(atual);
+	}
+
+	@Test
+	void alterarEstadoDeEstudoInexistenteLancaNaoEncontrado() {
+		when(repositorio.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> servico.alterarEstado(99L, new EstudoEstadoRequest(EstadoEstudo.RECRUTAMENTO)))
+				.isInstanceOf(RecursoNaoEncontradoException.class)
+				.hasMessage("Estudo não encontrado");
 	}
 
 	@Test

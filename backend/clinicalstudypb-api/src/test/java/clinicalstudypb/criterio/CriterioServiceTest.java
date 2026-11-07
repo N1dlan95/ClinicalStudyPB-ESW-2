@@ -132,7 +132,72 @@ class CriterioServiceTest {
 						ex -> assertThat(ex.getCampo()).isEqualTo("ordem"));
 	}
 
+	@Test
+	void criarSemTipoEInvalido() {
+		when(estudos.findById(1L)).thenReturn(Optional.of(estudo));
+
+		assertThatThrownBy(() -> servico.criar(1L, new CriterioRequest(null, "Maior de idade", null)))
+				.isInstanceOfSatisfying(ValidacaoException.class,
+						ex -> assertThat(ex.getCampo()).isEqualTo("tipo"));
+		verify(repositorio, never()).save(any());
+	}
+
+	@Test
+	void criarSemDescricaoEInvalido() {
+		when(estudos.findById(1L)).thenReturn(Optional.of(estudo));
+
+		assertThatThrownBy(() -> servico.criar(1L, new CriterioRequest(TipoCriterio.INCLUSAO, null, null)))
+				.isInstanceOfSatisfying(ValidacaoException.class,
+						ex -> assertThat(ex.getCampo()).isEqualTo("descricao"));
+	}
+
+	@Test
+	void criarComDescricaoAcimaDe500CaracteresEInvalido() {
+		when(estudos.findById(1L)).thenReturn(Optional.of(estudo));
+
+		assertThatThrownBy(() -> servico.criar(1L, new CriterioRequest(TipoCriterio.INCLUSAO, "a".repeat(501), null)))
+				.isInstanceOfSatisfying(ValidacaoException.class, ex -> {
+					assertThat(ex.getCampo()).isEqualTo("descricao");
+					assertThat(ex.getMessage()).isEqualTo("A descrição deve ter entre 3 e 500 caracteres");
+				});
+	}
+
+	@Test
+	void criarComDescricaoDeExatos500CaracteresEPermitido() {
+		when(estudos.findById(1L)).thenReturn(Optional.of(estudo));
+		when(repositorio.maiorOrdem(1L, TipoCriterio.INCLUSAO)).thenReturn(0);
+		when(repositorio.save(any(Criterio.class))).thenAnswer(chamada -> chamada.getArgument(0));
+
+		Criterio criado = servico.criar(1L, new CriterioRequest(TipoCriterio.INCLUSAO, "a".repeat(500), null));
+
+		assertThat(criado.getDescricao()).hasSize(500);
+		assertThat(criado.getOrdem()).isEqualTo(1);
+	}
+
 	// ---- Edição
+
+	@Test
+	void atualizarComOrdemZeroEInvalido() {
+		when(estudos.findById(1L)).thenReturn(Optional.of(estudo));
+
+		assertThatThrownBy(() -> servico.atualizar(1L, 5L, new CriterioRequest(TipoCriterio.INCLUSAO, "Maior de idade", 0)))
+				.isInstanceOfSatisfying(ValidacaoException.class,
+						ex -> assertThat(ex.getCampo()).isEqualTo("ordem"));
+		verify(repositorio, never()).findByIdAndEstudoId(any(), any());
+	}
+
+	@Test
+	void atualizarMantendoAPropriaOrdemNaoGeraConflito() {
+		Criterio existente = criterio(5L, TipoCriterio.INCLUSAO, "Maior de idade", 3);
+		when(estudos.findById(1L)).thenReturn(Optional.of(estudo));
+		when(repositorio.findByIdAndEstudoId(5L, 1L)).thenReturn(Optional.of(existente));
+		when(repositorio.existsByEstudoIdAndTipoAndOrdemAndIdNot(1L, TipoCriterio.INCLUSAO, 3, 5L)).thenReturn(false);
+
+		Criterio atualizado = servico.atualizar(1L, 5L, new CriterioRequest(TipoCriterio.INCLUSAO, "Maior de 18 anos", 3));
+
+		assertThat(atualizado.getOrdem()).isEqualTo(3);
+		assertThat(atualizado.getDescricao()).isEqualTo("Maior de 18 anos");
+	}
 
 	@Test
 	void atualizarAlteraOsDadosEMantemAOrdemQuandoNaoVem() {
@@ -232,6 +297,16 @@ class CriterioServiceTest {
 		when(repositorio.findByIdAndEstudoId(99L, 1L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> servico.remover(1L, 99L)).isInstanceOf(RecursoNaoEncontradoException.class);
+	}
+
+	@Test
+	void removerEmEstudoInexistenteLancaNaoEncontrado() {
+		when(estudos.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> servico.remover(99L, 5L))
+				.isInstanceOf(RecursoNaoEncontradoException.class)
+				.hasMessage("Estudo não encontrado");
+		verify(repositorio, never()).delete(any());
 	}
 
 	// ---- Consulta

@@ -142,6 +142,17 @@ class VisitaPrevistaServiceTest {
 	}
 
 	@Test
+	void atualizarComDiaNegativoFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(visita(1L, 1)));
+
+		assertThatThrownBy(() -> servico.atualizar(1L, 1L,
+				new VisitaPrevistaRequest(1, "Visita de triagem", -1, null, null, List.of())))
+				.isInstanceOf(ValidacaoException.class);
+		verify(entityManager, never()).flush();
+	}
+
+	@Test
 	void buscarInexistenteLancaNaoEncontrado() {
 		when(estudos.buscar(1L)).thenReturn(estudo);
 		when(repositorio.findByIdAndEstudoId(99L, 1L)).thenReturn(Optional.empty());

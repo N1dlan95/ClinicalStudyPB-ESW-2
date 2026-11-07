@@ -104,6 +104,26 @@ class VisitaPrevistaControllerTest {
 		verifyNoInteractions(servico);
 	}
 
+	@Test
+	void ordemNegativaRetorna400SemChamarServico() throws Exception {
+		mvc.perform(post("/estudos/1/visitas-previstas").contentType(MediaType.APPLICATION_JSON).content("""
+				{"ordem":-1,"nome":"Visita de triagem","diaPrevisto":0,"atividades":[]}
+				"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.codigo").value("VALIDACAO"));
+		verifyNoInteractions(servico);
+	}
+
+	@Test
+	void ordemNulaRetorna400SemChamarServico() throws Exception {
+		mvc.perform(post("/estudos/1/visitas-previstas").contentType(MediaType.APPLICATION_JSON).content("""
+				{"ordem":null,"nome":"Visita de triagem","diaPrevisto":0,"atividades":[]}
+				"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.codigo").value("VALIDACAO"));
+		verifyNoInteractions(servico);
+	}
+
 	private static VisitaPrevista visita(Long id) {
 		Estudo estudo = mock(Estudo.class);
 		ReflectionTestUtils.setField(estudo, "id", 1L);

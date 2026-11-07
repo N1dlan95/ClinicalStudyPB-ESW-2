@@ -355,6 +355,46 @@ paths:
         "409":
           $ref: "#/components/responses/Conflito"
 
+  /estudos/{id}/estado:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [Estudos]
+      summary: Altera o estado do estudo (RF07)
+      description: |
+        Perfil permitido: PESQUISADOR.
+        Transições válidas: PLANEJAMENTO → RECRUTAMENTO;
+        RECRUTAMENTO → PLANEJAMENTO ou EXECUCAO;
+        EXECUCAO → ENCERRADO. ENCERRADO não possui transição de saída.
+        Permanecer no mesmo estado é inválido.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstudoEstadoEntrada"
+      responses:
+        "200":
+          description: Estado alterado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estudo"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          description: Transição inválida ou estado final
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
   /estudos/{id}/visitas-previstas:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -619,6 +659,14 @@ components:
     EstadoEstudo:
       type: string
       enum: [PLANEJAMENTO, RECRUTAMENTO, EXECUCAO, ENCERRADO]
+
+    EstudoEstadoEntrada:
+      type: object
+      required: [estado]
+      additionalProperties: false
+      properties:
+        estado:
+          $ref: "#/components/schemas/EstadoEstudo"
 
     LoginRequest:
       type: object

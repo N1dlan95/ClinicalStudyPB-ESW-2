@@ -86,8 +86,16 @@ public class Estudo {
 		this.limiteParticipantes = limiteParticipantes;
 	}
 
+	public void alterarEstado(EstadoEstudo novoEstado) {
+		this.estado = novoEstado;
+	}
+
 	public boolean isEncerrado() {
 		return estado == EstadoEstudo.ENCERRADO;
+	}
+
+	public boolean permiteInclusao() {
+		return estado == EstadoEstudo.RECRUTAMENTO;
 	}
 
 	public Long getId() {

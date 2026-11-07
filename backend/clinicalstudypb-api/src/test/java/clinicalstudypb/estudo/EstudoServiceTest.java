@@ -27,6 +27,7 @@ import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.config.erro.ValidacaoException;
 import clinicalstudypb.estudo.dto.EstudoRequest;
+import clinicalstudypb.estudo.dto.EstudoEstadoRequest;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.Usuario;
 import clinicalstudypb.usuario.UsuarioRepository;
@@ -177,6 +178,69 @@ class EstudoServiceTest {
 
 		assertThatThrownBy(() -> servico.atualizar(99L, dados(INICIO, null, 10)))
 				.isInstanceOf(RecursoNaoEncontradoException.class);
+	}
+
+	// ---- Estados (RF07)
+
+	@Test
+	void mudaEstadoParaUmaTransicaoPermitida() {
+		Estudo existente = estudo(EstadoEstudo.PLANEJAMENTO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		Estudo atualizado = servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.RECRUTAMENTO));
+
+		assertThat(atualizado.getEstado()).isEqualTo(EstadoEstudo.RECRUTAMENTO);
+		assertThat(atualizado.permiteInclusao()).isTrue();
+	}
+
+	@Test
+	void permiteRetornarDeRecrutamentoParaPlanejamento() {
+		Estudo existente = estudo(EstadoEstudo.RECRUTAMENTO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.PLANEJAMENTO)).getEstado())
+				.isEqualTo(EstadoEstudo.PLANEJAMENTO);
+	}
+
+	@Test
+	void rejeitaTransicaoInvalida() {
+		Estudo existente = estudo(EstadoEstudo.PLANEJAMENTO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.EXECUCAO)))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("TRANSICAO_ESTADO_INVALIDA");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(ex.getMessage()).contains("PLANEJAMENTO -> EXECUCAO");
+				});
+	}
+
+	@Test
+	void rejeitaManterMesmoEstado() {
+		Estudo existente = estudo(EstadoEstudo.EXECUCAO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.EXECUCAO)))
+				.isInstanceOf(RegraNegocioException.class)
+				.satisfies(ex -> assertThat(((RegraNegocioException) ex).getCodigo())
+						.isEqualTo("TRANSICAO_ESTADO_INVALIDA"));
+	}
+
+	@Test
+	void encerradoNaoPermiteQualquerMudanca() {
+		Estudo existente = estudo(EstadoEstudo.ENCERRADO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.PLANEJAMENTO)))
+				.isInstanceOf(RegraNegocioException.class);
+	}
+
+	@Test
+	void inclusaoSomenteEmRecrutamento() {
+		assertThat(estudo(EstadoEstudo.RECRUTAMENTO).permiteInclusao()).isTrue();
+		assertThat(estudo(EstadoEstudo.PLANEJAMENTO).permiteInclusao()).isFalse();
+		assertThat(estudo(EstadoEstudo.EXECUCAO).permiteInclusao()).isFalse();
+		assertThat(estudo(EstadoEstudo.ENCERRADO).permiteInclusao()).isFalse();
 	}
 
 	// ---- Consulta

@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -39,6 +40,7 @@ import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.config.erro.ValidacaoException;
 import clinicalstudypb.estudo.dto.EstudoRequest;
+import clinicalstudypb.estudo.dto.EstudoEstadoRequest;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.Usuario;
 
@@ -170,6 +172,33 @@ class EstudoControllerTest {
 		mvc.perform(put("/estudos/1").contentType(MediaType.APPLICATION_JSON).content(CORPO_VALIDO))
 				.andExpect(status().isConflict())
 				.andExpect(jsonPath("$.codigo").value("ESTUDO_ENCERRADO"));
+	}
+
+	@Test
+	void alterarEstadoRetorna200() throws Exception {
+		Estudo alterado = estudo(1L);
+		ReflectionTestUtils.setField(alterado, "estado", EstadoEstudo.RECRUTAMENTO);
+		when(servico.alterarEstado(eq(1L), any(EstudoEstadoRequest.class))).thenReturn(alterado);
+
+		mvc.perform(patch("/estudos/1/estado").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"estado\":\"RECRUTAMENTO\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(1))
+				.andExpect(jsonPath("$.estado").value("RECRUTAMENTO"));
+	}
+
+	@Test
+	void alterarEstadoInvalidoRetorna409() throws Exception {
+		when(servico.alterarEstado(eq(1L), any(EstudoEstadoRequest.class))).thenThrow(
+				new RegraNegocioException("TRANSICAO_ESTADO_INVALIDA",
+						"Transição de estado inválida: PLANEJAMENTO -> EXECUCAO", HttpStatus.CONFLICT));
+
+		mvc.perform(patch("/estudos/1/estado").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"estado\":\"EXECUCAO\"}"))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("TRANSICAO_ESTADO_INVALIDA"))
+				.andExpect(jsonPath("$.mensagem").value(
+						"Transição de estado inválida: PLANEJAMENTO -> EXECUCAO"));
 	}
 
 	private static Estudo estudo(Long id) {

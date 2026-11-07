@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import clinicalstudypb.config.PaginaResponse;
 import clinicalstudypb.estudo.dto.EstudoRequest;
+import clinicalstudypb.estudo.dto.EstudoEstadoRequest;
 import clinicalstudypb.estudo.dto.EstudoResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -57,6 +59,11 @@ public class EstudoController {
 	@PutMapping("/{id}")
 	public EstudoResponse atualizar(@PathVariable Long id, @RequestBody @Valid EstudoRequest dados) {
 		return EstudoResponse.de(servico.atualizar(id, dados));
+	}
+
+	@PatchMapping("/{id}/estado")
+	public EstudoResponse alterarEstado(@PathVariable Long id, @RequestBody @Valid EstudoEstadoRequest dados) {
+		return EstudoResponse.de(servico.alterarEstado(id, dados));
 	}
 
 }

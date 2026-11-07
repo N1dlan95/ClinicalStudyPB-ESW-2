@@ -43,6 +43,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(rotas -> rotas
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+				.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 				.requestMatchers("/error").permitAll()
 				// Autenticação: qualquer perfil logado
 				.requestMatchers("/auth/**").authenticated()

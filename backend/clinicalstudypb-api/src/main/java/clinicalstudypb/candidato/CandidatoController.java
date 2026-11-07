@@ -20,10 +20,13 @@ import clinicalstudypb.config.PaginaResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 // RF08: candidatos vinculados a um estudo
 @RestController
 @RequestMapping("/estudos/{estudoId}/candidatos")
+@Tag(name = "Candidatos", description = "Candidatos vinculados aos estudos clínicos")
 public class CandidatoController {
 
 	private final CandidatoService servico;
@@ -33,6 +36,7 @@ public class CandidatoController {
 	}
 
 	@GetMapping
+	@Operation(summary = "Lista candidatos", description = "Lista candidatos de um estudo com filtros opcionais.")
 	public PaginaResponse<CandidatoResponse> listar(
 			@PathVariable Long estudoId,
 			@RequestParam(required = false) StatusCandidato status,
@@ -43,11 +47,13 @@ public class CandidatoController {
 	}
 
 	@GetMapping("/{id}")
+	@Operation(summary = "Consulta um candidato", description = "Retorna os dados de um candidato pelo identificador.")
 	public CandidatoResponse buscar(@PathVariable Long estudoId, @PathVariable Long id) {
 		return CandidatoResponse.de(servico.buscar(estudoId, id));
 	}
 
 	@PostMapping
+	@Operation(summary = "Cadastra um candidato", description = "Vincula um candidato a um estudo clínico.")
 	public ResponseEntity<CandidatoResponse> criar(@PathVariable Long estudoId,
 			@RequestBody @Valid CandidatoRequest dados) {
 		Candidato candidato = servico.criar(estudoId, dados);
@@ -56,6 +62,7 @@ public class CandidatoController {
 	}
 
 	@PutMapping("/{id}")
+	@Operation(summary = "Atualiza um candidato", description = "Atualiza os dados de um candidato do estudo.")
 	public CandidatoResponse atualizar(@PathVariable Long estudoId, @PathVariable Long id,
 			@RequestBody @Valid CandidatoRequest dados) {
 		return CandidatoResponse.de(servico.atualizar(estudoId, id, dados));

@@ -152,6 +152,27 @@ textarea.pn-campo__entrada { resize: vertical; }
   margin-bottom: 8px;
 }
 
+/* Prévia de calendário (somente visual, não é salva na API) */
+.calendario-previa {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+.calendario-previa h2 { margin: 0 0 6px; font-size: 14px; }
+.calendario-previa__campos { display: grid; grid-template-columns: 170px 130px; gap: 12px; }
+.previa-data {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f3f6fa;
+  color: #34495e;
+  font-size: 12px;
+}
+.previa-data--cartao { display: inline-block; margin-top: 8px; padding: 4px 10px; }
+
 /* ---------- Controle de estados do estudo (RF07) ---------- */
 .fluxo-estados {
   display: grid;
@@ -177,6 +198,7 @@ textarea.pn-campo__entrada { resize: vertical; }
 @media (max-width: 720px) {
   .fluxo-estados { grid-template-columns: 1fr 1fr; }
   .linha-atividade-form { grid-template-columns: 1fr; }
+  .calendario-previa { grid-template-columns: 1fr; }
 }
 
 

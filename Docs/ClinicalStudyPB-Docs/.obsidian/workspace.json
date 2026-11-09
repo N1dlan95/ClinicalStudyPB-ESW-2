@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Diagramas/MER-v2.md",
+                "file": "Sprints/pendencia-visitas-data-hora.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "MER-v2"
+              "title": "pendencia-visitas-data-hora"
             }
           }
         ]
@@ -190,8 +190,9 @@
   },
   "active": "7da7570ae07779bd",
   "lastOpenFiles": [
-    "Diagramas/MER-v1.md",
     "Diagramas/MER-v2.md",
+    "Sprints/pendencia-visitas-data-hora.md",
+    "Diagramas/MER-v1.md",
     "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Sprints/sprint-2.md",
     "Testes/bug-bash-2026-11-06.md",

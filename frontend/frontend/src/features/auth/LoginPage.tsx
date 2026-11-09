@@ -4,6 +4,15 @@ import { useAuth } from './useAuth'
 import { validarLogin, type ErrosLogin } from './validacao'
 import './LoginPage.css'
 
+// Contas de demonstração criadas pela migração V2__inserir_usuarios_demo.sql.
+// Somente para desenvolvimento: não usar em produção.
+const SENHA_DEMO = 'Senha@123'
+const CONTAS_DEMO = [
+  { nome: 'Administrador Demo', perfil: 'Administrador', email: 'admin@clinicalstudypb.test' },
+  { nome: 'Ana Pesquisadora', perfil: 'Pesquisador', email: 'pesquisador@clinicalstudypb.test' },
+  { nome: 'Carlos Coordenador', perfil: 'Coordenador', email: 'coordenador@clinicalstudypb.test' },
+]
+
 export function LoginPage() {
   const { entrar } = useAuth()
   const [email, setEmail] = useState('')
@@ -122,6 +131,35 @@ export function LoginPage() {
             </svg>
             Acesso restrito a administradores, coordenadores e pesquisadores. Participantes usam o aplicativo móvel.
           </p>
+
+          <section className="login__demo" aria-labelledby="titulo-contas-demo">
+            <h2 id="titulo-contas-demo">Contas de demonstração</h2>
+            <p className="login__demo-dica">
+              Clique em uma conta para preencher o formulário. Senha de todas: <code>{SENHA_DEMO}</code>
+            </p>
+            <ul>
+              {CONTAS_DEMO.map((conta) => (
+                <li key={conta.email}>
+                  <button
+                    type="button"
+                    className="login__demo-conta"
+                    aria-label={`Preencher com ${conta.nome}`}
+                    onClick={() => {
+                      setEmail(conta.email)
+                      setSenha(SENHA_DEMO)
+                      setErros({})
+                      setMensagemErro('')
+                    }}
+                  >
+                    <strong>{conta.nome}</strong>
+                    <span className="login__demo-perfil">{conta.perfil}</span>
+                    <small>{conta.email}</small>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <small className="login__demo-rodape">Somente para desenvolvimento.</small>
+          </section>
         </div>
       </main>
     </div>

@@ -82,6 +82,27 @@ beforeEach(() => {
 })
 
 describe('VisitasPrevistasPage', () => {
+  it('mostra a prévia de data e hora a partir da data de referência e do horário', async () => {
+    const usuario = renderizar()
+    await screen.findByText('Visita #1 · Visita de triagem')
+
+    // Por padrão, D0 = data de início do estudo (10/11/2026) e horário 08:00
+    const textoCartao = () =>
+      document.querySelector('.previa-data--cartao')?.textContent ?? ''
+    expect(textoCartao()).toContain('10/11/2026 às 08:00')
+    expect(textoCartao()).toContain('janela de 10/11/2026 a 12/11/2026')
+
+    const referencia = screen.getByLabelText('Data de referência (D0)')
+    await usuario.clear(referencia)
+    await usuario.type(referencia, '2026-12-01')
+    const horario = screen.getByLabelText('Horário sugerido')
+    await usuario.clear(horario)
+    await usuario.type(horario, '14:30')
+
+    expect(textoCartao()).toContain('01/12/2026 às 14:30')
+    expect(textoCartao()).toContain('janela de 01/12/2026 a 03/12/2026')
+  })
+
   it('exibe as visitas previstas e suas atividades', async () => {
     renderizar()
 

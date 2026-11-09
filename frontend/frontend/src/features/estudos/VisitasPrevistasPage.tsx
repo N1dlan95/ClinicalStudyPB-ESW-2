@@ -12,6 +12,41 @@ import {
 } from './estudosService'
 import { ROTULO_ESTADO, type Estudo, type VisitaPrevista } from './tipos'
 
+// ---------- Prévia de calendário (somente na tela, não é salva na API) ----------
+// A visita prevista é um modelo do protocolo: o dia é relativo à inclusão (D0).
+// Para facilitar a leitura, a tela converte o dia relativo em data e hora a partir
+// de uma data de referência escolhida pelo usuário.
+// Pendência registrada em Docs/ClinicalStudyPB-Docs/Sprints/pendencia-visitas-data-hora.md
+
+// Soma dias a uma data ISO (aaaa-mm-dd) usando UTC, para não sofrer com fuso/horário de verão
+function somarDias(iso: string, dias: number): string {
+  const [ano, mes, dia] = iso.split('-').map(Number)
+  const data = new Date(Date.UTC(ano, mes - 1, dia + dias))
+  return data.toISOString().slice(0, 10)
+}
+
+function formatarBR(iso: string): string {
+  const [ano, mes, dia] = iso.split('-')
+  return `${dia}/${mes}/${ano}`
+}
+
+function descreverDataPrevista(
+  referencia: string,
+  horario: string,
+  diaPrevisto: number,
+  janelaDias: number | null,
+): { data: string; janela: string | null } | null {
+  if (!referencia || !Number.isInteger(diaPrevisto) || diaPrevisto < 0) return null
+  const data = `${formatarBR(somarDias(referencia, diaPrevisto))}${horario ? ` às ${horario}` : ''}`
+  const janela =
+    janelaDias && janelaDias > 0
+      ? `${formatarBR(somarDias(referencia, Math.max(0, diaPrevisto - janelaDias)))} a ${formatarBR(
+          somarDias(referencia, diaPrevisto + janelaDias),
+        )}`
+      : null
+  return { data, janela }
+}
+
 interface AtividadeForm {
   ordem: string
   descricao: string
@@ -99,6 +134,10 @@ export function VisitasPrevistasPage() {
   const [mensagemErro, setMensagemErro] = useState('')
   const [sucesso, setSucesso] = useState('')
 
+  // Prévia de calendário: data de referência (D0) e horário sugerido
+  const [dataReferencia, setDataReferencia] = useState('')
+  const [horario, setHorario] = useState('08:00')
+
   const encerrado = estudo?.estado === 'ENCERRADO'
 
   useEffect(() => {
@@ -109,6 +148,8 @@ export function VisitasPrevistasPage() {
         setEstudo(dadosEstudo)
         setVisitas(lista)
         setOrdem(String(lista.length + 1))
+        // Por padrão, a prévia usa a data de início do estudo como D0
+        setDataReferencia(dadosEstudo.dataInicio)
       })
       .catch((erro) => {
         if (ativo) {
@@ -276,6 +317,37 @@ export function VisitasPrevistasPage() {
         </div>
       )}
 
+      <section className="cartao calendario-previa" aria-labelledby="titulo-calendario-previa">
+        <div>
+          <h2 id="titulo-calendario-previa">Prévia de calendário</h2>
+          <p className="cartao__texto">
+            As visitas são definidas em dias após a inclusão (D0). Escolha uma data de referência e um horário
+            para ver as datas previstas. <strong>Esses dois campos não são salvos</strong>: cada participante
+            terá o próprio calendário a partir da data em que for incluído.
+          </p>
+        </div>
+        <div className="calendario-previa__campos">
+          <label className="pn-campo">
+            <span className="pn-campo__rotulo">Data de referência (D0)</span>
+            <input
+              type="date"
+              className="pn-campo__entrada"
+              value={dataReferencia}
+              onChange={(e) => setDataReferencia(e.target.value)}
+            />
+          </label>
+          <label className="pn-campo">
+            <span className="pn-campo__rotulo">Horário sugerido</span>
+            <input
+              type="time"
+              className="pn-campo__entrada"
+              value={horario}
+              onChange={(e) => setHorario(e.target.value)}
+            />
+          </label>
+        </div>
+      </section>
+
       <form className="cartao formulario" onSubmit={enviar} noValidate>
         <fieldset className="formulario__campos" disabled={encerrado || salvando}>
           <section>
@@ -372,6 +444,22 @@ export function VisitasPrevistasPage() {
                 onChange={(e) => setDescricao(e.target.value)}
               />
             </label>
+
+            {(() => {
+              const previa = descreverDataPrevista(
+                dataReferencia,
+                horario,
+                diaPrevisto.trim() === '' ? NaN : Number(diaPrevisto),
+                janelaDias.trim() === '' ? null : Number(janelaDias),
+              )
+              if (!previa) return null
+              return (
+                <p className="previa-data" role="note">
+                  Data prevista (prévia): <strong>{previa.data}</strong>
+                  {previa.janela && <> · janela de {previa.janela}</>}
+                </p>
+              )
+            })()}
           </section>
 
           <section>
@@ -476,6 +564,21 @@ export function VisitasPrevistasPage() {
                 {visita.descricao && (
                   <p className="cartao-visita__descricao">{visita.descricao}</p>
                 )}
+                {(() => {
+                  const previa = descreverDataPrevista(
+                    dataReferencia,
+                    horario,
+                    visita.diaPrevisto,
+                    visita.janelaDias,
+                  )
+                  if (!previa) return null
+                  return (
+                    <p className="previa-data previa-data--cartao">
+                      📅 {previa.data}
+                      {previa.janela && <> · janela de {previa.janela}</>}
+                    </p>
+                  )
+                })()}
               </div>
 
               {!encerrado && (

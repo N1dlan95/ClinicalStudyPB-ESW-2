@@ -4,7 +4,7 @@ tags:
   - eng-sw-2
   - mer
   - sprint-2
-atualizado: 2026-11-04
+atualizado: 2026-11-09
 status: Em revisão
 substitui: "[[MER-v1]]"
 ---
@@ -186,7 +186,7 @@ Colunas novas desta sprint:
 | RF08 | Candidato só é cadastrado com o estudo em RECRUTAMENTO; e-mail único no estudo | service + banco |
 | RF09 | Todos os critérios do estudo devem ser avaliados; resultado ELEGIVEL ou INELEGIVEL; grava quem avaliou e quando | service de avaliação |
 | RF09 | A avaliação pode ser refeita enquanto o candidato não tiver consentimento registrado; refazer substitui as respostas anteriores | service de avaliação |
-| RF10 | Consentimento só para candidato ELEGIVEL e sem consentimento anterior; grava quem registrou e quando | service de consentimento |
+| RF10 | Consentimento só para candidato ELEGIVEL, sem consentimento anterior e com o estudo não encerrado; grava quem registrou e quando | service de consentimento |
 | RF11 | Inclusão valida, nesta ordem: estudo em RECRUTAMENTO, candidato ELEGIVEL, consentimento registrado, vaga disponível (incluídos < limite) | service de inclusão |
 | RF11 | Ao incluir: status INCLUIDO e `data_inclusao` = hoje; a resposta traz vagas ocupadas e o limite | service de inclusão |
 
@@ -235,14 +235,14 @@ O Flyway aplica em ordem e não aceita dois arquivos com o mesmo número. Cada t
 | V2 | usuários de demonstração | 3116 | Na develop |
 | V3 | `estudo` | 3238 | Na develop |
 | V4 | `candidato` | 3558 | Na develop |
-| V5 | `criterio` | 3550 | Reservada |
-| V6 | `visita_prevista` e `atividade` | 3552 | Implementada |
-| V7 | `avaliacao_criterio` + `candidato.avaliado_em/avaliado_por_id` | 3560 | Reservada |
-| V8 | `candidato.consentimento_*` | 3563 | Reservada |
-| V9 | `candidato.data_inclusao` | 3565 | Reservada |
+| V5 | `criterio` | 3550 | Na develop |
+| V6 | `visita_prevista` e `atividade` | 3552 | Na develop |
+| V7 | `avaliacao_criterio` + `candidato.avaliado_em/avaliado_por_id` | 3560 | Na develop |
+| V8 | `candidato.consentimento_*` | 3563 | Na develop |
+| V9 | `candidato.data_inclusao` | 3565 | Na develop |
 
-> [!WARNING]
-> Se uma migração de número maior entrar na develop antes de uma de número menor, o Flyway recusa a menor nos bancos que já rodaram a maior. Nesse caso, recrie o banco local com `docker compose down -v` e suba de novo.
+> [!NOTE]
+> Com `spring.flyway.out-of-order=true`, uma migração de número menor que entrar na develop depois de outra de número maior é aplicada normalmente nos bancos que já rodaram a maior.
 
 ---
 

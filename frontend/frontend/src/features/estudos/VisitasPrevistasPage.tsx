@@ -257,9 +257,6 @@ export function VisitasPrevistasPage() {
             Cronograma de visitas do protocolo a partir da inclusão e atividades previstas em cada visita.
           </p>
         </div>
-        <Link to="/estudos" className="botao botao--contorno">
-          Voltar aos estudos
-        </Link>
       </div>
 
       {encerrado && (
@@ -535,6 +532,12 @@ export function VisitasPrevistasPage() {
           </div>
         )}
       </div>
+
+      <footer className="pagina__rodape">
+        <Link to="/estudos" className="botao botao--contorno">
+          Voltar aos estudos
+        </Link>
+      </footer>
     </div>
   )
 }

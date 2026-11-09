@@ -271,9 +271,6 @@ export function CriteriosPage() {
             Condições de inclusão e exclusão verificadas na triagem dos candidatos do estudo.
           </p>
         </div>
-        <Link to="/estudos" className="botao botao--contorno">
-          Voltar aos estudos
-        </Link>
       </div>
 
       {estudo && !emPlanejamento && (
@@ -399,6 +396,12 @@ export function CriteriosPage() {
           aoRemover={confirmarRemocao}
         />
       </div>
+
+      <footer className="pagina__rodape">
+        <Link to="/estudos" className="botao botao--contorno">
+          Voltar aos estudos
+        </Link>
+      </footer>
     </div>
   )
 }

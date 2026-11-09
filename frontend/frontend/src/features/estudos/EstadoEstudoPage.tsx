@@ -102,9 +102,6 @@ export function EstadoEstudoPage() {
             Controle de fases do ciclo de vida do estudo clínico conforme as transições permitidas.
           </p>
         </div>
-        <Link to="/estudos" className="botao botao--contorno">
-          Voltar aos estudos
-        </Link>
       </div>
 
       {erro && (
@@ -200,6 +197,11 @@ export function EstadoEstudoPage() {
           </p>
         </ConfirmacaoDialogo>
       )}
+      <footer className="pagina__rodape">
+        <Link to="/estudos" className="botao botao--contorno">
+          Voltar aos estudos
+        </Link>
+      </footer>
     </div>
   )
 }

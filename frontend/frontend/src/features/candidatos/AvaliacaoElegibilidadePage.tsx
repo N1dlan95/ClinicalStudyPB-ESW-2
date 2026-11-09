@@ -280,9 +280,6 @@ export function AvaliacaoElegibilidadePage() {
             Verificação critério por critério para determinar a elegibilidade do candidato no estudo.
           </p>
         </div>
-        <Link to={rotaDetalhe} className="botao botao--contorno">
-          Voltar ao candidato
-        </Link>
       </div>
 
       {motivoBloqueio && (
@@ -382,6 +379,12 @@ export function AvaliacaoElegibilidadePage() {
           </div>
         </footer>
       </form>
+
+      <footer className="pagina__rodape">
+        <Link to={rotaDetalhe} className="botao botao--contorno">
+          Voltar ao candidato
+        </Link>
+      </footer>
     </div>
   )
 }

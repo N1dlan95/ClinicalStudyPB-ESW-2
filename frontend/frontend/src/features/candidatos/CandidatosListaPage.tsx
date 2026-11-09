@@ -294,6 +294,12 @@ export function CandidatosListaPage() {
           Mostrando {filtrados.length} de {candidatos.length} candidatos
         </p>
       )}
+
+      <footer className="pagina__rodape">
+        <Link to="/estudos" className="botao botao--contorno">
+          Voltar aos estudos
+        </Link>
+      </footer>
     </div>
   )
 }

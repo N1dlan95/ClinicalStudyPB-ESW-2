@@ -204,21 +204,16 @@ export function CandidatoDetalhePage() {
             </span>
           )}
         </div>
-        <div className="formulario__acoes">
-          {candidato && (
-            <>
-              <Link to={`${lista}/${candidato.id}/avaliacao`} className="botao botao--contorno">
-                Avaliar elegibilidade
-              </Link>
-              <Link to={`${lista}/${candidato.id}/editar`} className="botao botao--contorno">
-                Editar dados
-              </Link>
-            </>
-          )}
-          <Link to={lista} className="botao botao--contorno">
-            Voltar à lista
-          </Link>
-        </div>
+        {candidato && (
+          <div className="formulario__acoes">
+            <Link to={`${lista}/${candidato.id}/avaliacao`} className="botao botao--contorno">
+              Avaliar elegibilidade
+            </Link>
+            <Link to={`${lista}/${candidato.id}/editar`} className="botao botao--contorno">
+              Editar dados
+            </Link>
+          </div>
+        )}
       </div>
 
       {erro && (
@@ -306,6 +301,11 @@ export function CandidatoDetalhePage() {
           </p>
         </ConfirmacaoDialogo>
       )}
+      <footer className="pagina__rodape">
+        <Link to={lista} className="botao botao--contorno">
+          Voltar à lista
+        </Link>
+      </footer>
     </div>
   )
 }

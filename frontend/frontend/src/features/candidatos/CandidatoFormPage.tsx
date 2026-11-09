@@ -277,6 +277,12 @@ export function CandidatoFormPage() {
           </div>
         </footer>
       </form>
+
+      <footer className="pagina__rodape">
+        <Link to={edicao ? `${voltar}/${id}` : voltar} className="botao botao--contorno">
+          {edicao ? 'Voltar ao candidato' : 'Voltar à lista'}
+        </Link>
+      </footer>
     </div>
   )
 }

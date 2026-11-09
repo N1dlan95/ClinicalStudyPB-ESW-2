@@ -11,12 +11,14 @@
             "id": "7da7570ae07779bd",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "Contexto-Geral/Dinâmica-e-Requisitos.pdf"
+                "file": "Diagramas/MER-v2.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "Dinâmica-e-Requisitos"
+              "icon": "lucide-file",
+              "title": "MER-v2"
             }
           }
         ]
@@ -188,14 +190,14 @@
   },
   "active": "7da7570ae07779bd",
   "lastOpenFiles": [
+    "Diagramas/MER-v1.md",
+    "Diagramas/MER-v2.md",
+    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Sprints/sprint-2.md",
     "Testes/bug-bash-2026-11-06.md",
     "Testes/roteiro-regressao-rf01-rf04.md",
     "Contexto-Geral/Orientacoes/setup-projeto-v1.md",
-    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Testes",
-    "Diagramas/MER-v1.md",
-    "Diagramas/MER-v2.md",
     "Sprints/sprint-1.md",
     "api/como-acessar-contrato-api.md",
     "Diagramas/como-acessar-contrato-api.md",

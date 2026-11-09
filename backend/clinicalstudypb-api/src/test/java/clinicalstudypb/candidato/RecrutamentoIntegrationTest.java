@@ -220,6 +220,20 @@ class RecrutamentoIntegrationTest {
 	}
 
 	@Test
+	void consentimentoEmEstudoEncerradoEBloqueado() throws Exception {
+		Long candidatoId = cadastrarPelaApi("bia@teste.com");
+		avaliarPelaApi(candidatoId, true, false).andExpect(status().isOk());
+		definirEstado("ENCERRADO");
+
+		mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/consentimento")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("ESTUDO_ENCERRADO"));
+
+		assertThat(jdbc.queryForObject("select consentimento_registrado_em from candidato where id = ?",
+				java.sql.Timestamp.class, candidatoId)).isNull();
+	}
+
+	@Test
 	void buscaEListagemDoCandidatoTrazemOConsentimento() throws Exception {
 		Long comConsentimento = candidatoProntoParaIncluir("com@teste.com");
 		Long semConsentimento = cadastrarPelaApi("sem@teste.com");

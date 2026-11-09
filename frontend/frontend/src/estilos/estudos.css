@@ -75,3 +75,108 @@
 .pn-campo__dica { color: var(--texto-suave); font-size: 10px; }
 textarea.pn-campo__entrada { resize: vertical; }
 
+/* ---------- Navegação entre seções do estudo ---------- */
+.abas-estudo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--borda);
+}
+.abas-estudo__item {
+  padding: 6px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--texto);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.abas-estudo__item:hover { border-color: var(--vinho); color: var(--vinho); }
+.abas-estudo__item--ativo {
+  border-color: var(--vinho);
+  background: var(--rosa-claro);
+  color: var(--vinho);
+  font-weight: 600;
+}
+
+/* ---------- Critérios de elegibilidade (RF05) ---------- */
+.selo--inclusao { background: #e3f4e6; color: #2e7d32; }
+.selo--exclusao { background: var(--erro-fundo); color: var(--erro); }
+.grade-criterios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.cabecalho-cartao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borda);
+}
+.cabecalho-cartao h2 { margin: 0; font-size: 14px; }
+.cabecalho-cartao small { display: block; color: var(--texto-suave); font-size: 11px; margin-top: 2px; }
+.botao--perigo {
+  border: 1px solid #e6b8b3;
+  background: #fff;
+  color: var(--erro);
+}
+.botao--perigo:hover { background: var(--erro-fundo); }
+
+/* ---------- Visitas previstas e atividades (RF06) ---------- */
+.selo--dia { background: var(--rosa-claro); color: var(--vinho); }
+.selo--janela { background: #f3f6fa; color: #34495e; }
+.lista-visitas { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.cartao-visita { overflow: hidden; }
+.cartao-visita__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #fcf8fa;
+  border-bottom: 1px solid var(--borda);
+}
+.cartao-visita__titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cartao-visita__titulo h3 { margin: 0; font-size: 14px; }
+.cartao-visita__descricao { margin: 6px 0 0; color: var(--texto-suave); font-size: 12px; }
+.linha-atividade-form {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+/* ---------- Controle de estados do estudo (RF07) ---------- */
+.fluxo-estados {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.fluxo-estados__passo {
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--texto-suave);
+}
+.fluxo-estados__passo small { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+.fluxo-estados__passo strong { display: block; margin-top: 2px; font-size: 13px; }
+.fluxo-estados__passo--concluido { background: #f9f5f7; color: var(--texto); }
+.fluxo-estados__passo--ativo {
+  border-color: var(--vinho);
+  background: var(--rosa-claro);
+  color: var(--vinho);
+}
+@media (max-width: 720px) {
+  .fluxo-estados { grid-template-columns: 1fr 1fr; }
+  .linha-atividade-form { grid-template-columns: 1fr; }
+}
+
+

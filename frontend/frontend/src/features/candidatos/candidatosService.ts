@@ -1,6 +1,8 @@
 import { isAxiosError } from 'axios'
 import { api } from '../../services/api'
 import type {
+  Avaliacao,
+  AvaliacaoEntrada,
   CampoCandidato,
   Candidato,
   CandidatoEntrada,
@@ -127,3 +129,16 @@ export async function contarIncluidos(estudoId: number): Promise<number> {
 export function incluirCandidato(candidatoId: number): Promise<ResultadoInclusao> {
   return chamar(() => api.post<ResultadoInclusao>(`/candidatos/${candidatoId}/inclusao`))
 }
+
+// RF09: consulta e registra a avaliação de elegibilidade critério por critério
+export function consultarAvaliacao(candidatoId: number): Promise<Avaliacao> {
+  return chamar(() => api.get<Avaliacao>(`/candidatos/${candidatoId}/avaliacao`))
+}
+
+export function registrarAvaliacao(
+  candidatoId: number,
+  dados: AvaliacaoEntrada,
+): Promise<Avaliacao> {
+  return chamar(() => api.put<Avaliacao>(`/candidatos/${candidatoId}/avaliacao`, dados))
+}
+

@@ -69,3 +69,54 @@
   .detalhe__resumo, .lista__resumo { flex-direction: column; }
   .contador-vagas { width: auto; }
 }
+
+/* ---------- Avaliação de elegibilidade (RF09, task 3561) ---------- */
+.item-avaliacao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--borda);
+}
+.item-avaliacao:last-child { border-bottom: 0; }
+.item-avaliacao__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.item-avaliacao__descricao {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto);
+}
+.opcoes-atende {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+.opcoes-atende label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.previa-veredito {
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin: 14px 20px 0;
+  font-size: 12px;
+}
+.previa-veredito--elegivel {
+  background: #e3f4e6;
+  border: 1px solid #b9e0c0;
+  color: #2e7d32;
+}
+.previa-veredito--inelegivel {
+  background: var(--erro-fundo);
+  border: 1px solid #f2b8b5;
+  color: var(--erro);
+}
+

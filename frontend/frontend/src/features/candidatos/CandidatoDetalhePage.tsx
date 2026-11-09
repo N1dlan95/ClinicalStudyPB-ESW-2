@@ -206,9 +206,14 @@ export function CandidatoDetalhePage() {
         </div>
         <div className="formulario__acoes">
           {candidato && (
-            <Link to={`${lista}/${candidato.id}/editar`} className="botao botao--contorno">
-              Editar dados
-            </Link>
+            <>
+              <Link to={`${lista}/${candidato.id}/avaliacao`} className="botao botao--contorno">
+                Avaliar elegibilidade
+              </Link>
+              <Link to={`${lista}/${candidato.id}/editar`} className="botao botao--contorno">
+                Editar dados
+              </Link>
+            </>
           )}
           <Link to={lista} className="botao botao--contorno">
             Voltar à lista

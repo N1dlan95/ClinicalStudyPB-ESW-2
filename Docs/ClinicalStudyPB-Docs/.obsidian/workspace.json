@@ -11,14 +11,12 @@
             "id": "7da7570ae07779bd",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "pdf",
               "state": {
-                "file": "api/como-acessar-contrato-api.md",
-                "mode": "source",
-                "source": false
+                "file": "Contexto-Geral/Dinâmica-e-Requisitos.pdf"
               },
-              "icon": "lucide-file",
-              "title": "como-acessar-contrato-api"
+              "icon": "lucide-file-text",
+              "title": "Dinâmica-e-Requisitos"
             }
           }
         ]
@@ -83,7 +81,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "181c9c85a341b894",
@@ -190,13 +188,20 @@
   },
   "active": "7da7570ae07779bd",
   "lastOpenFiles": [
+    "Sprints/sprint-2.md",
+    "Testes/bug-bash-2026-11-06.md",
+    "Testes/roteiro-regressao-rf01-rf04.md",
+    "Contexto-Geral/Orientacoes/setup-projeto-v1.md",
+    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
+    "Testes",
+    "Diagramas/MER-v1.md",
+    "Diagramas/MER-v2.md",
     "Sprints/sprint-1.md",
+    "api/como-acessar-contrato-api.md",
     "Diagramas/como-acessar-contrato-api.md",
     "api/openapi.yaml",
-    "api/como-acessar-contrato-api.md",
     "api",
     "Nova pasta",
-    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Sprints/Sem título.md",
     "Sem título.md",
     "Contexto-Geral/ProjetoES2-2026.2.pdf.crdownload",

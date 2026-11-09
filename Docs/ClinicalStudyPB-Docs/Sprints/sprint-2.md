@@ -39,15 +39,15 @@ status: em andamento
 
 ### Equipe e papéis nesta sprint
 
-| # | Papel | Responsável | Foco | Horas planejadas |
-| --- | --- | --- | --- | --- |
-| 1 | Gerente | Mirelle | Coordenação da sprint, backend de visitas (RF06) e estados (RF07), contrato OpenAPI, Swagger UI e README | 35h |
-| 2 | Desenvolvedor Backend | Maria Eduarda | MER/DER, backend de candidatos (RF08), elegibilidade (RF09) e inclusão (RF11), testes do recrutamento | 37h |
-| 3 | Desenvolvedor Web 1 | Nidlan Hendell | Protótipo e telas de critérios, visitas, estado do estudo e elegibilidade; testes de componente; capturas de tela | 40h |
-| 4 | Desenvolvedor Web 2 | Jasmine | Integração dos estudos à API (RF04), protótipo do recrutamento, telas de candidatos, consentimento e inclusão; testes | 38h |
-| 5 | Desenvolvedor Mobile | Arthur | Mobile congelado nesta sprint; CI e cobertura, migração e seed, backend de critérios (RF05) e consentimento (RF10), testes de integração | 25h |
-| 6 | QA | Adrielly | QA: testes E2E, CI, relatório de cobertura, regressão e bug bash; testes do cadastro de estudos; credenciais; tag e Release | 28h |
-| | | **Total** | | **203h** |
+| #   | Papel                 | Responsável    | Foco                                                                                                                                     | Horas planejadas |
+| --- | --------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 1   | Gerente               | Mirelle        | Coordenação da sprint, backend de visitas (RF06) e estados (RF07), contrato OpenAPI, Swagger UI e README                                 | 35h              |
+| 2   | Desenvolvedor Backend | Maria Eduarda  | MER/DER, backend de candidatos (RF08), elegibilidade (RF09) e inclusão (RF11), testes do recrutamento                                    | 37h              |
+| 3   | Desenvolvedor Web 1   | Nidlan Hendell | Protótipo e telas de critérios, visitas, estado do estudo e elegibilidade; testes de componente; capturas de tela                        | 40h              |
+| 4   | Desenvolvedor Web 2   | Jasmine        | Integração dos estudos à API (RF04), protótipo do recrutamento, telas de candidatos, consentimento e inclusão; testes                    | 38h              |
+| 5   | Desenvolvedor Mobile  | Arthur         | Mobile congelado nesta sprint; CI e cobertura, migração e seed, backend de critérios (RF05) e consentimento (RF10), testes de integração | 25h              |
+| 6   | QA                    | Adrielly       | QA: testes E2E, CI, relatório de cobertura, regressão e bug bash; testes do cadastro de estudos; credenciais; tag e Release              | 28h              |
+|     |                       | **Total**      |                                                                                                                                          | **203h**         |
 
 > [!info] Rotação
 > Na Sprint 1 os papéis eram: Líder/Gerente Nidlan Hendell, Backend Maria Eduarda, Web (estudos) Mirelle, Web (usuários) Adrielly, Mobile Jasmine e QA/DevOps Arthur.

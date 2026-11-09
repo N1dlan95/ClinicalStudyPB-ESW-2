@@ -112,17 +112,32 @@ export function EstudosListaPage() {
                   <span className={`selo selo--${estudo.estado.toLowerCase()}`}>{ROTULO_ESTADO[estudo.estado]}</span>
                 </td>
                 <td className="tabela__acao">
-                  {pode('gerenciarCandidatos') && (
-                    <Link to={`/estudos/${estudo.id}/candidatos`} className="link">
-                      Candidatos
-                    </Link>
-                  )}
-                  {/* Estudo encerrado não pode ser editado (openapi.yaml, PUT /estudos/{id}) */}
-                  {pode('editarEstudos') && estudo.estado !== 'ENCERRADO' && (
-                    <Link to={`/estudos/${estudo.id}/editar`} className="link">
-                      Editar
-                    </Link>
-                  )}
+                  <span className="formulario__acoes" style={{ justifyContent: 'flex-end' }}>
+                    {pode('gerenciarCandidatos') && (
+                      <Link to={`/estudos/${estudo.id}/candidatos`} className="link">
+                        Candidatos
+                      </Link>
+                    )}
+                    {pode('editarEstudos') && (
+                      <>
+                        <Link to={`/estudos/${estudo.id}/criterios`} className="link">
+                          Critérios
+                        </Link>
+                        <Link to={`/estudos/${estudo.id}/visitas-previstas`} className="link">
+                          Visitas
+                        </Link>
+                        <Link to={`/estudos/${estudo.id}/estado`} className="link">
+                          Estado
+                        </Link>
+                      </>
+                    )}
+                    {/* Estudo encerrado não pode ser editado (openapi.yaml, PUT /estudos/{id}) */}
+                    {pode('editarEstudos') && estudo.estado !== 'ENCERRADO' && (
+                      <Link to={`/estudos/${estudo.id}/editar`} className="link">
+                        Editar
+                      </Link>
+                    )}
+                  </span>
                 </td>
               </tr>
             ))}

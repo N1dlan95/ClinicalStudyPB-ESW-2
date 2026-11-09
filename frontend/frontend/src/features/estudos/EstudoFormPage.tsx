@@ -2,9 +2,11 @@ import '../../estilos/estudos.css'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { AbasEstudo } from './AbasEstudo'
 import { brParaIso, isoParaBR, mascaraData } from './datas'
 import {
   ErroEstudoApi,
+  alterarEstadoEstudo,
   atualizarEstudo,
   buscarEstudo,
   criarEstudo,
@@ -12,14 +14,24 @@ import {
   traduzirErro,
 } from './estudosService'
 import {
+  DESCRICAO_ESTADO,
   ROTULO_ESTADO,
+  TRANSICOES_ESTADO,
   type CampoEstudo,
+  type EstadoEstudo,
   type Estudo,
   type ErrosEstudo,
   type FormularioEstudo,
   type Pesquisador,
 } from './tipos'
 import { OBJETIVO_MAX, ORDEM_CAMPOS, ROTULO_CAMPO, validarEstudo } from './validacao'
+
+const ROTULO_BOTAO_TRANSICAO: Record<EstadoEstudo, string> = {
+  PLANEJAMENTO: 'Retornar para Planejamento',
+  RECRUTAMENTO: 'Iniciar recrutamento',
+  EXECUCAO: 'Avançar para Em execução',
+  ENCERRADO: 'Encerrar estudo',
+}
 
 const FORMULARIO_VAZIO: FormularioEstudo = {
   titulo: '',
@@ -80,8 +92,10 @@ export function EstudoFormPage() {
   const [pesquisadores, setPesquisadores] = useState<Pesquisador[]>([])
   const [erros, setErros] = useState<ErrosEstudo>({})
   const [mensagemErro, setMensagemErro] = useState('')
+  const [mensagemSucesso, setMensagemSucesso] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
+  const [alterandoEstado, setAlterandoEstado] = useState(false)
 
   const encerrado = estudo?.estado === 'ENCERRADO'
 
@@ -183,6 +197,22 @@ export function EstudoFormPage() {
     }
   }
 
+  async function mudarEstado(destino: EstadoEstudo) {
+    if (!id) return
+    setAlterandoEstado(true)
+    setMensagemErro('')
+    setMensagemSucesso('')
+    try {
+      const atualizado = await alterarEstadoEstudo(Number(id), destino)
+      setEstudo(atualizado)
+      setMensagemSucesso(`Estado do estudo alterado para ${ROTULO_ESTADO[atualizado.estado]}.`)
+    } catch (erro) {
+      setMensagemErro(`Não foi possível alterar o estado do estudo. ${traduzirErro(erro).message}`)
+    } finally {
+      setAlterandoEstado(false)
+    }
+  }
+
   const camposComErro = ORDEM_CAMPOS.filter((c) => erros[c])
 
   if (carregando) {
@@ -198,6 +228,7 @@ export function EstudoFormPage() {
       <nav className="migalhas">
         <Link to="/estudos">Estudos</Link> / {edicao ? (estudo?.titulo ?? 'Editar') : 'Novo estudo'}
       </nav>
+      {edicao && id && <AbasEstudo estudoId={Number(id)} ativa="dados" />}
       <div className="titulo-com-selo">
         <h1>{edicao ? 'Editar estudo' : 'Novo estudo'}</h1>
         {estudo && (
@@ -222,6 +253,11 @@ export function EstudoFormPage() {
           {mensagemErro}
         </div>
       )}
+      {mensagemSucesso && (
+        <div className="aviso aviso--sucesso" role="status">
+          {mensagemSucesso}
+        </div>
+      )}
       {encerrado && (
         <div className="aviso aviso--atencao">Estudo encerrado não pode ser editado.</div>
       )}
@@ -229,6 +265,46 @@ export function EstudoFormPage() {
         <div className="aviso aviso--info">
           O estudo é criado no estado Planejamento. A mudança de estado é feita depois do cadastro.
         </div>
+      )}
+
+      {edicao && estudo && (
+        <section className="cartao formulario" aria-label="Estado e protocolo do estudo">
+          <div className="criterios-secao__cabecalho">
+            <div>
+              <h2>Estado e protocolo do estudo</h2>
+              <p className="pagina__subtitulo">{DESCRICAO_ESTADO[estudo.estado]}</p>
+            </div>
+            <div className="formulario__acoes">
+              <Link to={`/estudos/${estudo.id}/criterios`} className="botao botao--contorno botao--pequeno">
+                Definir critérios de elegibilidade
+              </Link>
+              <Link to={`/estudos/${estudo.id}/visitas-previstas`} className="botao botao--contorno botao--pequeno">
+                Configurar visitas previstas
+              </Link>
+            </div>
+          </div>
+          {TRANSICOES_ESTADO[estudo.estado].length > 0 && (
+            <div className="formulario__acoes">
+              {TRANSICOES_ESTADO[estudo.estado].map((destino) => (
+                <button
+                  key={destino}
+                  type="button"
+                  className={
+                    destino === 'ENCERRADO'
+                      ? 'botao botao--perigo botao--pequeno'
+                      : destino === 'PLANEJAMENTO'
+                        ? 'botao botao--contorno botao--pequeno'
+                        : 'botao botao--primario botao--pequeno'
+                  }
+                  disabled={alterandoEstado}
+                  onClick={() => mudarEstado(destino)}
+                >
+                  {ROTULO_BOTAO_TRANSICAO[destino]}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       <form className="cartao formulario" onSubmit={enviar} noValidate>

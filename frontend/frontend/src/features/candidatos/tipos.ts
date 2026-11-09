@@ -57,3 +57,39 @@ export interface FormularioCandidato {
 
 export type CampoCandidato = keyof FormularioCandidato
 export type ErrosCandidato = Partial<Record<CampoCandidato, string>>
+
+// Avaliação de elegibilidade (RF09, schemas Avaliacao e AvaliacaoEntrada em openapi.yaml)
+export type TipoCriterioAvaliacao = 'INCLUSAO' | 'EXCLUSAO'
+
+export interface AvaliacaoItem {
+  criterioId: number
+  tipo: TipoCriterioAvaliacao
+  descricao: string
+  ordem: number
+  atende: boolean | null
+  observacao: string | null
+}
+
+export interface Avaliador {
+  id: number
+  nome: string
+}
+
+export interface Avaliacao {
+  candidatoId: number
+  status: StatusCandidato
+  avaliadoEm: string | null
+  avaliadoPor: Avaliador | null
+  criterios: AvaliacaoItem[]
+}
+
+export interface AvaliacaoRespostaEntrada {
+  criterioId: number
+  atende: boolean
+  observacao: string | null
+}
+
+export interface AvaliacaoEntrada {
+  respostas: AvaliacaoRespostaEntrada[]
+}
+

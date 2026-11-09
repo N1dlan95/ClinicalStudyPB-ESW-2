@@ -86,6 +86,21 @@ class ConsentimentoServiceTest {
 	}
 
 	@Test
+	void estudoEncerradoGeraConflitoSemRegistrar() {
+		Candidato candidato = CandidatoServiceTest.candidato(5L,
+				CandidatoServiceTest.estudo(1L, EstadoEstudo.ENCERRADO), StatusCandidato.ELEGIVEL);
+		when(candidatos.buscarParaAtualizar(5L)).thenReturn(Optional.of(candidato));
+
+		assertThatThrownBy(() -> servico.registrar(5L, COORDENADOR_ID))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("ESTUDO_ENCERRADO");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+				});
+		assertThat(candidato.isConsentimentoRegistrado()).isFalse();
+		verifyNoInteractions(usuarios);
+	}
+
+	@Test
 	void candidatoInexistenteLancaNaoEncontrado() {
 		when(candidatos.buscarParaAtualizar(99L)).thenReturn(Optional.empty());
 

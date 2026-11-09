@@ -28,6 +28,10 @@ public class ConsentimentoService {
 	public CandidatoResponse registrar(Long candidatoId, Long responsavelId) {
 		Candidato candidato = candidatos.buscarParaAtualizar(candidatoId)
 				.orElseThrow(() -> new RecursoNaoEncontradoException("Candidato não encontrado"));
+		if (candidato.getEstudo().isEncerrado()) {
+			throw new RegraNegocioException("ESTUDO_ENCERRADO",
+					"Não é possível registrar consentimento em um estudo encerrado", HttpStatus.CONFLICT);
+		}
 		if (candidato.isConsentimentoRegistrado()) {
 			throw new RegraNegocioException("CONSENTIMENTO_JA_REGISTRADO",
 					"O consentimento deste candidato já foi registrado", HttpStatus.CONFLICT);

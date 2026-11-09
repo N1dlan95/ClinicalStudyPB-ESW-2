@@ -257,7 +257,7 @@ flowchart LR
 | 2 | Backend | Maria Eduarda | |
 | 3 | Web 1 | Nidlan Hendell | |
 | 4 | Web 2 | Jasmine | |
-| 5 | Mobile | Arthur | |
+| 5 | Mobile | Arthur | CI com testes e cobertura rodando a cada PR (3546) e sincronização da develop (3641); backend de critérios de inclusão e exclusão com regras por estado do estudo (3550); testes de integração dos endpoints de RF05 a RF11 (3570); seed de dados fictícios com estudos em todos os estados e candidatos em todos os status (3542). O consentimento (3563) entrou na develop via PR #42 junto com o recrutamento. O app mobile foi congelado, conforme T-43d. |
 | 6 | QA | Adrielly | |
 
 ### Requisitos da sprint — situação final

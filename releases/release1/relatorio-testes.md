@@ -15,7 +15,7 @@ Task 3576. Evidência dos testes automatizados, da cobertura do backend (meta: 8
 | Cobertura de linhas do frontend | **89,3%** |
 | Regressão manual RF01 a RF04 | **34 de 34 OK** |
 | Bug bash RF05 a RF11 | **23 de 24 OK**, 1 bug de severidade baixa |
-| E2E | Pendente (task 3574) |
+| E2E do fluxo de recrutamento | **1 fluxo, passou** (task 3574) |
 
 ## Como reproduzir
 
@@ -38,6 +38,14 @@ npm run test:coverage
 
 O relatório do Vitest fica em `frontend/frontend/coverage/index.html`.
 
+E2E, com o ambiente no ar (`docker compose up -d --build`), na pasta `e2e` (veja o [README do E2E](../../e2e/README.md)):
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
 ## 1. Resultado dos testes automatizados
 
 | Camada | Ferramenta | Testes | Passaram | Falharam | Ignorados |
@@ -45,8 +53,8 @@ O relatório do Vitest fica em `frontend/frontend/coverage/index.html`.
 | Backend: unitários e de controller | JUnit 5 + Mockito + MockMvc | 276 | 276 | 0 | 0 |
 | Backend: integração (banco real) | JUnit 5 + Spring Boot Test + PostgreSQL | 52 | 52 | 0 | 0 |
 | Frontend web: unidade e componente | Vitest + Testing Library (26 arquivos) | 203 | 203 | 0 | 0 |
-| E2E web | Playwright | pendente (3574) | | | |
-| **Total** | | **531** | **531** | **0** | **0** |
+| E2E web | Playwright | 1 fluxo | 1 | 0 | 0 |
+| **Total** | | **532** | **532** | **0** | **0** |
 
 ### Testes por módulo do backend
 
@@ -109,18 +117,24 @@ O resultado completo, com os prints de cada caso, está em [`execucao-release1-2
 | # | Título | Severidade | Bloqueia a entrega? |
 | --- | --- | --- | --- |
 | 1 | [Candidatos] Filtro de status não tem a opção "Retirado" | Baixa | Não |
+| 2 | [Candidatos e Estado] Texto de vagas sem singular ("1 de 1 vagas", "1 vagas") | Baixa | Não |
+
+O bug 2 foi encontrado durante o E2E (prints `09` e `10` em [`e2e/evidencias/`](../../e2e/evidencias/)).
 
 ## 5. E2E
 
-Fluxo planejado: cadastrar estudo (pesquisador) > critérios > mudar o estado para Recrutamento > cadastrar candidato > avaliar > consentir > incluir (coordenador), com os erros de inclusão sem consentimento e de vagas esgotadas.
+Fluxo, todo pela tela: cadastrar estudo com 1 vaga > critérios de inclusão e exclusão > iniciar recrutamento (pesquisador) > cadastrar dois candidatos > avaliar > consentir > incluir (coordenador), com os erros de inclusão sem consentimento e de vagas esgotadas (este também conferido na API: `409 VAGAS_ESGOTADAS`).
 
-- **Situação:** pendente (task 3574). As etapas desse fluxo já foram verificadas uma a uma no bug bash (B17 a B23).
+- **Resultado:** passou, nas duas execuções contra o Docker Compose (develop `1e0ff9f`), em cerca de 10 s cada.
+- **Evidência:** um print de cada uma das 10 etapas em [`e2e/evidencias/`](../../e2e/evidencias/), e o vídeo no relatório HTML do Playwright (`npm run relatorio` na pasta `e2e`).
+- **Limitação:** o E2E roda localmente, ainda não no CI.
 
 ## 6. O que ficou de fora e por quê
 
 | Item | Motivo | Plano |
 | --- | --- | --- |
-| E2E automatizado do fluxo de recrutamento | Task 3574 ainda em andamento | Entregar na 3574 |
+| E2E no CI | Exige subir o Docker Compose no GitHub Actions | Release 2 |
+| Bugs 1 e 2 (severidade baixa) | Não bloqueiam a entrega | Corrigir na Release 2 |
 | Ramos do pacote `usuario` (43,8%) | Faltam testes para as combinações de filtros da listagem (`UsuarioFiltros`) | Release 2 |
 | `layout`, `services` e `routes` do frontend (32,3%) | Menu lateral e cliente HTTP sem teste de componente próprio; são cobertos pela regressão manual | Release 2 |
 | App mobile (RF17 a RF20) | Congelado nesta release | Release 2 |
@@ -128,9 +142,11 @@ Fluxo planejado: cadastrar estudo (pesquisador) > critérios > mudar o estado pa
 ## 7. Conclusão
 
 - [x] A cobertura das linhas de negócio do backend atingiu 80% (97,9%).
-- [x] Todos os testes automatizados passaram (531 de 531), localmente e no CI.
-- [x] A regressão e o bug bash não encontraram bug que bloqueie a entrega.
-- [ ] E2E do fluxo de recrutamento (3574).
+- [x] Todos os testes automatizados passaram: 531 de 531 (unitários, de integração e de componente), localmente e no CI.
+- [x] O E2E do fluxo de recrutamento passou.
+- [x] A regressão, o bug bash e o E2E não encontraram bug que bloqueie a entrega.
+
+**A Release 1 está liberada pelos testes.**
 
 ### Observação sobre o CI
 

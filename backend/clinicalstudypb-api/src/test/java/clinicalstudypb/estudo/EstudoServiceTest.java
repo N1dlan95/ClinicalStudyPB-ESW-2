@@ -10,10 +10,14 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -27,6 +31,7 @@ import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.config.erro.ValidacaoException;
 import clinicalstudypb.estudo.dto.EstudoRequest;
+import clinicalstudypb.estudo.dto.EstudoEstadoRequest;
 import clinicalstudypb.usuario.Perfil;
 import clinicalstudypb.usuario.Usuario;
 import clinicalstudypb.usuario.UsuarioRepository;
@@ -177,6 +182,93 @@ class EstudoServiceTest {
 
 		assertThatThrownBy(() -> servico.atualizar(99L, dados(INICIO, null, 10)))
 				.isInstanceOf(RecursoNaoEncontradoException.class);
+	}
+
+	// Task 3556: mudança de estado (RF07) de um estudo que não existe
+	@Test
+	void alterarEstadoDeEstudoInexistenteLancaNaoEncontrado() {
+		when(repositorio.findById(99L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> servico.alterarEstado(99L, new EstudoEstadoRequest(EstadoEstudo.RECRUTAMENTO)))
+				.isInstanceOf(RecursoNaoEncontradoException.class)
+				.hasMessage("Estudo não encontrado");
+	}
+
+	// ---- Estados (RF07)
+
+	@Test
+	void mudaEstadoParaUmaTransicaoPermitida() {
+		Estudo existente = estudo(EstadoEstudo.PLANEJAMENTO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		Estudo atualizado = servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.RECRUTAMENTO));
+
+		assertThat(atualizado.getEstado()).isEqualTo(EstadoEstudo.RECRUTAMENTO);
+		assertThat(atualizado.permiteInclusao()).isTrue();
+	}
+
+	@Test
+	void permiteRetornarDeRecrutamentoParaPlanejamento() {
+		Estudo existente = estudo(EstadoEstudo.RECRUTAMENTO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.PLANEJAMENTO)).getEstado())
+				.isEqualTo(EstadoEstudo.PLANEJAMENTO);
+	}
+
+	@Test
+	void recrutamentoAvancaParaExecucao() {
+		Estudo existente = estudo(EstadoEstudo.RECRUTAMENTO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.EXECUCAO)).getEstado())
+				.isEqualTo(EstadoEstudo.EXECUCAO);
+	}
+
+	@Test
+	void execucaoAvancaParaEncerrado() {
+		Estudo existente = estudo(EstadoEstudo.EXECUCAO);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThat(servico.alterarEstado(1L, new EstudoEstadoRequest(EstadoEstudo.ENCERRADO)).getEstado())
+				.isEqualTo(EstadoEstudo.ENCERRADO);
+	}
+
+	@ParameterizedTest(name = "{0} -> {1} é inválida")
+	@MethodSource("transicoesInvalidas")
+	void rejeitaTodasAsTransicoesInvalidas(EstadoEstudo atual, EstadoEstudo novo) {
+		when(repositorio.findById(1L)).thenReturn(Optional.of(estudo(atual)));
+
+		assertThatThrownBy(() -> servico.alterarEstado(1L, new EstudoEstadoRequest(novo)))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("TRANSICAO_ESTADO_INVALIDA");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(ex.getMessage()).contains(atual + " -> " + novo);
+				});
+	}
+
+	private static Stream<Arguments> transicoesInvalidas() {
+		return Stream.of(
+				Arguments.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.PLANEJAMENTO),
+				Arguments.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.EXECUCAO),
+				Arguments.of(EstadoEstudo.PLANEJAMENTO, EstadoEstudo.ENCERRADO),
+				Arguments.of(EstadoEstudo.RECRUTAMENTO, EstadoEstudo.RECRUTAMENTO),
+				Arguments.of(EstadoEstudo.RECRUTAMENTO, EstadoEstudo.ENCERRADO),
+				Arguments.of(EstadoEstudo.EXECUCAO, EstadoEstudo.PLANEJAMENTO),
+				Arguments.of(EstadoEstudo.EXECUCAO, EstadoEstudo.RECRUTAMENTO),
+				Arguments.of(EstadoEstudo.EXECUCAO, EstadoEstudo.EXECUCAO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.PLANEJAMENTO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.RECRUTAMENTO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.EXECUCAO),
+				Arguments.of(EstadoEstudo.ENCERRADO, EstadoEstudo.ENCERRADO));
+	}
+
+	@Test
+	void inclusaoSomenteEmRecrutamento() {
+		assertThat(estudo(EstadoEstudo.RECRUTAMENTO).permiteInclusao()).isTrue();
+		assertThat(estudo(EstadoEstudo.PLANEJAMENTO).permiteInclusao()).isFalse();
+		assertThat(estudo(EstadoEstudo.EXECUCAO).permiteInclusao()).isFalse();
+		assertThat(estudo(EstadoEstudo.ENCERRADO).permiteInclusao()).isFalse();
 	}
 
 	// ---- Consulta

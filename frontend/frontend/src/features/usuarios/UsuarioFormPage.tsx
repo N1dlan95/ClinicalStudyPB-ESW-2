@@ -410,6 +410,12 @@ export function UsuarioFormPage() {
           </div>
         </footer>
       </form>
+
+      <footer className="pagina__rodape">
+        <Link to="/usuarios" className="botao botao--contorno">
+          Voltar aos usuários
+        </Link>
+      </footer>
     </div>
   )
 }

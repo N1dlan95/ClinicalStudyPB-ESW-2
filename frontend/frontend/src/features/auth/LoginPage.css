@@ -266,3 +266,49 @@
     display: none;
   }
 }
+
+/* ---------- Contas de demonstração (somente desenvolvimento) ---------- */
+.login__demo {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px dashed var(--borda, #eadde2);
+  border-radius: 12px;
+  background: #fff;
+}
+.login__demo h2 { margin: 0 0 4px; font-size: 14px; }
+.login__demo-dica { margin: 0 0 10px; font-size: 12px; color: var(--texto-suave); }
+.login__demo-dica code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fbe9ef;
+  color: #b5446e;
+  font-weight: 600;
+}
+.login__demo ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.login__demo-conta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #eadde2;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.login__demo-conta:hover { border-color: #b5446e; background: #fbf6f7; }
+.login__demo-conta strong { font-size: 13px; }
+.login__demo-conta small { grid-column: 1 / -1; font-size: 12px; color: var(--texto-suave); }
+.login__demo-perfil {
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #fbe9ef;
+  color: #b5446e;
+  font-size: 11px;
+  font-weight: 600;
+}
+.login__demo-rodape { display: block; margin-top: 8px; font-size: 11px; color: var(--texto-suave); }

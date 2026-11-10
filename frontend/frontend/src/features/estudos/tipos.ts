@@ -55,3 +55,75 @@ export interface FormularioEstudo {
 
 export type CampoEstudo = keyof FormularioEstudo
 export type ErrosEstudo = Partial<Record<CampoEstudo, string>>
+
+// Transições válidas entre estados do estudo (RF07, EstudoService.java e openapi.yaml)
+export const TRANSICOES_ESTADO: Record<EstadoEstudo, EstadoEstudo[]> = {
+  PLANEJAMENTO: ['RECRUTAMENTO'],
+  RECRUTAMENTO: ['PLANEJAMENTO', 'EXECUCAO'],
+  EXECUCAO: ['ENCERRADO'],
+  ENCERRADO: [],
+}
+
+export const DESCRICAO_ESTADO: Record<EstadoEstudo, string> = {
+  PLANEJAMENTO:
+    'Definição do protocolo: cadastro de critérios de elegibilidade e visitas previstas antes de iniciar o recrutamento.',
+  RECRUTAMENTO:
+    'Aberto para triagem: cadastro de candidatos, avaliação de elegibilidade, registro de consentimento e inclusão até o limite de vagas.',
+  EXECUCAO:
+    'Acompanhamento clínico dos participantes incluídos conforme o cronograma de visitas previstas.',
+  ENCERRADO:
+    'Ciclo finalizado. O estudo fica disponível apenas para consulta e não permite novas alterações.',
+}
+
+// Critérios de inclusão e exclusão (RF05, schema Criterio e CriterioEntrada)
+export type TipoCriterio = 'INCLUSAO' | 'EXCLUSAO'
+
+export const ROTULO_TIPO_CRITERIO: Record<TipoCriterio, string> = {
+  INCLUSAO: 'Inclusão',
+  EXCLUSAO: 'Exclusão',
+}
+
+export interface Criterio {
+  id: number
+  tipo: TipoCriterio
+  descricao: string
+  ordem: number
+}
+
+export interface CriterioEntrada {
+  tipo: TipoCriterio
+  descricao: string
+  ordem?: number | null
+}
+
+// Visitas previstas e atividades do protocolo (RF06, schema VisitaPrevista e VisitaPrevistaEntrada)
+export interface Atividade {
+  id?: number
+  ordem: number
+  descricao: string
+}
+
+export interface AtividadeEntrada {
+  ordem: number
+  descricao: string
+}
+
+export interface VisitaPrevista {
+  id: number
+  ordem: number
+  nome: string
+  diaPrevisto: number
+  janelaDias: number | null
+  descricao: string | null
+  atividades: Atividade[]
+}
+
+export interface VisitaPrevistaEntrada {
+  ordem: number
+  nome: string
+  diaPrevisto: number
+  janelaDias: number | null
+  descricao: string | null
+  atividades: AtividadeEntrada[]
+}
+

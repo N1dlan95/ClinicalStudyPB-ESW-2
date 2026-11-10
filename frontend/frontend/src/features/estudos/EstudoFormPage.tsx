@@ -2,6 +2,7 @@ import '../../estilos/estudos.css'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { AbasEstudo } from './AbasEstudo'
 import { brParaIso, isoParaBR, mascaraData } from './datas'
 import {
   ErroEstudoApi,
@@ -198,6 +199,7 @@ export function EstudoFormPage() {
       <nav className="migalhas">
         <Link to="/estudos">Estudos</Link> / {edicao ? (estudo?.titulo ?? 'Editar') : 'Novo estudo'}
       </nav>
+      {edicao && id && <AbasEstudo estudoId={Number(id)} ativa="dados" />}
       <div className="titulo-com-selo">
         <h1>{edicao ? 'Editar estudo' : 'Novo estudo'}</h1>
         {estudo && (
@@ -339,6 +341,12 @@ export function EstudoFormPage() {
           </div>
         </footer>
       </form>
+
+      <footer className="pagina__rodape">
+        <Link to="/estudos" className="botao botao--contorno">
+          Voltar aos estudos
+        </Link>
+      </footer>
     </div>
   )
 }

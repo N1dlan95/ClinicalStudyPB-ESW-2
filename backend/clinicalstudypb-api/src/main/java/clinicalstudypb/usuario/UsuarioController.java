@@ -23,10 +23,13 @@ import clinicalstudypb.usuario.dto.UsuarioStatusRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 // RF01: cadastro e gestão de usuários
 @RestController
 @RequestMapping("/usuarios")
+@Tag(name = "Usuários", description = "Cadastro e gestão de usuários")
 public class UsuarioController {
 
 	private final UsuarioService servico;
@@ -36,6 +39,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping
+	@Operation(summary = "Lista usuários", description = "Lista usuários com filtros de perfil, situação e busca.")
 	public PaginaResponse<UsuarioResponse> listar(
 			@RequestParam(required = false) Perfil perfil,
 			@RequestParam(required = false) Boolean ativo,
@@ -47,11 +51,13 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/{id}")
+	@Operation(summary = "Consulta um usuário", description = "Retorna os dados de um usuário pelo identificador.")
 	public UsuarioResponse buscar(@PathVariable Long id) {
 		return UsuarioResponse.de(servico.buscar(id));
 	}
 
 	@PostMapping
+	@Operation(summary = "Cadastra um usuário", description = "Cria um novo usuário no sistema.")
 	public ResponseEntity<UsuarioResponse> criar(@RequestBody @Valid UsuarioCriacaoRequest dados) {
 		Usuario usuario = servico.criar(dados);
 		return ResponseEntity.created(URI.create("/api/usuarios/" + usuario.getId()))
@@ -59,11 +65,13 @@ public class UsuarioController {
 	}
 
 	@PutMapping("/{id}")
+	@Operation(summary = "Atualiza um usuário", description = "Atualiza os dados cadastrais de um usuário.")
 	public UsuarioResponse atualizar(@PathVariable Long id, @RequestBody @Valid UsuarioAtualizacaoRequest dados) {
 		return UsuarioResponse.de(servico.atualizar(id, dados));
 	}
 
 	@PatchMapping("/{id}/status")
+	@Operation(summary = "Altera o status do usuário", description = "Ativa ou desativa um usuário.")
 	public UsuarioResponse alterarStatus(@PathVariable Long id, @RequestBody @Valid UsuarioStatusRequest dados) {
 		return UsuarioResponse.de(servico.alterarAtivo(id, dados.ativo()));
 	}

@@ -1,7 +1,18 @@
 import { isAxiosError } from 'axios'
 import { api } from '../../services/api'
 import type { Perfil } from '../auth/tipos'
-import type { CampoEstudo, ErrosEstudo, Estudo, EstudoEntrada, Pesquisador } from './tipos'
+import type {
+  CampoEstudo,
+  Criterio,
+  CriterioEntrada,
+  ErrosEstudo,
+  EstadoEstudo,
+  Estudo,
+  EstudoEntrada,
+  Pesquisador,
+  VisitaPrevista,
+  VisitaPrevistaEntrada,
+} from './tipos'
 
 // Integração com a API de estudos (RF04). Contrato: Docs/ClinicalStudyPB-Docs/api/openapi.yaml
 
@@ -129,3 +140,64 @@ export async function listarPesquisadores(): Promise<Pesquisador[] | null> {
     throw traduzirErro(erro)
   }
 }
+
+// RF07: altera o estado do estudo (PATCH /estudos/{id}/estado)
+export function alterarEstadoEstudo(id: number, estado: EstadoEstudo): Promise<Estudo> {
+  return chamar(() => api.patch<Estudo>(`/estudos/${id}/estado`, { estado }))
+}
+
+// RF05: critérios de inclusão e exclusão de um estudo
+export function listarCriterios(estudoId: number): Promise<Criterio[]> {
+  return chamar(() => api.get<Criterio[]>(`/estudos/${estudoId}/criterios`))
+}
+
+export function criarCriterio(estudoId: number, dados: CriterioEntrada): Promise<Criterio> {
+  return chamar(() => api.post<Criterio>(`/estudos/${estudoId}/criterios`, dados))
+}
+
+export function atualizarCriterio(
+  estudoId: number,
+  criterioId: number,
+  dados: CriterioEntrada,
+): Promise<Criterio> {
+  return chamar(() => api.put<Criterio>(`/estudos/${estudoId}/criterios/${criterioId}`, dados))
+}
+
+export async function removerCriterio(estudoId: number, criterioId: number): Promise<void> {
+  try {
+    await api.delete(`/estudos/${estudoId}/criterios/${criterioId}`)
+  } catch (erro) {
+    throw traduzirErro(erro)
+  }
+}
+
+// RF06: visitas previstas e atividades do protocolo de um estudo
+export function listarVisitasPrevistas(estudoId: number): Promise<VisitaPrevista[]> {
+  return chamar(() => api.get<VisitaPrevista[]>(`/estudos/${estudoId}/visitas-previstas`))
+}
+
+export function criarVisitaPrevista(
+  estudoId: number,
+  dados: VisitaPrevistaEntrada,
+): Promise<VisitaPrevista> {
+  return chamar(() => api.post<VisitaPrevista>(`/estudos/${estudoId}/visitas-previstas`, dados))
+}
+
+export function atualizarVisitaPrevista(
+  estudoId: number,
+  visitaId: number,
+  dados: VisitaPrevistaEntrada,
+): Promise<VisitaPrevista> {
+  return chamar(() =>
+    api.put<VisitaPrevista>(`/estudos/${estudoId}/visitas-previstas/${visitaId}`, dados),
+  )
+}
+
+export async function excluirVisitaPrevista(estudoId: number, visitaId: number): Promise<void> {
+  try {
+    await api.delete(`/estudos/${estudoId}/visitas-previstas/${visitaId}`)
+  } catch (erro) {
+    throw traduzirErro(erro)
+  }
+}
+

@@ -2,8 +2,15 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ExigePermissao, RotaProtegida } from '../features/auth/RotaProtegida'
 import { useAutorizacao } from '../features/auth/useAutorizacao'
+import { AvaliacaoElegibilidadePage } from '../features/candidatos/AvaliacaoElegibilidadePage'
+import { CandidatoDetalhePage } from '../features/candidatos/CandidatoDetalhePage'
+import { CandidatoFormPage } from '../features/candidatos/CandidatoFormPage'
+import { CandidatosListaPage } from '../features/candidatos/CandidatosListaPage'
+import { CriteriosPage } from '../features/estudos/CriteriosPage'
+import { EstadoEstudoPage } from '../features/estudos/EstadoEstudoPage'
 import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
 import { EstudosListaPage } from '../features/estudos/EstudosListaPage'
+import { VisitasPrevistasPage } from '../features/estudos/VisitasPrevistasPage'
 import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
 import { UsuariosListaPage } from '../features/usuarios/UsuariosListaPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
@@ -49,6 +56,70 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="editarEstudos">
                 <EstudoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/criterios"
+            element={
+              <ExigePermissao permissao="verEstudos">
+                <CriteriosPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/visitas-previstas"
+            element={
+              <ExigePermissao permissao="editarEstudos">
+                <VisitasPrevistasPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/estado"
+            element={
+              <ExigePermissao permissao="editarEstudos">
+                <EstadoEstudoPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatosListaPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/novo"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/:id"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoDetalhePage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/:id/avaliacao"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <AvaliacaoElegibilidadePage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/candidatos/:id/editar"
+            element={
+              <ExigePermissao permissao="gerenciarCandidatos">
+                <CandidatoFormPage />
               </ExigePermissao>
             }
           />

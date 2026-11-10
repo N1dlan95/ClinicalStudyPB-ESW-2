@@ -14,12 +14,17 @@
 
 .painel {
   display: flex;
+  align-items: flex-start;
   min-height: 100vh;
   background: var(--rosa-fundo);
 }
 
 /* ---------- Lateral ---------- */
 .painel__lateral {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
   width: 220px;
   flex-shrink: 0;
   display: flex;
@@ -78,9 +83,27 @@
   font-size: 11px;
   font-weight: 700;
 }
-.painel__conteudo { flex: 1; min-width: 0; padding: 24px 32px; }
+.painel__conteudo {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+}
 
 /* ---------- Página ---------- */
+.pagina {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.pagina__rodape {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  justify-content: flex-start;
+}
 .pagina h1 { margin: 0 0 4px; font-size: 24px; }
 .pagina__subtitulo { margin: 0 0 16px; color: var(--texto-suave); font-size: 13px; }
 .pagina__cabecalho { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }

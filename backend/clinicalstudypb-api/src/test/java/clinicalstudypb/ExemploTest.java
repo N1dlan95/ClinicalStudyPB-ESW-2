@@ -1,4 +1,4 @@
-package br.com.clinicalstudypb;
+package clinicalstudypb;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

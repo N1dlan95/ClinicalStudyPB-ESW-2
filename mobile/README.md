@@ -17,25 +17,30 @@ npx expo start
 
 Depois, leia o QR code com o Expo Go ou pressione `a` (Android) / `i` (iOS) no terminal.
 
-### Modo demonstração x API real
+### API real x modo demonstração
 
-Sem configuração, o login usa um serviço simulado (não precisa do backend):
+Por padrão, o app usa a API real em `http://10.0.2.2:8080`, que é o `localhost` da máquina visto de dentro do emulador Android. Suba o backend antes (`docker compose up` na raiz do repositório) e entre com a conta de participante da seed:
 
 | Perfil | E-mail | Senha | Resultado |
 |---|---|---|---|
-| Participante | `participante@clinicalstudy.pb` | `senha123` | Entra no app |
-| Pesquisador | `pesquisador@clinicalstudy.pb` | `senha123` | Bloqueado (app é só para participantes, RF03) |
+| Participante | `participante@clinicalstudypb.test` | `Senha@123` | Entra no app |
+| Outros perfis (ex.: `pesquisador@clinicalstudypb.test`) | | `Senha@123` | Bloqueado: o app é só para participantes (RF03) |
 
-Para usar o backend Spring Boot, defina a URL da API antes de iniciar:
+No celular físico, aponte para o IP da máquina na rede local:
 
 ```bash
-# Emulador Android: 10.0.2.2 aponta para o localhost da máquina
-EXPO_PUBLIC_API_URL=http://10.0.2.2:8080 npx expo start
+EXPO_PUBLIC_API_URL=http://192.168.0.10:8080 npx expo start
 ```
 
-No celular físico, use o IP da máquina na rede local (ex.: `http://192.168.0.10:8080`).
+Para demonstrar as telas sem o backend, ligue o modo simulado:
 
-> O contrato de login (`POST /api/auth/login` com `{ email, senha }` → `{ token, usuario }`) é **provisório** até a equipe publicar o OpenAPI. Ele está isolado em `src/features/auth/authService.ts`.
+```bash
+EXPO_PUBLIC_USE_MOCK=true npx expo start
+```
+
+No modo simulado, entre com `participante@clinicalstudy.pb` / `senha123`.
+
+**Sessão:** o login segue o contrato `POST /api/auth/login` do `openapi.yaml`. O botão Sair chama `POST /api/auth/logout` e apaga a sessão do aparelho mesmo se a chamada falhar. Se qualquer chamada receber 401 (token vencido ou encerrado), o app limpa a sessão e volta ao login com o aviso "Sua sessão expirou. Entre novamente.".
 
 ## Testes
 
@@ -53,7 +58,7 @@ npm run typecheck # verificação de tipos
 | Visitas | RF18, RF19 | Próximas visitas (confirmar presença, pedir reagendamento) e histórico de comparecimento |
 | Perfil | RF20, RF02 | Dados do participante, pedido de retirada com confirmação, sair |
 
-Sem `EXPO_PUBLIC_API_URL`, as telas usam dados fictícios em memória. Os endpoints provisórios estão documentados em `src/features/participante/participanteService.ts`.
+Com `EXPO_PUBLIC_USE_MOCK=true`, as telas usam dados fictícios em memória. Os endpoints do participante (estudos, visitas, retirada) ainda não existem no backend; eles estão documentados em `src/features/participante/participanteService.ts`.
 
 ## Estrutura
 

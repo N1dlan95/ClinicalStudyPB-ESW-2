@@ -9,6 +9,8 @@ export interface Usuario {
 
 export interface Sessao {
   token: string;
+  /** Quando o token vence (ISO). Ausente no modo simulado. */
+  expiraEm?: string;
   usuario: Usuario;
 }
 

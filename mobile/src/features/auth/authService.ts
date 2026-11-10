@@ -1,5 +1,5 @@
 import { API_URL, USE_MOCK_API } from '../../config/env';
-import type { Credenciais, Sessao } from './types';
+import type { Credenciais, Perfil, Sessao } from './types';
 
 /** Erro de autenticação com mensagem pronta para exibir ao usuário. */
 export class AuthError extends Error {
@@ -10,13 +10,28 @@ export class AuthError extends Error {
 }
 
 /**
- * Contrato PROVISÓRIO até o backend publicar o OpenAPI (tasks T-06/T-23):
- *   POST {API_URL}/api/auth/login   body: { email, senha }
- *   200 -> { token, usuario: { id, nome, email, perfil } }
- *   401 -> credenciais inválidas
- * Ao fechar o contrato, ajuste apenas este arquivo.
+ * Contrato da API (openapi.yaml, tag Autenticação):
+ *   POST /api/auth/login   body { email, senha }
+ *     200 -> { token, tipo, expiraEm, usuario: { id, nome, email, perfil, ... } }
+ *     401 -> { codigo: CREDENCIAIS_INVALIDAS | USUARIO_INATIVO, mensagem }
+ *   POST /api/auth/logout  Authorization: Bearer <token>  -> 204
  */
 const LOGIN_PATH = '/api/auth/login';
+const LOGOUT_PATH = '/api/auth/logout';
+
+// O logout não pode deixar o usuário preso se o servidor não responder
+const TEMPO_LIMITE_LOGOUT_MS = 5000;
+
+interface LoginResponse {
+  token: string;
+  expiraEm?: string;
+  usuario: { id: number; nome: string; email: string; perfil: Perfil };
+}
+
+interface ErroApi {
+  codigo?: string;
+  mensagem?: string;
+}
 
 export async function login(credenciais: Credenciais): Promise<Sessao> {
   const sessao = USE_MOCK_API ? await loginMock(credenciais) : await loginApi(credenciais);
@@ -26,6 +41,27 @@ export async function login(credenciais: Credenciais): Promise<Sessao> {
     throw new AuthError('Este aplicativo é exclusivo para participantes. Use o sistema web.');
   }
   return sessao;
+}
+
+/**
+ * RF02: encerra a sessão no servidor (o token deixa de valer). Nunca lança erro: quem chama
+ * apaga a sessão local de qualquer jeito, mesmo sem conexão ou com o token já vencido.
+ */
+export async function logout(token: string): Promise<void> {
+  if (USE_MOCK_API) return;
+  const controle = new AbortController();
+  const limite = setTimeout(() => controle.abort(), TEMPO_LIMITE_LOGOUT_MS);
+  try {
+    await fetch(`${API_URL}${LOGOUT_PATH}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controle.signal,
+    });
+  } catch {
+    // Sem conexão ou tempo esgotado: o token expira sozinho no servidor
+  } finally {
+    clearTimeout(limite);
+  }
 }
 
 async function loginApi(credenciais: Credenciais): Promise<Sessao> {
@@ -40,16 +76,34 @@ async function loginApi(credenciais: Credenciais): Promise<Sessao> {
     throw new AuthError('Não foi possível conectar ao servidor. Verifique sua conexão.');
   }
 
-  if (resposta.status === 401 || resposta.status === 403) {
-    throw new AuthError('E-mail ou senha incorretos.');
+  if (resposta.status === 401) {
+    const erro = await lerErro(resposta);
+    // Usuário desativado tem mensagem própria; credencial errada mantém o texto padrão
+    throw new AuthError(
+      erro.codigo === 'USUARIO_INATIVO' && erro.mensagem ? erro.mensagem : 'E-mail ou senha incorretos.',
+    );
+  }
+  if (resposta.status === 400) {
+    throw new AuthError('Verifique o e-mail e a senha informados.');
   }
   if (!resposta.ok) {
     throw new AuthError('Erro no servidor. Tente novamente mais tarde.');
   }
-  return (await resposta.json()) as Sessao;
+
+  const corpo = (await resposta.json()) as LoginResponse;
+  const { id, nome, email, perfil } = corpo.usuario;
+  return { token: corpo.token, expiraEm: corpo.expiraEm, usuario: { id, nome, email, perfil } };
 }
 
-/** Usuários fictícios para desenvolvimento sem backend. */
+async function lerErro(resposta: Response): Promise<ErroApi> {
+  try {
+    return (await resposta.json()) as ErroApi;
+  } catch {
+    return {};
+  }
+}
+
+/** Usuários fictícios para o modo simulado (EXPO_PUBLIC_USE_MOCK=true). */
 const USUARIOS_MOCK: Record<string, Sessao['usuario'] & { senha: string }> = {
   'participante@clinicalstudy.pb': {
     id: 1,

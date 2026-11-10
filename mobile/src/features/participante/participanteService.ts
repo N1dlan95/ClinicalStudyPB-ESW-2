@@ -1,4 +1,5 @@
 import { API_URL, USE_MOCK_API } from '../../config/env';
+import { SessaoExpiradaError, notificarSessaoExpirada } from '../auth/sessaoExpirada';
 import type { EstudoParticipante, Visita } from './types';
 
 /**
@@ -10,7 +11,7 @@ import type { EstudoParticipante, Visita } from './types';
  *   POST /api/participante/visitas/{id}/confirmacao
  *   POST /api/participante/visitas/{id}/reagendamento
  *   POST /api/participante/estudos/{id}/retirada
- * Sem EXPO_PUBLIC_API_URL, usa dados fictícios em memória.
+ * Com EXPO_PUBLIC_USE_MOCK=true, usa dados fictícios em memória.
  */
 export interface ParticipanteService {
   listarEstudos(token: string): Promise<EstudoParticipante[]>;
@@ -31,6 +32,11 @@ async function requisicao<T>(token: string, metodo: 'GET' | 'POST', caminho: str
     });
   } catch {
     throw new ServicoError('Não foi possível conectar ao servidor. Verifique sua conexão.');
+  }
+  // Token vencido ou encerrado: o AuthProvider limpa a sessão e volta ao login
+  if (resposta.status === 401) {
+    notificarSessaoExpirada();
+    throw new SessaoExpiradaError();
   }
   if (!resposta.ok) {
     throw new ServicoError('Não foi possível concluir a operação. Tente novamente.');

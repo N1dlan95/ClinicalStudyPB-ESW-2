@@ -138,6 +138,8 @@ npm run test:coverage    # roda os testes e gera a cobertura
 
 O GitHub Actions executa os testes e a cobertura a cada pull request, e um PR só é mesclado com a verificação verde e ao menos uma revisão.
 
+Documentação de regressão e Bug Bash: [Roteiro RF01 a RF18](Docs/ClinicalStudyPB-Docs/Testes/roteiro-regressao-rf01-rf18.md) e [Bug Bash 19/11/2026](Docs/ClinicalStudyPB-Docs/Testes/bug-bash-2026-11-19.md).
+
 ## API e documentação interativa
 
 - **Base da API:** `http://localhost:8080/api`

@@ -126,7 +126,10 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>rf06-coverage</id>
+						<!-- Cobertura mínima de 80% das linhas em cada pacote de negócio (T-112).
+						     Vale para os pacotes que já existem e para os novos (visita, participante, retirada).
+						     Ficam de fora config, DTOs e a classe de inicialização (pacote raiz). -->
+						<id>cobertura-minima</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>check</goal>
@@ -134,13 +137,17 @@
 						<configuration>
 							<rules>
 								<rule>
-									<element>BUNDLE</element>
+									<element>PACKAGE</element>
 									<includes>
-										<include>clinicalstudypb.visitaprevista.*</include>
+										<include>clinicalstudypb.*</include>
 									</includes>
+									<excludes>
+										<exclude>clinicalstudypb.config*</exclude>
+										<exclude>*.dto</exclude>
+									</excludes>
 									<limits>
 										<limit>
-											<counter>INSTRUCTION</counter>
+											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
 											<minimum>0.80</minimum>
 										</limit>

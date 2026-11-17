@@ -39,6 +39,8 @@ tags:
     description: Registro do consentimento simulado dos candidatos (RF10)
   - name: Inclusão
     description: Inclusão de candidatos nos estudos (RF11)
+  - name: Visitas
+    description: Agendamento das visitas dos participantes (RF12, task 3755)
   - name: Conta do participante
     description: Acesso do participante incluído ao app (task 3751, RF02/RF17/RF18)
 
@@ -894,6 +896,159 @@ paths:
         "404":
           $ref: "#/components/responses/NaoEncontrado"
 
+  /candidatos/{candidatoId}/visitas:
+    get:
+      tags: [Visitas]
+      summary: Lista as visitas do participante, por data (RF12)
+      description: "Perfil permitido: COORDENADOR."
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Visitas do participante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Visitas]
+      summary: Agenda uma visita prevista para o participante (RF12, task 3755)
+      description: |
+        Perfil permitido: COORDENADOR.
+        Regras, nesta ordem: participante INCLUIDO (409 `PARTICIPANTE_NAO_INCLUIDO`); estudo não encerrado
+        (409 `ESTUDO_ENCERRADO`); visita prevista do mesmo estudo (404); data dentro da janela
+        `dataInclusao + diaPrevisto ± janelaDias` (400 `VALIDACAO`, campo `dataHora`); nenhum outro agendamento
+        não cancelado da mesma visita prevista (409 `VISITA_JA_AGENDADA`).
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaEntrada"
+      responses:
+        "201":
+          description: Visita agendada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /estudos/{id}/visitas:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas]
+      summary: Agenda de visitas do estudo (RF12)
+      description: |
+        Perfis permitidos: PESQUISADOR, COORDENADOR e ADMINISTRADOR. Ordenada por data e hora.
+        `de` e `ate` filtram o período [de, ate).
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/StatusVisita"
+        - name: de
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: ate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Visitas do estudo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /visitas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas]
+      summary: Detalha uma visita
+      description: "Perfil permitido: COORDENADOR."
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+    put:
+      tags: [Visitas]
+      summary: Reagenda uma visita ainda AGENDADA (RF12, task 3755)
+      description: |
+        Perfil permitido: COORDENADOR. A nova data também precisa ficar dentro da janela.
+        Visita já registrada responde 409 `VISITA_JA_FINALIZADA`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaReagendamento"
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
 
 components:
   securitySchemes:
@@ -1251,6 +1406,97 @@ components:
           type: integer
         conta:
           $ref: "#/components/schemas/ContaParticipante"
+
+    StatusVisita:
+      type: string
+      enum: [AGENDADA, REALIZADA, AUSENTE, CANCELADA]
+
+    VisitaEntrada:
+      type: object
+      required: [visitaPrevistaId, dataHora]
+      properties:
+        visitaPrevistaId:
+          type: integer
+          format: int64
+        dataHora:
+          type: string
+          format: date-time
+          example: "2026-12-01T09:00:00"
+        local:
+          type: string
+          maxLength: 120
+          nullable: true
+
+    VisitaReagendamento:
+      type: object
+      required: [dataHora]
+      properties:
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          maxLength: 120
+          nullable: true
+
+    Visita:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        estudoId:
+          type: integer
+          format: int64
+        participante:
+          type: object
+          properties:
+            candidatoId:
+              type: integer
+              format: int64
+            nome:
+              type: string
+        visitaPrevista:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            ordem:
+              type: integer
+            nome:
+              type: string
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/StatusVisita"
+        observacao:
+          type: string
+          nullable: true
+        janela:
+          type: object
+          nullable: true
+          description: Datas permitidas para a visita (dataInclusao + diaPrevisto ± janelaDias)
+          properties:
+            inicio:
+              type: string
+              format: date
+            fim:
+              type: string
+              format: date
+        agendadaPor:
+          type: string
+        statusRegistradoEm:
+          type: string
+          format: date-time
+          nullable: true
+        statusRegistradoPor:
+          type: string
+          nullable: true
 
     ContaParticipante:
       type: object

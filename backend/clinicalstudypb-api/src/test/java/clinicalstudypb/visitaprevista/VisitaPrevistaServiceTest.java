@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import clinicalstudypb.visita.VisitaRepository;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.http.HttpStatus;
@@ -43,9 +44,12 @@ class VisitaPrevistaServiceTest {
 	private VisitaPrevistaService servico;
 	private Estudo estudo;
 
+	@Mock
+	private VisitaRepository visitasAgendadas;
+
 	@BeforeEach
 	void configurar() {
-		servico = new VisitaPrevistaService(repositorio, estudos, entityManager);
+		servico = new VisitaPrevistaService(repositorio, estudos, entityManager, visitasAgendadas);
 		estudo = mock(Estudo.class);
 		ReflectionTestUtils.setField(estudo, "id", 1L);
 	}

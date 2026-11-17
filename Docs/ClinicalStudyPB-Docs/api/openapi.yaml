@@ -40,7 +40,7 @@ tags:
   - name: Inclusão
     description: Inclusão de candidatos nos estudos (RF11)
   - name: Visitas
-    description: Agendamento das visitas dos participantes (RF12, task 3755)
+    description: Agendamento e status das visitas dos participantes (RF12, RF13; tasks 3755 e 3758)
   - name: Conta do participante
     description: Acesso do participante incluído ao app (task 3751, RF02/RF17/RF18)
 
@@ -1049,6 +1049,39 @@ paths:
         "409":
           $ref: "#/components/responses/Conflito"
 
+  /visitas/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [Visitas]
+      summary: Registra a visita como realizada, ausente ou cancelada (RF13, task 3758)
+      description: |
+        Perfil permitido: COORDENADOR. Só sai de AGENDADA, uma vez (409 `VISITA_JA_FINALIZADA`).
+        REALIZADA e AUSENTE só depois da data e hora marcadas (409 `VISITA_AINDA_NAO_OCORREU`).
+        CANCELADA exige o motivo em `observacao` (400 `VALIDACAO`). Estudo encerrado: 409 `ESTUDO_ENCERRADO`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaStatusEntrada"
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
 
 components:
   securitySchemes:
@@ -1438,6 +1471,19 @@ components:
           type: string
           maxLength: 120
           nullable: true
+
+    VisitaStatusEntrada:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [REALIZADA, AUSENTE, CANCELADA]
+        observacao:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Obrigatória no cancelamento (motivo)
 
     Visita:
       type: object

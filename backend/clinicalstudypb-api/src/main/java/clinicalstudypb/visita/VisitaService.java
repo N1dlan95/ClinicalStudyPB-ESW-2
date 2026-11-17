@@ -21,10 +21,12 @@ import clinicalstudypb.usuario.UsuarioRepository;
 import clinicalstudypb.visita.dto.VisitaReagendamentoRequest;
 import clinicalstudypb.visita.dto.VisitaRequest;
 import clinicalstudypb.visita.dto.VisitaResponse;
+import clinicalstudypb.visita.dto.VisitaStatusRequest;
 import clinicalstudypb.visitaprevista.VisitaPrevista;
 import clinicalstudypb.visitaprevista.VisitaPrevistaRepository;
 
 // Task 3755 (T-88, RF12): agendar e reagendar visitas de participantes incluídos.
+// Task 3758 (T-91, RF13): registrar a visita como realizada, ausente ou cancelada.
 @Service
 public class VisitaService {
 
@@ -111,6 +113,33 @@ public class VisitaService {
 	public VisitaResponse buscar(Long visitaId) {
 		return visitas.buscar(visitaId).map(VisitaResponse::de)
 				.orElseThrow(() -> new RecursoNaoEncontradoException("Visita não encontrada"));
+	}
+
+	// ---- RF13: status da visita (task 3758)
+
+	// Só sai de AGENDADA, e uma vez: REALIZADA, AUSENTE e CANCELADA são finais.
+	// Realizada e ausente só depois do horário marcado; cancelada exige o motivo na observação.
+	@Transactional
+	public VisitaResponse registrarStatus(Long visitaId, VisitaStatusRequest dados, Long responsavelId) {
+		if (dados.status() == StatusVisita.AGENDADA) {
+			throw new ValidacaoException("status", "Informe REALIZADA, AUSENTE ou CANCELADA");
+		}
+		String observacao = normalizar(dados.observacao());
+		if (dados.status() == StatusVisita.CANCELADA && observacao == null) {
+			throw new ValidacaoException("observacao", "Informe o motivo do cancelamento");
+		}
+		Visita visita = buscarParaAtualizar(visitaId);
+		if (visita.getStatus().isFinal()) {
+			throw conflito("VISITA_JA_FINALIZADA",
+					"Esta visita já foi registrada como " + visita.getStatus() + " e não pode mudar");
+		}
+		validarEstudoAberto(visita.getParticipante().getEstudo());
+		if (dados.status() != StatusVisita.CANCELADA && visita.getDataHora().isAfter(LocalDateTime.now())) {
+			throw conflito("VISITA_AINDA_NAO_OCORREU",
+					"Só é possível registrar realização ou ausência depois da data e hora da visita");
+		}
+		visita.registrarStatus(dados.status(), observacao, responsavel(responsavelId));
+		return VisitaResponse.de(visita);
 	}
 
 	// ---- Regras comuns

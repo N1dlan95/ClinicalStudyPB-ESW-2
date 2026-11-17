@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -19,11 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import clinicalstudypb.visita.dto.VisitaReagendamentoRequest;
 import clinicalstudypb.visita.dto.VisitaRequest;
 import clinicalstudypb.visita.dto.VisitaResponse;
+import clinicalstudypb.visita.dto.VisitaStatusRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-// RF12: agendamento das visitas. Perfis no SecurityConfig:
+// RF12/RF13: agendamento e acompanhamento das visitas. Perfis no SecurityConfig:
 // /candidatos/** e /visitas/** somente coordenador; GET /estudos/{id}/visitas para quem consulta estudos.
 @RestController
 @Tag(name = "Visitas", description = "Agendamento e registro das visitas dos participantes")
@@ -69,6 +71,14 @@ public class VisitaController {
 	@Operation(summary = "Reagenda uma visita", description = "Muda data, hora e local de uma visita ainda agendada.")
 	public VisitaResponse reagendar(@PathVariable Long id, @Valid @RequestBody VisitaReagendamentoRequest dados) {
 		return servico.reagendar(id, dados);
+	}
+
+	@PatchMapping("/visitas/{id}/status")
+	@Operation(summary = "Registra o status da visita (RF13)",
+			description = "REALIZADA, AUSENTE ou CANCELADA. O cancelamento exige o motivo em observacao.")
+	public VisitaResponse registrarStatus(@PathVariable Long id, @Valid @RequestBody VisitaStatusRequest dados,
+			@AuthenticationPrincipal Jwt token) {
+		return servico.registrarStatus(id, dados, Long.valueOf(token.getSubject()));
 	}
 
 }

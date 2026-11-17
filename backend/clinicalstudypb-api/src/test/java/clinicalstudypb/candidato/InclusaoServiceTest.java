@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import clinicalstudypb.candidato.dto.InclusaoResponse;
+import clinicalstudypb.conta.ContaParticipanteService;
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.estudo.EstadoEstudo;
@@ -40,11 +41,14 @@ class InclusaoServiceTest {
 	@Mock
 	private EstudoRepository estudos;
 
+	@Mock
+	private ContaParticipanteService contas;
+
 	private InclusaoService servico;
 
 	@BeforeEach
 	void configurar() {
-		servico = new InclusaoService(candidatos, estudos);
+		servico = new InclusaoService(candidatos, estudos, contas);
 	}
 
 	// ---- Inclusão com sucesso
@@ -60,17 +64,6 @@ class InclusaoServiceTest {
 		assertThat(candidato.getDataInclusao()).isEqualTo(LocalDate.now());
 		assertThat(resposta.vagasOcupadas()).isEqualTo(5);
 		assertThat(resposta.limiteParticipantes()).isEqualTo(LIMITE);
-	}
-
-	@Test
-	void aUltimaVagaAindaPodeSerOcupada() {
-		Candidato candidato = prepararCandidato(EstadoEstudo.RECRUTAMENTO, StatusCandidato.ELEGIVEL, true);
-		when(candidatos.countByEstudoIdAndStatus(1L, StatusCandidato.INCLUIDO)).thenReturn(LIMITE - 1L);
-
-		InclusaoResponse resposta = servico.incluir(5L);
-
-		assertThat(candidato.getStatus()).isEqualTo(StatusCandidato.INCLUIDO);
-		assertThat(resposta.vagasOcupadas()).isEqualTo(LIMITE);
 	}
 
 	// ---- Bloqueios

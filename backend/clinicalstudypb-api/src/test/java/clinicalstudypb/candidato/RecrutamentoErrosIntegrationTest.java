@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -86,11 +87,16 @@ class RecrutamentoErrosIntegrationTest {
 	// Apaga só o que o teste criou: o banco é compartilhado com os outros testes de integração
 	@AfterEach
 	void limparDados() {
+		// Contas de participante criadas pela inclusão (task 3751): apagadas depois dos candidatos que apontam para elas
+		List<Long> contas = jdbc.queryForList(
+				"select usuario_id from candidato where estudo_id = ? and usuario_id is not null", Long.class, estudoId);
 		jdbc.update("delete from candidato where estudo_id = ?", estudoId);
 		jdbc.update("delete from criterio where estudo_id = ?", estudoId);
 		jdbc.update("delete from estudo where id = ?", estudoId);
 		jdbc.update("delete from usuario where id in (?, ?, ?, ?)", coordenador.getId(), pesquisadora.getId(),
 				administrador.getId(), participante.getId());
+		contas.forEach(id -> jdbc.update(
+				"delete from usuario where id = ? and not exists (select 1 from candidato where usuario_id = ?)", id, id));
 	}
 
 	// ---- Perfis (RF03 aplicado a RF08 a RF11)

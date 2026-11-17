@@ -137,6 +137,15 @@ public class Candidato {
 		this.dataInclusao = LocalDate.now();
 	}
 
+	// Task 3751: liga o candidato incluído à conta PARTICIPANTE que ele usa no app
+	public void vincularConta(Usuario conta) {
+		this.usuario = conta;
+	}
+
+	public boolean possuiConta() {
+		return usuario != null;
+	}
+
 	public LocalDate getDataInclusao() {
 		return dataInclusao;
 	}

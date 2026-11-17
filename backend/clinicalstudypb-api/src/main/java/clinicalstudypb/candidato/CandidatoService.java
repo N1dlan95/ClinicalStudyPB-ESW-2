@@ -67,6 +67,12 @@ public class CandidatoService {
 					"Não é possível alterar candidatos de um estudo encerrado", HttpStatus.CONFLICT);
 		}
 		String email = normalizarEmail(dados.email());
+		// Bug bash 17/11: o e-mail é o login da conta do participante (task 3751). Depois que a conta existe,
+		// trocar só o e-mail do candidato deixaria os dois diferentes
+		if (candidato.possuiConta() && !email.equalsIgnoreCase(candidato.getEmail())) {
+			throw new RegraNegocioException("EMAIL_COM_CONTA",
+					"O e-mail não pode mudar depois que o participante recebeu a conta de acesso", HttpStatus.CONFLICT);
+		}
 		if (repositorio.existsByEstudoIdAndEmailIgnoreCaseAndIdNot(estudoId, email, id)) {
 			throw emailDuplicado();
 		}

@@ -39,6 +39,8 @@ tags:
     description: Registro do consentimento simulado dos candidatos (RF10)
   - name: Inclusão
     description: Inclusão de candidatos nos estudos (RF11)
+  - name: Conta do participante
+    description: Acesso do participante incluído ao app (task 3751, RF02/RF17/RF18)
 
 security:
   - bearerAuth: []
@@ -820,6 +822,10 @@ paths:
         Perfil permitido: COORDENADOR.
         O estudo deve estar em RECRUTAMENTO e possuir vaga disponível; o candidato deve estar elegível
         e ter consentimento registrado.
+        Na mesma operação, o sistema cria a conta PARTICIPANTE com o e-mail do candidato e devolve a senha
+        provisória em `conta.senhaProvisoria` (task 3751). Se já existe conta de participante com esse e-mail
+        (pessoa incluída antes em outro estudo), ela é reaproveitada e a senha não muda.
+        Se o e-mail pertence a um usuário da equipe, a inclusão é recusada com 409 `EMAIL_DE_OUTRO_PERFIL`.
       parameters:
         - name: candidatoId
           in: path
@@ -843,6 +849,52 @@ paths:
         "409":
           $ref: "#/components/responses/Conflito"
 
+  /candidatos/{candidatoId}/conta:
+    get:
+      tags: [Conta do participante]
+      summary: Consulta a conta do participante (task 3751)
+      description: |
+        Perfil permitido: COORDENADOR. A senha nunca é devolvida nesta rota.
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Conta do participante
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContaParticipante"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /candidatos/{candidatoId}/conta/senha-provisoria:
+    post:
+      tags: [Conta do participante]
+      summary: Gera uma nova senha provisória para o participante (task 3751)
+      description: |
+        Perfil permitido: COORDENADOR. A senha anterior deixa de valer e a nova é devolvida uma única vez
+        em `senhaProvisoria`.
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Nova senha gerada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContaParticipante"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+
 components:
   securitySchemes:
     bearerAuth:
@@ -852,6 +904,13 @@ components:
       description: Enviar o token no cabeçalho Authorization como "Bearer <token>".
 
   parameters:
+    CandidatoIdPath:
+      name: candidatoId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
     IdPath:
       name: id
       in: path
@@ -1104,6 +1163,9 @@ components:
           type: string
           format: date
           nullable: true
+        possuiConta:
+          type: boolean
+          description: Verdadeiro quando o participante já tem conta de acesso ao app (task 3751)
 
     AvaliacaoRespostaEntrada:
       type: object
@@ -1180,13 +1242,38 @@ components:
 
     Inclusao:
       type: object
-      required: [vagasOcupadas, limiteParticipantes]
+      required: [vagasOcupadas, limiteParticipantes, conta]
       properties:
         vagasOcupadas:
           type: integer
           format: int64
         limiteParticipantes:
           type: integer
+        conta:
+          $ref: "#/components/schemas/ContaParticipante"
+
+    ContaParticipante:
+      type: object
+      required: [usuarioId, email, ativo, contaExistente]
+      properties:
+        usuarioId:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+          description: E-mail de acesso ao app (o mesmo do candidato, em minúsculas)
+        ativo:
+          type: boolean
+        contaExistente:
+          type: boolean
+          description: Verdadeiro quando a conta já existia antes desta operação
+        senhaProvisoria:
+          type: string
+          nullable: true
+          description: |
+            Preenchida só quando a senha acabou de ser gerada (conta nova ou nova senha provisória).
+            Não é guardada em texto e não aparece de novo; o coordenador entrega ao participante.
 
     PerfilTipo:
       type: string

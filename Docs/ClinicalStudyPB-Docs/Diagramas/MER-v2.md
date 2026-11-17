@@ -11,6 +11,9 @@ substitui: "[[MER-v1]]"
 
 # ClinicalStudyPB: MER/DER da Sprint 2 (RF05 a RF11)
 
+> [!NOTE] Atualização
+> O modelo da Sprint 3 (RF12 a RF18: conta do participante, visitas, resultados, retirada e app) está em [[MER-v3]].
+
 > [!NOTE]
 > Este documento continua o [[MER-v1]] (Sprint 1) e é a **base das migrações e dos endpoints** de RF05 a RF11: critérios, visitas previstas e atividades, candidatos, avaliação de elegibilidade, consentimento e inclusão. Tabelas já criadas (`usuario`, `estudo`, `candidato`) aparecem como estão nas migrações. O que ainda não foi implementado é a proposta que cada task deve seguir; mudanças devem ser registradas aqui antes de virar migração.
 
@@ -28,8 +31,8 @@ As dúvidas do MER-v1 que afetam RF05 a RF11 foram fechadas assim (as que depend
 | 4 | Consentimento (RF10) | Colunas no `candidato` (quando e por quem foi registrado), não tabela própria: é um único registro por candidato | Decidido |
 | 5 | Inclusão (RF11) | Coluna `data_inclusao` no `candidato`; vagas ocupadas = candidatos INCLUIDO do estudo | Decidido |
 | 6 | Candidato em vários estudos | Permitido: o e-mail é único **dentro do estudo**, não no sistema | Decidido (task 3558) |
-| 7 | Visita prevista × visita | `visita_prevista` é o molde do protocolo (RF06). A `visita` agendada (RF12) entra na Sprint 3 e aponta para ela | Decidido |
-| 8 | Conta do participante | `candidato.usuario_id` fica vazio até a Sprint 3 decidir como a conta é criada | Aguarda dúvida 5 do MER-v1 |
+| 7 | Visita prevista × visita | `visita_prevista` é o molde do protocolo (RF06). A `visita` agendada (RF12, V11) aponta para ela e para o candidato INCLUIDO (`candidato_id`), não direto para o usuário: assim a visita fica presa ao estudo da inclusão. Data permitida: `data_inclusao + dia_previsto ± janela_dias`. Status AGENDADA → REALIZADA, AUSENTE ou CANCELADA (finais) | Decidido; visita implementada nas tasks 3755/3758 |
+| 8 | Conta do participante | Task 3751 (Sprint 3): a inclusão (RF11) cria a conta `PARTICIPANTE` com o e-mail do candidato e preenche `candidato.usuario_id`. Se já existe conta de participante com o e-mail, ela é reaproveitada; e-mail de usuário da equipe bloqueia a inclusão (`EMAIL_DE_OUTRO_PERFIL`). Não precisou de migração | Decidido na task 3751 (premissa da equipe; a dúvida 5 do MER-v1 continua sem resposta registrada) |
 
 ---
 
@@ -240,6 +243,8 @@ O Flyway aplica em ordem e não aceita dois arquivos com o mesmo número. Cada t
 | V7 | `avaliacao_criterio` + `candidato.avaliado_em/avaliado_por_id` | 3560 | Na develop |
 | V8 | `candidato.consentimento_*` | 3563 | Na develop |
 | V9 | `candidato.data_inclusao` | 3565 | Na develop |
+| V10 | seed de demonstração | 3542 | Na develop |
+| V11 | `visita` (agendamento real, RF12–RF13) + índice `candidato.usuario_id` | 3755 / 3758 | Branch `feat/3751-conta-participante-api` |
 
 > [!NOTE]
 > Com `spring.flyway.out-of-order=true`, uma migração de número menor que entrar na develop depois de outra de número maior é aplicada normalmente nos bancos que já rodaram a maior.

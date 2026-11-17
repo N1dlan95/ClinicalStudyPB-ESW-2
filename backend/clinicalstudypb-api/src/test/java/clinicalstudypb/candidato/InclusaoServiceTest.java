@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 
 import clinicalstudypb.candidato.dto.InclusaoResponse;
 import clinicalstudypb.conta.ContaParticipanteService;
+import clinicalstudypb.conta.dto.ContaParticipanteResponse;
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.estudo.EstadoEstudo;
@@ -64,6 +65,53 @@ class InclusaoServiceTest {
 		assertThat(candidato.getDataInclusao()).isEqualTo(LocalDate.now());
 		assertThat(resposta.vagasOcupadas()).isEqualTo(5);
 		assertThat(resposta.limiteParticipantes()).isEqualTo(LIMITE);
+	}
+
+	// ---- Conta do participante (task 3751)
+
+	@Test
+	void inclusaoDevolveAContaDoParticipante() {
+		Candidato candidato = prepararCandidato(EstadoEstudo.RECRUTAMENTO, StatusCandidato.ELEGIVEL, true);
+		when(candidatos.countByEstudoIdAndStatus(1L, StatusCandidato.INCLUIDO)).thenReturn(0L);
+		ContaParticipanteResponse conta = new ContaParticipanteResponse(40L, "joao@teste.com", true, false, "Ab3dEf5hJk");
+		when(contas.vincularOuCriar(candidato)).thenReturn(conta);
+
+		InclusaoResponse resposta = servico.incluir(5L);
+
+		assertThat(resposta.conta()).isEqualTo(conta);
+	}
+
+	@Test
+	void falhaNaContaNaoIncluiOCandidato() {
+		Candidato candidato = prepararCandidato(EstadoEstudo.RECRUTAMENTO, StatusCandidato.ELEGIVEL, true);
+		when(candidatos.countByEstudoIdAndStatus(1L, StatusCandidato.INCLUIDO)).thenReturn(0L);
+		when(contas.vincularOuCriar(candidato)).thenThrow(new RegraNegocioException("EMAIL_DE_OUTRO_PERFIL",
+				"O e-mail do candidato já pertence a um usuário da equipe", HttpStatus.CONFLICT));
+
+		assertThatThrownBy(() -> servico.incluir(5L))
+				.isInstanceOfSatisfying(RegraNegocioException.class,
+						ex -> assertThat(ex.getCodigo()).isEqualTo("EMAIL_DE_OUTRO_PERFIL"));
+		assertThat(candidato.getStatus()).isEqualTo(StatusCandidato.ELEGIVEL);
+		assertThat(candidato.getDataInclusao()).isNull();
+	}
+
+	@Test
+	void inclusaoBloqueadaNaoCriaConta() {
+		prepararCandidato(EstadoEstudo.RECRUTAMENTO, StatusCandidato.ELEGIVEL, false);
+
+		assertThatThrownBy(() -> servico.incluir(5L)).isInstanceOf(RegraNegocioException.class);
+		verify(contas, never()).vincularOuCriar(any());
+	}
+
+	@Test
+	void aUltimaVagaAindaPodeSerOcupada() {
+		Candidato candidato = prepararCandidato(EstadoEstudo.RECRUTAMENTO, StatusCandidato.ELEGIVEL, true);
+		when(candidatos.countByEstudoIdAndStatus(1L, StatusCandidato.INCLUIDO)).thenReturn(LIMITE - 1L);
+
+		InclusaoResponse resposta = servico.incluir(5L);
+
+		assertThat(candidato.getStatus()).isEqualTo(StatusCandidato.INCLUIDO);
+		assertThat(resposta.vagasOcupadas()).isEqualTo(LIMITE);
 	}
 
 	// ---- Bloqueios

@@ -175,6 +175,21 @@ class VisitaPrevistaServiceTest {
 		verify(repositorio).delete(any(VisitaPrevista.class));
 	}
 
+	// Task 3755: visita prevista com agendamentos não é apagada
+	@Test
+	void excluirComVisitasAgendadasFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(visita(1L, 1)));
+		when(visitasAgendadas.existsByVisitaPrevistaId(1L)).thenReturn(true);
+
+		assertThatThrownBy(() -> servico.excluir(1L, 1L))
+				.isInstanceOfSatisfying(RegraNegocioException.class, erro -> {
+					assertThat(erro.getCodigo()).isEqualTo("VISITA_PREVISTA_COM_AGENDAMENTOS");
+					assertThat(erro.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+				});
+		verify(repositorio, never()).delete(any());
+	}
+
 	@Test
 	void criarEmEstudoEncerradoFalha() {
 		when(estudos.buscar(1L)).thenReturn(estudo);

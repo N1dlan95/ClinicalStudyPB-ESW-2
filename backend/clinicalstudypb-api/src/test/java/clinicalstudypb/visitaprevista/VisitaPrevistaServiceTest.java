@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import clinicalstudypb.visita.VisitaRepository;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.http.HttpStatus;
@@ -43,9 +44,12 @@ class VisitaPrevistaServiceTest {
 	private VisitaPrevistaService servico;
 	private Estudo estudo;
 
+	@Mock
+	private VisitaRepository visitasAgendadas;
+
 	@BeforeEach
 	void configurar() {
-		servico = new VisitaPrevistaService(repositorio, estudos, entityManager);
+		servico = new VisitaPrevistaService(repositorio, estudos, entityManager, visitasAgendadas);
 		estudo = mock(Estudo.class);
 		ReflectionTestUtils.setField(estudo, "id", 1L);
 	}
@@ -169,6 +173,21 @@ class VisitaPrevistaServiceTest {
 		servico.excluir(1L, 1L);
 
 		verify(repositorio).delete(any(VisitaPrevista.class));
+	}
+
+	// Task 3755: visita prevista com agendamentos não é apagada
+	@Test
+	void excluirComVisitasAgendadasFalha() {
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(visita(1L, 1)));
+		when(visitasAgendadas.existsByVisitaPrevistaId(1L)).thenReturn(true);
+
+		assertThatThrownBy(() -> servico.excluir(1L, 1L))
+				.isInstanceOfSatisfying(RegraNegocioException.class, erro -> {
+					assertThat(erro.getCodigo()).isEqualTo("VISITA_PREVISTA_COM_AGENDAMENTOS");
+					assertThat(erro.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+				});
+		verify(repositorio, never()).delete(any());
 	}
 
 	@Test

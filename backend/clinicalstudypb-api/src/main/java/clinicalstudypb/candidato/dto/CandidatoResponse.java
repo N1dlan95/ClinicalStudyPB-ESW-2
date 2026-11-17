@@ -15,7 +15,9 @@ public record CandidatoResponse(
 		LocalDate dataNascimento,
 		StatusCandidato status,
 		Consentimento consentimento,
-		LocalDate dataInclusao) {
+		LocalDate dataInclusao,
+		// Task 3751: verdadeiro quando o participante já tem conta de acesso ao app
+		boolean possuiConta) {
 
 	// Nulo enquanto o consentimento não for registrado
 	public record Consentimento(LocalDateTime registradoEm, String registradoPor) {
@@ -31,7 +33,8 @@ public record CandidatoResponse(
 				candidato.getDataNascimento(),
 				candidato.getStatus(),
 				consentimentoDe(candidato),
-				candidato.getDataInclusao());
+				candidato.getDataInclusao(),
+				candidato.possuiConta());
 	}
 
 	private static Consentimento consentimentoDe(Candidato candidato) {

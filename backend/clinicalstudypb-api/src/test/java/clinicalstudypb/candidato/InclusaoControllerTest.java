@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import clinicalstudypb.auth.JwtConfig;
 import clinicalstudypb.auth.TokensRevogados;
 import clinicalstudypb.candidato.dto.InclusaoResponse;
+import clinicalstudypb.conta.dto.ContaParticipanteResponse;
 import clinicalstudypb.config.SecurityConfig;
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
@@ -38,12 +39,16 @@ class InclusaoControllerTest {
 	@Test
 	@WithMockUser(roles = "COORDENADOR")
 	void incluirRetornaAsVagasOcupadasEOTotal() throws Exception {
-		when(servico.incluir(5L)).thenReturn(new InclusaoResponse(12, 30));
+		when(servico.incluir(5L)).thenReturn(new InclusaoResponse(12, 30,
+				new ContaParticipanteResponse(40L, "joao@teste.com", true, false, "Ab3dEf5hJk")));
 
 		mvc.perform(post("/candidatos/5/inclusao"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.vagasOcupadas").value(12))
-				.andExpect(jsonPath("$.limiteParticipantes").value(30));
+				.andExpect(jsonPath("$.limiteParticipantes").value(30))
+				.andExpect(jsonPath("$.conta.email").value("joao@teste.com"))
+				.andExpect(jsonPath("$.conta.contaExistente").value(false))
+				.andExpect(jsonPath("$.conta.senhaProvisoria").value("Ab3dEf5hJk"));
 	}
 
 	@Test

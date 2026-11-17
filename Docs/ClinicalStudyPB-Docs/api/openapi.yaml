@@ -39,6 +39,10 @@ tags:
     description: Registro do consentimento simulado dos candidatos (RF10)
   - name: Inclusão
     description: Inclusão de candidatos nos estudos (RF11)
+  - name: Visitas
+    description: Agendamento e status das visitas dos participantes (RF12, RF13; tasks 3755 e 3758)
+  - name: Conta do participante
+    description: Acesso do participante incluído ao app (task 3751, RF02/RF17/RF18)
 
 security:
   - bearerAuth: []
@@ -820,6 +824,10 @@ paths:
         Perfil permitido: COORDENADOR.
         O estudo deve estar em RECRUTAMENTO e possuir vaga disponível; o candidato deve estar elegível
         e ter consentimento registrado.
+        Na mesma operação, o sistema cria a conta PARTICIPANTE com o e-mail do candidato e devolve a senha
+        provisória em `conta.senhaProvisoria` (task 3751). Se já existe conta de participante com esse e-mail
+        (pessoa incluída antes em outro estudo), ela é reaproveitada e a senha não muda.
+        Se o e-mail pertence a um usuário da equipe, a inclusão é recusada com 409 `EMAIL_DE_OUTRO_PERFIL`.
       parameters:
         - name: candidatoId
           in: path
@@ -843,6 +851,238 @@ paths:
         "409":
           $ref: "#/components/responses/Conflito"
 
+  /candidatos/{candidatoId}/conta:
+    get:
+      tags: [Conta do participante]
+      summary: Consulta a conta do participante (task 3751)
+      description: |
+        Perfil permitido: COORDENADOR. A senha nunca é devolvida nesta rota.
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Conta do participante
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContaParticipante"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /candidatos/{candidatoId}/conta/senha-provisoria:
+    post:
+      tags: [Conta do participante]
+      summary: Gera uma nova senha provisória para o participante (task 3751)
+      description: |
+        Perfil permitido: COORDENADOR. A senha anterior deixa de valer e a nova é devolvida uma única vez
+        em `senhaProvisoria`.
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Nova senha gerada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContaParticipante"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /candidatos/{candidatoId}/visitas:
+    get:
+      tags: [Visitas]
+      summary: Lista as visitas do participante, por data (RF12)
+      description: "Perfil permitido: COORDENADOR."
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Visitas do participante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Visitas]
+      summary: Agenda uma visita prevista para o participante (RF12, task 3755)
+      description: |
+        Perfil permitido: COORDENADOR.
+        Regras, nesta ordem: participante INCLUIDO (409 `PARTICIPANTE_NAO_INCLUIDO`); estudo não encerrado
+        (409 `ESTUDO_ENCERRADO`); visita prevista do mesmo estudo (404); data dentro da janela
+        `dataInclusao + diaPrevisto ± janelaDias` (400 `VALIDACAO`, campo `dataHora`); nenhum outro agendamento
+        não cancelado da mesma visita prevista (409 `VISITA_JA_AGENDADA`).
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaEntrada"
+      responses:
+        "201":
+          description: Visita agendada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /estudos/{id}/visitas:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas]
+      summary: Agenda de visitas do estudo (RF12)
+      description: |
+        Perfis permitidos: PESQUISADOR, COORDENADOR e ADMINISTRADOR. Ordenada por data e hora.
+        `de` e `ate` filtram o período [de, ate).
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/StatusVisita"
+        - name: de
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: ate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Visitas do estudo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /visitas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas]
+      summary: Detalha uma visita
+      description: "Perfil permitido: COORDENADOR."
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+    put:
+      tags: [Visitas]
+      summary: Reagenda uma visita ainda AGENDADA (RF12, task 3755)
+      description: |
+        Perfil permitido: COORDENADOR. A nova data também precisa ficar dentro da janela.
+        Visita já registrada responde 409 `VISITA_JA_FINALIZADA`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaReagendamento"
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /visitas/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [Visitas]
+      summary: Registra a visita como realizada, ausente ou cancelada (RF13, task 3758)
+      description: |
+        Perfil permitido: COORDENADOR. Só sai de AGENDADA, uma vez (409 `VISITA_JA_FINALIZADA`).
+        REALIZADA e AUSENTE só depois da data e hora marcadas (409 `VISITA_AINDA_NAO_OCORREU`).
+        CANCELADA exige o motivo em `observacao` (400 `VALIDACAO`). Estudo encerrado: 409 `ESTUDO_ENCERRADO`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaStatusEntrada"
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -852,6 +1092,13 @@ components:
       description: Enviar o token no cabeçalho Authorization como "Bearer <token>".
 
   parameters:
+    CandidatoIdPath:
+      name: candidatoId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
     IdPath:
       name: id
       in: path
@@ -1104,6 +1351,9 @@ components:
           type: string
           format: date
           nullable: true
+        possuiConta:
+          type: boolean
+          description: Verdadeiro quando o participante já tem conta de acesso ao app (task 3751)
 
     AvaliacaoRespostaEntrada:
       type: object
@@ -1180,13 +1430,142 @@ components:
 
     Inclusao:
       type: object
-      required: [vagasOcupadas, limiteParticipantes]
+      required: [vagasOcupadas, limiteParticipantes, conta]
       properties:
         vagasOcupadas:
           type: integer
           format: int64
         limiteParticipantes:
           type: integer
+        conta:
+          $ref: "#/components/schemas/ContaParticipante"
+
+    StatusVisita:
+      type: string
+      enum: [AGENDADA, REALIZADA, AUSENTE, CANCELADA]
+
+    VisitaEntrada:
+      type: object
+      required: [visitaPrevistaId, dataHora]
+      properties:
+        visitaPrevistaId:
+          type: integer
+          format: int64
+        dataHora:
+          type: string
+          format: date-time
+          example: "2026-12-01T09:00:00"
+        local:
+          type: string
+          maxLength: 120
+          nullable: true
+
+    VisitaReagendamento:
+      type: object
+      required: [dataHora]
+      properties:
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          maxLength: 120
+          nullable: true
+
+    VisitaStatusEntrada:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [REALIZADA, AUSENTE, CANCELADA]
+        observacao:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Obrigatória no cancelamento (motivo)
+
+    Visita:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        estudoId:
+          type: integer
+          format: int64
+        participante:
+          type: object
+          properties:
+            candidatoId:
+              type: integer
+              format: int64
+            nome:
+              type: string
+        visitaPrevista:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            ordem:
+              type: integer
+            nome:
+              type: string
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/StatusVisita"
+        observacao:
+          type: string
+          nullable: true
+        janela:
+          type: object
+          nullable: true
+          description: Datas permitidas para a visita (dataInclusao + diaPrevisto ± janelaDias)
+          properties:
+            inicio:
+              type: string
+              format: date
+            fim:
+              type: string
+              format: date
+        agendadaPor:
+          type: string
+        statusRegistradoEm:
+          type: string
+          format: date-time
+          nullable: true
+        statusRegistradoPor:
+          type: string
+          nullable: true
+
+    ContaParticipante:
+      type: object
+      required: [usuarioId, email, ativo, contaExistente]
+      properties:
+        usuarioId:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+          description: E-mail de acesso ao app (o mesmo do candidato, em minúsculas)
+        ativo:
+          type: boolean
+        contaExistente:
+          type: boolean
+          description: Verdadeiro quando a conta já existia antes desta operação
+        senhaProvisoria:
+          type: string
+          nullable: true
+          description: |
+            Preenchida só quando a senha acabou de ser gerada (conta nova ou nova senha provisória).
+            Não é guardada em texto e não aparece de novo; o coordenador entrega ao participante.
 
     PerfilTipo:
       type: string

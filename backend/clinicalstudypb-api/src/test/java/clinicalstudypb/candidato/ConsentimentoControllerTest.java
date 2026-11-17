@@ -44,7 +44,7 @@ class ConsentimentoControllerTest {
 		when(servico.registrar(5L, 3L)).thenReturn(new CandidatoResponse(5L, 1L, "João Silva", "joao@teste.com", null,
 				LocalDate.of(1990, 5, 20), StatusCandidato.ELEGIVEL,
 				new CandidatoResponse.Consentimento(LocalDateTime.of(2026, 11, 5, 15, 30), "Carlos Coordenador"),
-				null));
+				null, false));
 
 		mvc.perform(post("/candidatos/5/consentimento").with(coordenador()))
 				.andExpect(status().isOk())

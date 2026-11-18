@@ -22,6 +22,8 @@ O ClinicalStudyPB reproduz, de forma simplificada, o ciclo de vida de um estudo 
 
 O desenvolvimento segue Scrum, com o board, as sprints e o burndown no Azure DevOps. A cada sprint os papéis da equipe rotacionam; testes, documentação e revisão de código são responsabilidade de todos.
 
+A dinâmica da disciplina e os requisitos do sistema estão no documento [Dinâmica e Requisitos (PDF)](Docs/ClinicalStudyPB-Docs/Contexto-Geral/Din%C3%A2mica-e-Requisitos.pdf).
+
 ## Release 1: escopo
 
 A Release 1 (**Estrutura e recrutamento**) reúne as Sprints 1 e 2 e entrega uma aplicação web que permite cadastrar um estudo, avaliar candidatos e incluir participantes. **Entregue em 10/11/2026** (merge da `develop` na `master` pelo PR #50, tag `v1.0.0` e [GitHub Release](https://github.com/N1dlan95/ClinicalStudyPB-ESW-2/releases/tag/v1.0.0)).

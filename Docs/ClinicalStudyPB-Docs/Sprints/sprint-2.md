@@ -70,10 +70,10 @@ status: concluído
 ### 3518 — Fechar dúvidas e modelo de dados de RF05–RF11 (Preparação)
 
 - [x] **3533** Planejar a sprint: separar, organizar e distribuir as atividades · Mirelle · 3h · 27/10 → 27/10
-- [ ] **3534** Tirar dúvidas sobre a entidade Critério (RF05) e o registro da elegibilidade · Mirelle · 1h · 27/10 → 27/10
+- [ ] **3534** Tirar dúvidas sobre a entidade Critério (RF05) e o registro da elegibilidade · Mirelle · 1h · 27/10 → 27/10 *(não há resposta registrada: as dúvidas 1 e 2 seguiram como premissa no [[MER-v2]], conforme o plano B da seção 5)*
 - [x] **3536** Diagrama de atividade do fluxo de recrutamento (candidato > elegibilidade > consentimento > inclusão) · Mirelle · 3h · 28/10 → 29/10
 - [x] **3538** Atualizar o MER/DER com as entidades de RF05 a RF11 · Maria Eduarda · 6h · 27/10 → 28/10
-- [ ] **3539** Revisão do DER por outro integrante (revisão cruzada) · Mirelle · 1h · 29/10 → 29/10
+- [x] **3539** Revisão do DER por outro integrante (revisão cruzada) · Mirelle · 1h · 29/10 → 29/10 *(a revisão foi feita pela Adrielly no PR #22, mesclado em 04/11)*
 - [x] **3542** Criar scripts de migração e seed com dados fictícios · Arthur · 4h · 28/10 → 29/10
 - [x] **3543** Atualizar o contrato OpenAPI para RF05–RF11 · Mirelle · 3h · 28/10 → 28/10
 
@@ -81,7 +81,7 @@ status: concluído
 
 - [x] **3545** Integrar as telas web de estudos à API e ajustar ao OpenAPI (fecha o RF04) · Jasmine · 5h · 27/10 → 28/10
 - [x] **3546** Sincronizar develop: trazer cobertura (JaCoCo + Vitest) do PR #9 e mergear CI (feature/3049) · Arthur · 3h · 27/10 → 28/10
-- [ ] **3548** Corrigir o board da Sprint 1: fechar 3153 e 3223, mover 3236 e 3237 como pendência e atualizar épicos · Mirelle · 1h · 27/10 → 27/10
+- [x] **3548** Corrigir o board da Sprint 1: fechar 3153 e 3223, mover 3236 e 3237 como pendência e atualizar épicos · Mirelle · 1h · 27/10 → 27/10
 - [x] **T-43d (sem ID no board)** Congelar o app mobile: não evoluir as telas de estudos, visitas e retirada (RF17–RF20) e registrá-las no README da release · Arthur · 1h · 27/10 → 27/10
 - [x] **3641** Sincronizar develop com a master antes da entrega (PRs #1, #2 e #9) · Arthur · 1h · 28/10 → 28/10
 - [x] **3692** Corrigir permissões de estudos na web para que o pesquisador cadastre e edite (RF04) · Nidlan Hendell · 1h · 27/10 → 27/10
@@ -92,7 +92,7 @@ status: concluído
 
 ### 3521 — Critérios de inclusão e exclusão (RF05)
 
-- [ ] **3549** Protótipo navegável: critérios de inclusão/exclusão e visitas previstas, com estados de erro · Nidlan Hendell · 6h · 27/10 → 28/10
+- [x] **3549** Protótipo navegável: critérios de inclusão/exclusão e visitas previstas, com estados de erro · Nidlan Hendell · 6h · 27/10 → 28/10
 - [x] **3550** Backend: entidade Critério, vínculo com o estudo, validações e endpoints · Arthur · 8h · 29/10 → 30/10
 - [x] **3551** Web: tela de critérios integrada à API · Nidlan Hendell · 8h · 28/10 → 03/11
 
@@ -106,7 +106,7 @@ status: concluído
 - [x] **3554** Backend: transições válidas entre estados, endpoint de mudança de estado e regras por estado · Mirelle · 6h · 29/10 → 30/10
 - [x] **3555** Web: controle do estado do estudo na tela de detalhe · Nidlan Hendell · 4h · 29/10 → 03/11
 - [x] **3556** Testes unitários: critérios, visitas previstas e transições de estado · Mirelle · 3h · 03/11 → 04/11
-- [ ] **3556** Testes unitários: critérios, visitas previstas e transições de estado · Maria Eduarda · 3h · 05/11 → 05/11
+- [x] **3556** Testes unitários: critérios, visitas previstas e transições de estado · Maria Eduarda · 3h · 05/11 → 05/11 *(a parte prevista para a Maria Eduarda foi feita pela Adrielly no PR #34, em 06/11)*
 
 ### 3525 — Cadastro de candidatos (RF08)
 
@@ -135,7 +135,7 @@ status: concluído
 
 - [x] **3570** Testes de integração dos endpoints de RF05–RF11 · Adrielly · 4h · 03/11 → 05/11
 - [x] **3570** Testes de integração dos endpoints de RF05–RF11 · Arthur · 4h · 04/11 → 04/11
-- [ ] **3571** Testes de componente web: critérios, visitas e candidatos · Nidlan Hendell · 3h · 06/11 → 06/11
+- [x] **3571** Testes de componente web: critérios, visitas e candidatos · Nidlan Hendell · 3h · 06/11 → 06/11 *(testes de `CriteriosPage`, `VisitasPrevistasPage`, `EstadoEstudoPage` e `AvaliacaoElegibilidadePage`, nos commits `a70ed79` e `5a62af5` de 09/11, sem `AB#`)*
 - [x] **3572** Testes de componente web: critérios, visitas e candidatos · Jasmine · 3h · 05/11 → 05/11
 - [x] **3574** Teste E2E web: cadastrar estudo > cadastrar candidato > avaliar > consentir > incluir · Adrielly · 8h · 27/10 → 05/11
 - [x] **3575** Garantir CI executando testes e cobertura a cada PR (depois da 3546) · Adrielly · 3h · 29/10 → 29/10
@@ -146,7 +146,7 @@ status: concluído
 
 - [x] **3580** Swagger UI com RF01–RF11: adicionar springdoc-openapi ao backend e documentar os endpoints · Mirelle · 3h · 05/11 → 05/11
 - [x] **3581** README principal: apresentação, arquitetura, funcionalidades, stack, instalação, testes e API (corrigir UTF-8) · Mirelle · 3h · 05/11 → 06/11
-- [ ] **3583** Capturas de tela das interfaces web (sucesso e erro/validação) · Nidlan Hendell · 2h · 09/11 → 09/11
+- [x] **3583** Capturas de tela das interfaces web (sucesso e erro/validação) · Nidlan Hendell · 2h · 09/11 → 09/11
 - [x] **3584** Capturas de tela das interfaces web (sucesso e erro/validação) · Jasmine · 1h · 09/11 → 09/11
 - [x] **3585** Documentar credenciais fictícias por perfil · Adrielly · 1h · 30/10 → 30/10
 - [x] **3586** Merge da develop na master, tag release1 e GitHub Release com resumo e link do README · Adrielly · 2h · 09/11 → 09/11
@@ -234,13 +234,16 @@ flowchart LR
 - Documentação: README principal, README da release, diagrama de atividade do recrutamento, capturas de candidatos, consentimento e inclusão, e credenciais fictícias por perfil.
 
 #### O que falta
-- Capturas de tela das telas de estudos, critérios, visitas, estado do estudo e avaliação de elegibilidade, com sucesso e erro (3583).
 - Link do protótipo navegável de critérios e visitas (3549).
-- Verificar o Swagger UI em execução e confirmar o endereço no README (3580).
-- Corrigir 2 testes de VisitasPrevistasPage que falharam na execução de cobertura [atualizar se já corrigido].
-- Persistir data e hora das visitas: hoje a tela mostra só uma prévia de calendário, e o sistema guarda dia previsto e janela de dias (fora do RF06).
-- Tag `release1`, GitHub Release e roteiro de regressão com bug bash (3586 e 3577) [confirmar o estado].
-- Exportar o burndown da Sprint 2 do Azure DevOps.
+- Persistir data e hora das visitas: hoje a tela mostra só uma prévia de calendário, e o sistema guarda dia previsto e janela de dias (fora do RF06). Entra na Sprint 3 com o agendamento de visitas (RF12).
+- Bugs de severidade baixa encontrados nos testes da release, sem bloquear a entrega: filtro de candidatos sem a opção "Retirado" e texto de vagas sem singular ("1 vagas"). Ficam para a Release 2 ([relatório de testes](../../../releases/release1/relatorio-testes.md)).
+
+#### Resolvido no fechamento
+- Swagger UI (3580): springdoc-openapi configurado e mesclado no PR #40. Endereço `http://localhost:8080/api/swagger-ui.html`, liberado no `SecurityConfig` e registrado no README.
+- Os 2 testes de `VisitasPrevistasPage` que falhavam foram corrigidos (commit `5a62af5`). A execução de 09/11 terminou com 203 de 203 testes do frontend passando.
+- Roteiro de regressão e bug bash (3577): roteiro no PR #35 e execução no PR #46. Regressão de RF01 a RF04: 34 de 34 OK. Bug bash de RF05 a RF11: 23 de 24 OK.
+- Tag e GitHub Release (3586): `develop` mesclada na `master` pelo PR #50, tag `v1.0.0` e GitHub Release "Release 1" publicados em 09/11, às 22h56.
+- Burndown da Sprint 2 exportado do Azure DevOps (`releases/burndown_sprint2.jpeg`).
 
 #### O que melhorar
 - Exigir pull request e revisão também na `develop`, e `AB#` em todo commit: três commits de telas entraram direto na `develop`, sem PR e sem `AB#`.
@@ -256,24 +259,27 @@ flowchart LR
 - [ ] Docker funcionando em todas as máquinas até o início da Sprint 3.
 - [ ] Burndown e Remaining Work atualizados diariamente.
 
+### Burndown
 
+![\[\[../../../releases/burndown_sprint2.jpeg\]\]](../../../releases/burndown_sprint2.jpeg)
 
- ### Burndown
+**Análise (planejado x realizado):**
 
-![[../../../releases/burndown_sprint2.jpeg]]
-
-**Análise (planejado x realizado):**  
+- **28/10 a 02/11, acima da linha ideal:** o restante parou em cerca de 158h entre 28/10 e 29/10, enquanto backend e protótipos dependiam do MER (3538) e do OpenAPI (3543). Em 02/11 (feriado) ainda havia cerca de 138h, contra cerca de 88h no ideal.
+- **03/11, checkpoint:** a maior queda da sprint, de cerca de 138h para cerca de 76h. Foi quando as tasks de backend e web do recrutamento foram fechadas ou tiveram o Remaining Work atualizado.
+- **04/11 a 09/11, abaixo da linha ideal:** o real passou para baixo do ideal entre 04/11 e 05/11 (cerca de 19h em 05/11) e chegou a **0h em 09/11**, como planejado.
+- **Leitura:** o escopo foi entregue no prazo. A forma de escada (dias parados e depois quedas grandes) mostra que o Remaining Work não foi atualizado todo dia, o que confirma a ação de melhoria "Burndown e Remaining Work atualizados diariamente". O gráfico começa em cerca de 177h, e não nas 203h planejadas, porque já desconta as 26h do primeiro dia.
 
 ### Contribuição por integrante
 
 | # | Papel | Responsável | Contribuição na sprint |
 | --- | --- | --- | --- |
-| 1 | Gerente | Mirelle | Coordenação da sprint e do board no Azure DevOps (planejamento, rota de horas e acompanhamento dos PRs). Backend de visitas previstas e atividades (3552), com as correções do review (listagem sem erro de carregamento lazy, edição sem violar o índice único, acesso restrito ao pesquisador, bloqueio em estudo encerrado e testes de integração), backend de estados do estudo (3554) e testes unitários de visitas e transições (3556). Contrato OpenAPI de RF05 a RF11 (3543), diagrama de atividade do recrutamento (3536), README principal (3581) e dependência do Swagger UI (3580, verificação final pendente). |
-| 2 | Backend | Maria Eduarda | Backend de candidatos (3558), de avaliação de elegibilidade (3560) e de inclusão com limite de vagas (3565), com o MER/DER atualizado para RF05 a RF11 (3538). [confirmar: testes unitários e de integração do recrutamento (3568) e testes de critérios, visitas e estados (3556)] |
-| 3 | Web 1 | Nidlan Hendell | Telas web de permissões de estudos por perfil (3692), critérios (3551), visitas previstas e atividades (3553), controle do estado do estudo (3555) e avaliação de elegibilidade (3561), além de testes de componente das telas de critérios, visitas e avaliação (3571). [pendente: capturas das telas (3583) e link do protótipo (3549)] |
+| 1 | Gerente | Mirelle | Coordenação da sprint e do board no Azure DevOps (planejamento, rota de horas e acompanhamento dos PRs). Backend de visitas previstas e atividades (3552), com as correções do review (listagem sem erro de carregamento lazy, edição sem violar o índice único, acesso restrito ao pesquisador, bloqueio em estudo encerrado e testes de integração), backend de estados do estudo (3554) e testes unitários de visitas e transições (3556). Contrato OpenAPI de RF05 a RF11 (3543), diagrama de atividade do recrutamento (3536), README principal (3581) e Swagger UI com os endpoints de RF01 a RF11 documentados (3580, PR #40). |
+| 2 | Backend | Maria Eduarda | Backend de candidatos (3558), de avaliação de elegibilidade (3560) e de inclusão com limite de vagas (3565), com o MER/DER atualizado para RF05 a RF11 (3538). Testes unitários, de controller e de integração do recrutamento (3568), entregues nos mesmos commits do backend (`CandidatoServiceTest`, `AvaliacaoServiceTest`, `RegraElegibilidadeTest`, `InclusaoServiceTest`, `ConsentimentoServiceTest` e `RecrutamentoIntegrationTest`), e backend do consentimento simulado com bloqueio em estudo encerrado (commits `e07c386` e `567488d`, PR #42). Os testes de critérios, visitas e estados (3556) previstos para ela foram feitos pela Adrielly. |
+| 3 | Web 1 | Nidlan Hendell | Telas web de permissões de estudos por perfil (3692), critérios (3551), visitas previstas e atividades (3553), controle do estado do estudo (3555) e avaliação de elegibilidade (3561), além de testes de componente das telas de critérios, visitas e avaliação (3571). Os testes de componente foram entregues em 09/11, sem `AB#`. Ficaram pendentes as capturas das telas (3583) e o link do protótipo de critérios e visitas (3549). |
 | 4 | Web 2 | Jasmine | Integração das telas de estudos à API (3545), protótipo navegável do recrutamento (3557), telas de candidatos (3559), registro de consentimento (3564) e inclusão com limite de vagas e mensagens de erro (3566). Testes unitários, de integração e de componente do recrutamento (3567 e 3572) e capturas de tela de candidatos, consentimento e inclusão, com sucesso e erro (3584). |
 | 5 | Mobile | Arthur | CI com testes e cobertura rodando a cada PR (3546) e sincronização da develop (3641); backend de critérios de inclusão e exclusão com regras por estado do estudo (3550); testes de integração dos endpoints de RF05 a RF11 (3570); seed de dados fictícios com estudos em todos os estados e candidatos em todos os status (3542). O consentimento (3563) entrou na develop via PR #42 junto com o recrutamento. O app mobile foi congelado, conforme T-43d. |
-| 6 | QA | Adrielly | Testes do cadastro de estudos (3236), teste E2E do fluxo de recrutamento com evidências (3574), relatório de testes e cobertura (3576), CI com testes e cobertura a cada PR (3575), credenciais fictícias por perfil (3585) e revisão de código dos PRs. [confirmar: testes de integração (3570), roteiro de regressão e bug bash (3577) e tag e GitHub Release (3586)] |
+| 6 | QA | Adrielly | Testes do cadastro de estudos (3236), teste E2E do fluxo de recrutamento com evidências (3574), relatório de testes e cobertura (3576), CI com testes e cobertura a cada PR (3575), credenciais fictícias por perfil (3585) e revisão de código dos PRs. Também fez os testes de integração de critérios, visitas e erros do recrutamento com o banco real (3570, PR #36), os testes unitários de transições de estado e de regras de critérios e visitas (3556, PR #34), o roteiro de regressão de RF01 a RF04 e o bug bash de RF05 a RF11 com evidências (3577, PRs #35 e #46), a revisão cruzada do MER/DER (3539, PR #22) e a tag `v1.0.0` com o GitHub Release "Release 1" (3586). |
 
 ### Requisitos da sprint — situação final
 

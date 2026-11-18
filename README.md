@@ -24,7 +24,7 @@ O desenvolvimento segue Scrum, com o board, as sprints e o burndown no Azure Dev
 
 ## Release 1: escopo
 
-A Release 1 (**Estrutura e recrutamento**) reúne as Sprints 1 e 2 e entrega uma aplicação web que permite cadastrar um estudo, avaliar candidatos e incluir participantes. **Entregue em 10/11/2026** (merge da `develop` na `master` pelo PR #50).
+A Release 1 (**Estrutura e recrutamento**) reúne as Sprints 1 e 2 e entrega uma aplicação web que permite cadastrar um estudo, avaliar candidatos e incluir participantes. **Entregue em 10/11/2026** (merge da `develop` na `master` pelo PR #50, tag `v1.0.0` e [GitHub Release](https://github.com/N1dlan95/ClinicalStudyPB-ESW-2/releases/tag/v1.0.0)).
 
 | ID | Requisito | Sprint | Situação |
 | --- | --- | --- | --- |

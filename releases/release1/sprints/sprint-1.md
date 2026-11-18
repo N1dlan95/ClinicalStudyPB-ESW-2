@@ -13,8 +13,9 @@ status: concluído
 
 # Sprint 1 — ClinicalStudyPB
 
-> [!info] Navegação
-> Release 1 (Sprints 1 e 2) · Entrega em 09/11/2026 · Próxima: [[sprint-2]]
+> [!NOTE]
+> **Navegação**
+> Release 1 (Sprints 1 e 2) · Entrega em 09/11/2026 · Próxima: [sprint-2](sprint-2.md)
 
 ## 1. Contexto geral
 
@@ -54,7 +55,8 @@ status: concluído
 
 ## 3. Backlog da sprint (Epic > User Story > Task)
 
-> [!tip] Convenção
+> [!TIP]
+> **Convenção**
 > `EP` = Epic · `US` = User Story · `T` = Task. Estimativas em horas (valores iniciais, a ajustar no planning). Responsável: número do papel (1 a 6).
 > Itens marcados com 💡 foram **sugeridos** além do seu esboço, para cobrir o RF01–RF04 e as exigências do projeto. Podem ser cortados ou movidos.
 
@@ -63,15 +65,15 @@ status: concluído
 **US-01.1** — Como equipe, quero repositório, board e decisões técnicas definidos para começar a desenvolver de forma organizada.
 
 - [x] **T-01** Planejar a sprint: separar, organizar e distribuir as atividades (este documento) · 1 · 3h *(este documento, commit `39215c4`, 13/10)*
-- [ ] **T-02** Diagrama de atividade do fluxo da sprint/do processo · 1 · 3h *(sem evidência no repositório; o diagrama de atividade existente é o do recrutamento, da Sprint 2)*
-- [x] **T-03** 💡 Criar o board no Azure DevOps (PBIs, tasks, sprint, burndown) · 1 · 2h *(board e sprint no Azure DevOps; o burndown exportado está em `releases/burndown_sprint1.png`)*
+- [ ] **T-02** Diagrama de atividade do fluxo da sprint/do processo · 1 · 3h 
+- [x] **T-03** 💡 Criar o board no Azure DevOps (PBIs, tasks, sprint, burndown) · 1 · 2h *(board e sprint no Azure DevOps; o burndown exportado está em `releases/release1/img/burndown_sprint1.png`)*
 - [x] **T-04** 💡 Criar repositório GitHub com README.md principal (esqueleto), `releases/release1/README.md`, política de branches e pull requests · 1 · 3h *(repositório com README e `realeases/release1/README.md` como esqueletos (commits `39215c4` e `9f35014`); a política de branches e PRs foi descrita no README principal na Sprint 2 (3581))*
 - [x] **T-05** 💡 Decidir e justificar o stack (A, B ou C) e registrar no README · 1 · 3h *(Stack A (Spring Boot + React + React Native + PostgreSQL), registrada em `Contexto-Geral/Orientacoes/setup-projeto-v1.md`, commit `c77f867`)*
 - [x] **T-06** 💡 Esboçar o contrato da API para RF01–RF04 · 1 · 4h *(`api/openapi.yaml` e `como-acessar-contrato-api.md`, commit `8b77dc3`, 24/10)*
 
 **US-01.2** — Como equipe, quero um ambiente de desenvolvimento padronizado com Docker para que qualquer integrante (e a equipe da Release 3) rode o projeto igual.
 
-- [x] **T-07** Criar `docker-compose` com banco PostgreSQL + backend + web · 6 · 6h *(Arthur, PRs #1 e #2 (task 3043), 23 a 24/10; ajustado pelo Nidlan em `49c28b9`)*
+- [x] **T-07** Criar `docker-compose` com banco PostgreSQL + backend + web · 6 · 6h *(Arthur, PRs #1 e #2 (task 3043), 23 a 24/10; ajustado por Nidlan em `49c28b9`)*
 - [x] **T-08** Criar scripts/instruções de instalação e execução (seção do README) · 6 · 2h *(`DOCKER.md`, commit `49c28b9` (Nidlan), 26/10)*
 (Opcional)
 - [ ] **T-09** 💡 Configurar CI no GitHub Actions (build + testes a cada PR) · 6 · 5h *(não concluída na Sprint 1: o workflow entrou na Sprint 2 (tasks 3546 e 3575, commit `19007d7` de 04/11))*
@@ -82,17 +84,17 @@ status: concluído
 **US-02.1** — Como equipe, quero o modelo de dados definido para que backend e telas usem a mesma estrutura.
 
 - [x] **T-11** MER/DER inicial (usuário/perfil, estudo; já prevendo candidato, critério, visita) · 2 · 6h *(`Diagramas/MER-v1.md`, commit `8b77dc3` (Nidlan), 24/10; as dúvidas com a professora ficaram para o MER-v2)*
-- [ ] **T-12** Revisão do DER por outro integrante (revisão cruzada) · 1 · 1h *(sem evidência de revisão do DER no repositório)*
+- [ ] **T-12** Revisão do DER por outro integrante (revisão cruzada) · 1 · 1h 
 
 **US-02.2** — Como pesquisador, quero ver o fluxo de cadastro de estudos em um protótipo para validar a navegação antes de codificar.
 
-- [ ] **T-14** Protótipo navegável: listagem, cadastro e edição de estudo (Figma/Penpot) · 3 · 8h *(link do Figma no README da Release 1; falta conferir se as telas de estudos estão lá)*
-- [ ] **T-15** Incluir no protótipo estados de erro/validação (campos obrigatórios, datas inválidas, limite de participantes) · 3 · 2h *(falta conferir no Figma)*
+- [x] **T-14** Protótipo navegável: listagem, cadastro e edição de estudo (Figma/Penpot) · 3 · 8h 
+- [x] **T-15** Incluir no protótipo estados de erro/validação (campos obrigatórios, datas inválidas, limite de participantes) · 3 · 2h 
 
 **US-02.3** — Como administrador, quero ver o fluxo de cadastro de usuários em um protótipo para validar a navegação.
 
-- [ ] **T-16** Protótipo navegável: login, listagem, cadastro e edição de usuário (com perfil) · 4 · 8h *(link do Figma no README da Release 1; falta conferir se as telas de usuários estão lá)*
-- [ ] **T-17** Incluir no protótipo estados de erro (e-mail duplicado, senha inválida, acesso negado) · 4 · 2h *(falta conferir no Figma)*
+- [x] **T-16** Protótipo navegável: login, listagem, cadastro e edição de usuário (com perfil) · 4 · 8h 
+- [x] **T-17** Incluir no protótipo estados de erro (e-mail duplicado, senha inválida, acesso negado) · 4 · 2h 
 
 **US-02.4** — Como participante, quero as telas essenciais no celular para acessar o app.
 
@@ -102,13 +104,13 @@ status: concluído
 
 **US-03.1** — Como administrador, quero cadastrar e gerenciar usuários com perfis para controlar quem acessa o sistema. *(RF01)*
 
-- [x] ==🟢**T-20** 💡 Backend: entidade Usuário/Perfil, regras (e-mail único, ativar/desativar) e endpoints CRUD · 2 · 10h== *(Maria Eduarda, PR #7 (AB#3116), 25/10)*
+- [x] ==🟢**T-20** 💡 Backend: entidade Usuário/Perfil, regras (e-mail único, ativar/desativar) e endpoints CRUD · 2 · 10h *(Maria Eduarda, PR #7 (AB#3116), 25/10)*
 - [x] **T-21** 💡 Web: telas de cadastro, listagem e edição de usuários integradas à API · 4 · 10h *(Adrielly, PRs #11 e #12 (AB#3334), 25 a 26/10)*
 - [x] **T-22** 💡 Testes unitários e de integração do cadastro de usuários · 2 e 4 · 4h *(`UsuarioServiceTest` e `UsuarioControllerTest` (Maria Eduarda, PR #7) e testes das telas de usuários e de login (Adrielly, PRs #10 e #11))*
 
 **US-03.2** — Como usuário, quero entrar e sair do sistema para acessar minhas funcionalidades. *(RF02)*
 
-- [x] ==🟢**T-23** 💡 Backend: autenticação (login, token/sessão, logout) · 2 · 8h== *(Maria Eduarda, PR #8 (AB#3218): login com JWT, logout e usuário logado, 25/10)*
+- [x] **T-23** 💡 Backend: autenticação (login, token/sessão, logout) · 2 · 8h *(Maria Eduarda, PR #8 (AB#3218): login com JWT, logout e usuário logado, 25/10)*
 - [x] **T-24** 💡 Web: tela de login e logout · 4 · 4h *(Adrielly, PRs #3 e #12 (AB#3219), 24 a 26/10)*
 - [x] **T-25** 💡 Mobile: tela de login do participante (estrutura) · 5 · 5h *(Jasmine, commit `e2ca28c` (PR #6), 20/10)*
 
@@ -122,15 +124,15 @@ status: concluído
 
 **US-04.1** — Como pesquisador, quero cadastrar estudos com título, objetivo, responsável, datas e limite de participantes. *(RF04)*
 
-- [x] ==🟢**T-29** 💡 Backend: entidade Estudo, validações (datas, limite > 0) e endpoints · 2 · 10h== *(Maria Eduarda, PR #14 (AB#3238), com `EstudoControllerTest`, 26/10)*
+- [x] **T-29** 💡 Backend: entidade Estudo, validações (datas, limite > 0) e endpoints · 2 · 10h *(Maria Eduarda, PR #14 (AB#3238), com `EstudoControllerTest`, 26/10)*
 - [ ] **T-30** 💡 Web: telas de listagem, cadastro e edição de estudos integradas à API · 3 · 10h *(parcial: telas de listagem, cadastro e edição com dados fictícios (Mirelle, PR #5, task 3237). A integração com a API ficou para a Sprint 2 (task 3545))*
 - [ ] **T-31** 💡 Testes unitários, de integração e de componente do cadastro de estudos · 2 e 3 · 5h *(movida para a Sprint 2 como pendência (task 3236, concluída em 06/11); na Sprint 1 só havia o `EstudoControllerTest` do backend)*
 
 ### Tarefas compartilhadas (todos)
 
 - [x] **T-32** Revisão de código cruzada em todos os PRs (mínimo 1 revisor) · todos *(PRs #1 a #14 mesclados por um integrante diferente do autor)*
-- [ ] **T-33** Documentação da sprint no `releases/release1/README.md` (parte de cada um) · todos *(não feita na Sprint 1: o README da release foi preenchido na Sprint 2)*
-- [ ] **T-35** Preparar demonstração da sprint · todos *(sem evidência no repositório)*
+- [ ] **T-33** Documentação da sprint no `releases/release1/README.md` (parte de cada um) · todos 
+- [ ] **T-35** Preparar demonstração da sprint · todos 
 
 ## 4. Distribuição por membro
 
@@ -166,7 +168,8 @@ flowchart LR
 
 ## 5. Registro da sprint (preencher ao longo e no fim)
 
-> [!note] Preenchimento posterior
+> [!NOTE]
+> **Preenchimento posterior**
 > As partes de fatos desta seção (o que foi feito, o que falta, contribuição e situação dos requisitos) foram preenchidas em 17/11/2026 por Mirelle, a partir do histórico do repositório (commits e PRs #1 a #14). O que é avaliação do gerente da sprint (o que melhorar, impedimentos, ações e análise do burndown) fica para Nidlan Hendell.
 
 ### Review (26/10)
@@ -192,12 +195,12 @@ flowchart LR
 #### Impedimentos encontrados
 - 
 
-#### Ações de melhoria para a [[sprint-2]]
+#### Ações de melhoria para a [sprint-2](sprint-2.md)
 - [ ] 
 
 ### Burndown
 
-![[../../../releases/burndown_sprint1.png]]
+![Burndown da Sprint 1](../img/burndown_sprint1.png)
 
 **Análise (planejado x realizado):**
 

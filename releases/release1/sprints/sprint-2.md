@@ -13,8 +13,9 @@ status: concluído
 
 # Sprint 2 — ClinicalStudyPB
 
-> [!info] Navegação
-> Release 1 (Sprints 1 e 2) · Entrega em 10/11/2026 · Anterior: [[sprint-1]]
+> [!NOTE]
+> **Navegação**
+> Release 1 (Sprints 1 e 2) · Entrega em 10/11/2026 · Anterior: [sprint-1](sprint-1.md)
 
 ## 1. Contexto geral
 
@@ -49,7 +50,8 @@ status: concluído
 | 6 | QA | Adrielly | QA: testes E2E, CI, relatório de cobertura, regressão e bug bash; testes do cadastro de estudos; credenciais; tag e Release | 28h |
 | | | **Total** | | **203h** |
 
-> [!info] Rotação
+> [!NOTE]
+> **Rotação**
 > Na Sprint 1 os papéis eram: Líder/Gerente Nidlan Hendell, Backend Maria Eduarda, Web (estudos) Mirelle, Web (usuários) Adrielly, Mobile Jasmine e QA/DevOps Arthur.
 
 ## 2. Duração da sprint
@@ -64,13 +66,14 @@ status: concluído
 
 ## 3. Backlog da sprint (PBI > Task)
 
-> [!tip] Convenção
+> [!TIP]
+> **Convenção**
 > Número = ID da task no Azure DevOps · Responsável · Horas estimadas · Início → fim previsto (dia em que vai para Done, com PR revisado e Remaining Work = 0).
 
 ### 3518 — Fechar dúvidas e modelo de dados de RF05–RF11 (Preparação)
 
 - [x] **3533** Planejar a sprint: separar, organizar e distribuir as atividades · Mirelle · 3h · 27/10 → 27/10
-- [ ] **3534** Tirar dúvidas sobre a entidade Critério (RF05) e o registro da elegibilidade · Mirelle · 1h · 27/10 → 27/10 *(não há resposta registrada: as dúvidas 1 e 2 seguiram como premissa no [[MER-v2]], conforme o plano B da seção 5)*
+- [ ] **3534** Tirar dúvidas sobre a entidade Critério (RF05) e o registro da elegibilidade · Mirelle · 1h · 27/10 → 27/10 *(não há resposta registrada: as dúvidas 1 e 2 seguiram como premissa no [MER-v2](../../../Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md), conforme o plano B da seção 5)*
 - [x] **3536** Diagrama de atividade do fluxo de recrutamento (candidato > elegibilidade > consentimento > inclusão) · Mirelle · 3h · 28/10 → 29/10
 - [x] **3538** Atualizar o MER/DER com as entidades de RF05 a RF11 · Maria Eduarda · 6h · 27/10 → 28/10
 - [x] **3539** Revisão do DER por outro integrante (revisão cruzada) · Mirelle · 1h · 29/10 → 29/10 *(a revisão foi feita pela Adrielly no PR #22, mesclado em 04/11)*
@@ -236,14 +239,14 @@ flowchart LR
 #### O que falta
 - Link do protótipo navegável de critérios e visitas (3549).
 - Persistir data e hora das visitas: hoje a tela mostra só uma prévia de calendário, e o sistema guarda dia previsto e janela de dias (fora do RF06). Entra na Sprint 3 com o agendamento de visitas (RF12).
-- Bugs de severidade baixa encontrados nos testes da release, sem bloquear a entrega: filtro de candidatos sem a opção "Retirado" e texto de vagas sem singular ("1 vagas"). Ficam para a Release 2 ([relatório de testes](../../../releases/release1/relatorio-testes.md)).
+- Bugs de severidade baixa encontrados nos testes da release, sem bloquear a entrega: filtro de candidatos sem a opção "Retirado" e texto de vagas sem singular ("1 vagas"). Ficam para a Release 2 ([relatório de testes](../relatorio-testes.md)).
 
 #### Resolvido no fechamento
 - Swagger UI (3580): springdoc-openapi configurado e mesclado no PR #40. Endereço `http://localhost:8080/api/swagger-ui.html`, liberado no `SecurityConfig` e registrado no README.
 - Os 2 testes de `VisitasPrevistasPage` que falhavam foram corrigidos (commit `5a62af5`). A execução de 09/11 terminou com 203 de 203 testes do frontend passando.
 - Roteiro de regressão e bug bash (3577): roteiro no PR #35 e execução no PR #46. Regressão de RF01 a RF04: 34 de 34 OK. Bug bash de RF05 a RF11: 23 de 24 OK.
 - Tag e GitHub Release (3586): `develop` mesclada na `master` pelo PR #50, tag `v1.0.0` e GitHub Release "Release 1" publicados em 09/11, às 22h56.
-- Burndown da Sprint 2 exportado do Azure DevOps (`releases/burndown_sprint2.jpeg`).
+- Burndown da Sprint 2 exportado do Azure DevOps (`releases/release1/img/burndown_sprint2.jpeg`).
 
 #### O que melhorar
 - Exigir pull request e revisão também na `develop`, e `AB#` em todo commit: três commits de telas entraram direto na `develop`, sem PR e sem `AB#`.
@@ -261,7 +264,7 @@ flowchart LR
 
 ### Burndown
 
-![\[\[../../../releases/burndown_sprint2.jpeg\]\]](../../../releases/burndown_sprint2.jpeg)
+![Burndown da Sprint 2](../img/burndown_sprint2.jpeg)
 
 **Análise (planejado x realizado):**
 

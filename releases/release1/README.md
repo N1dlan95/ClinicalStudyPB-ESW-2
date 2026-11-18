@@ -5,12 +5,12 @@ Documentação da primeira release do ClinicalStudyPB, que reúne as Sprints 1 e
 - **Período:** 13/10/2026 a 10/11/2026 (Sprint 1: 13/10 a 26/10; Sprint 2: 27/10 a 09/11; fechamento e entrega: 10/11).
 - **Tag:** `v1.0.0`, sobre o merge da `develop` na `master` (PR #50).
 - **GitHub Release:** [Release 1](https://github.com/N1dlan95/ClinicalStudyPB-ESW-2/releases/tag/v1.0.0), publicado em 09/11/2026 (task 3586).
-- **README principal:** [`README.md`](../README.md)
-- **Como executar:** [`DOCKER.md`](../DOCKER.md)
+- **README principal:** [`README.md`](../../README.md)
+- **Como executar:** [`DOCKER.md`](../../DOCKER.md)
 
 ## 1. Requisitos da release: situação final
 
-Situação de cada requisito ao fim da Sprint 2. A validação é a da execução de 09/11/2026: regressão de RF01 a RF04 com 34 de 34 casos OK, bug bash de RF05 a RF11 com 23 de 24 OK e E2E do fluxo de recrutamento aprovado ([relatório de testes](release1/relatorio-testes.md)).
+Situação de cada requisito ao fim da Sprint 2. A validação é a da execução de 09/11/2026: regressão de RF01 a RF04 com 34 de 34 casos OK, bug bash de RF05 a RF11 com 23 de 24 OK e E2E do fluxo de recrutamento aprovado ([relatório de testes](relatorio-testes.md)).
 
 | RF | Requisito | Sprint | Concluído | Parcial | Não implementado | Justificativa |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -51,8 +51,8 @@ O projeto mobile continua no repositório, na pasta `mobile/`, com a estrutura e
 
 | Sprint | Período | Objetivo | Documento |
 | --- | --- | --- | --- |
-| 1 | 13/10 a 26/10 | Base do projeto (repositório, ambiente, modelagem, protótipos) e RF01 a RF04 | [`sprint-1.md`](../Docs/ClinicalStudyPB-Docs/Sprints/sprint-1.md) |
-| 2 | 27/10 a 09/11 | RF05 a RF11, pendências da Sprint 1, cobertura mínima de 80% e preparação da release. | [`sprint-2.md`](../Docs/ClinicalStudyPB-Docs/Sprints/sprint-2.md) |
+| 1 | 13/10 a 26/10 | Base do projeto (repositório, ambiente, modelagem, protótipos) e RF01 a RF04 | [`sprint-1.md`](sprints/sprint-1.md) |
+| 2 | 27/10 a 09/11 | RF05 a RF11, pendências da Sprint 1, cobertura mínima de 80% e preparação da release. | [`sprint-2.md`](sprints/sprint-2.md) |
 
 ### Papéis por sprint
 
@@ -69,26 +69,26 @@ O projeto mobile continua no repositório, na pasta `mobile/`, com a estrutura e
 
 **Sprint 1 (13/10/2026 a 26/10/2026)**
 
-![Burndown da Sprint 1](burndown_sprint1.png)
+![Burndown da Sprint 1](img/burndown_sprint1.png)
 
 **Sprint 2 (27/10/2026 a 09/11/2026)**
 
-![Burndown da Sprint 2](burndown_sprint2.jpeg)
+![Burndown da Sprint 2](img/burndown_sprint2.jpeg)
 
-O trabalho restante ficou acima da linha ideal até 02/11, caiu bastante no checkpoint de 03/11, passou para baixo do ideal entre 04/11 e 05/11 e chegou a 0h em 09/11. A análise completa está no [`sprint-2.md`](../Docs/ClinicalStudyPB-Docs/Sprints/sprint-2.md).
+O trabalho restante ficou acima da linha ideal até 02/11, caiu bastante no checkpoint de 03/11, passou para baixo do ideal entre 04/11 e 05/11 e chegou a 0h em 09/11. A análise completa está no [`sprint-2.md`](sprints/sprint-2.md).
 
 ## 4. Evidências
 
 | Evidência | Onde encontrar |
 | --- | --- |
-| Relatório de testes e cobertura ≥ 80% (task 3576) | [`release1/relatorio-testes.md`](release1/relatorio-testes.md): 531 testes passando, 97,9% das linhas do backend cobertas e [CI verde](https://github.com/N1dlan95/ClinicalStudyPB-ESW-2/actions/runs/42729880697) |
-| Capturas de tela da interface web, com sucesso e erro/validação (tasks 3583 e 3584) | [`release1/img/`](release1/img/) (candidatos, consentimento e inclusão, task 3584); prints da regressão e do bug bash em [`Testes/evidencias/`](../Docs/ClinicalStudyPB-Docs/Testes/evidencias/). Capturas da task 3583 pendentes |
-| Credenciais fictícias por perfil (task 3585) | [README principal, seção Credenciais fictícias](../README.md#credenciais-fictícias) |
+| Relatório de testes e cobertura ≥ 80% (task 3576) | [`relatorio-testes.md`](relatorio-testes.md): 531 testes passando, 97,9% das linhas do backend cobertas e [CI verde](https://github.com/N1dlan95/ClinicalStudyPB-ESW-2/actions/runs/42729880697) |
+| Capturas de tela da interface web, com sucesso e erro/validação (tasks 3583 e 3584) | [`img/`](img/) (candidatos, consentimento e inclusão, task 3584); prints da regressão e do bug bash em [`Testes/evidencias/`](../../Docs/ClinicalStudyPB-Docs/Testes/evidencias/). Capturas da task 3583 pendentes |
+| Credenciais fictícias por perfil (task 3585) | [README principal, seção Credenciais fictícias](../../README.md#credenciais-fictícias) |
 | Swagger UI com RF01 a RF11 (task 3580) | <http://localhost:8080/api/swagger-ui.html>, com o projeto rodando (PR #40) |
-| Contrato OpenAPI | [`openapi.yaml`](../Docs/ClinicalStudyPB-Docs/api/openapi.yaml) |
-| Modelo de dados (MER/DER) | [`MER-v2.md`](../Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md) |
+| Contrato OpenAPI | [`openapi.yaml`](../../Docs/ClinicalStudyPB-Docs/api/openapi.yaml) |
+| Modelo de dados (MER/DER) | [`MER-v2.md`](../../Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md) |
 | Protótipos navegáveis | [Figma – ClinicalStudyPB](https://www.figma.com/design/P2s0uMXHZCh3vrgC5ZmfNG/ClinicalStudyPB---ES2?node-id=20-2&t=0cEoxDphdCsPHFBn-0). |
-| Teste E2E do fluxo completo (cadastrar estudo, cadastrar candidato, avaliar, consentir e incluir) | [`e2e/tests/fluxo-recrutamento.spec.ts`](../e2e/tests/fluxo-recrutamento.spec.ts) (Playwright), com os prints em [`e2e/evidencias/`](../e2e/evidencias/) e o passo a passo em [`e2e/README.md`](../e2e/README.md) |
+| Teste E2E do fluxo completo (cadastrar estudo, cadastrar candidato, avaliar, consentir e incluir) | [`e2e/tests/fluxo-recrutamento.spec.ts`](../../e2e/tests/fluxo-recrutamento.spec.ts) (Playwright), com os prints em [`e2e/evidencias/`](../../e2e/evidencias/) e o passo a passo em [`e2e/README.md`](../../e2e/README.md) |
 
 ## 5. Decisões técnicas
 

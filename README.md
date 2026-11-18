@@ -42,7 +42,7 @@ A Release 1 (**Estrutura e recrutamento**) reúne as Sprints 1 e 2 e entrega uma
 
 **App mobile:** o desenvolvimento foi congelado nesta release. Os requisitos RF17 a RF20 (estudos, visitas e retirada) ficam para a Release 2.
 
-A situação de cada requisito, as evidências e as capturas de tela estão no [README da Release 1](releases/README-release1.md). Os testes e a cobertura estão no [relatório de testes](releases/release1/relatorio-testes.md).
+A situação de cada requisito, as evidências e as capturas de tela estão no [README da Release 1](releases/release1/README.md). Os testes e a cobertura estão no [relatório de testes](releases/release1/relatorio-testes.md).
 
 ## Arquitetura
 
@@ -182,10 +182,11 @@ O GitHub Actions roda o build e os testes do backend e do frontend a cada push e
 ├── Docs/ClinicalStudyPB-Docs/
 │   ├── Contexto-Geral/      # contexto e requisitos
 │   ├── Diagramas/           # MER/DER e diagrama do fluxo de recrutamento
-│   ├── Sprints/             # planejamento e registro de cada sprint
 │   ├── Testes/              # roteiro de regressão, bug bash e resultado da execução
 │   └── api/                 # contrato OpenAPI
-├── releases/                # documentação e relatório de testes de cada release
+├── releases/                # uma pasta por release: README, sprints, relatório de testes e capturas
+│   ├── release1/            # Sprints 1 e 2
+│   └── release2/            # Sprints 3 em diante
 ├── .github/                 # workflows de CI
 ├── docker-compose.yml
 ├── DOCKER.md
@@ -212,4 +213,4 @@ Os papéis rotacionam a cada sprint.
 | Mobile | Jasmine | Arthur |
 | QA / DevOps | Arthur | Adrielly |
 
-A documentação completa de cada sprint está em [`Docs/ClinicalStudyPB-Docs/Sprints`](Docs/ClinicalStudyPB-Docs/Sprints).
+A documentação de cada sprint fica na pasta da sua release: [Release 1](releases/release1/sprints) (Sprints 1 e 2) e [Release 2](releases/release2/sprints) (Sprint 3 em diante).

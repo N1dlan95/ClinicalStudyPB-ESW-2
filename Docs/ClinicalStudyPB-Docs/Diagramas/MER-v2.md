@@ -6,16 +6,17 @@ tags:
   - sprint-2
 atualizado: 2026-11-09
 status: Em revisão
-substitui: "[[MER-v1]]"
+substitui: "MER-v1.md"
 ---
 
 # ClinicalStudyPB: MER/DER da Sprint 2 (RF05 a RF11)
 
-> [!NOTE] Atualização
-> O modelo da Sprint 3 (RF12 a RF18: conta do participante, visitas, resultados, retirada e app) está em [[MER-v3]].
+> [!NOTE]
+> **Atualização**
+> O modelo da Sprint 3 (RF12 a RF18: conta do participante, visitas, resultados, retirada e app) está em [MER-v3](MER-v3.md).
 
 > [!NOTE]
-> Este documento continua o [[MER-v1]] (Sprint 1) e é a **base das migrações e dos endpoints** de RF05 a RF11: critérios, visitas previstas e atividades, candidatos, avaliação de elegibilidade, consentimento e inclusão. Tabelas já criadas (`usuario`, `estudo`, `candidato`) aparecem como estão nas migrações. O que ainda não foi implementado é a proposta que cada task deve seguir; mudanças devem ser registradas aqui antes de virar migração.
+> Este documento continua o [MER-v1](MER-v1.md) (Sprint 1) e é a **base das migrações e dos endpoints** de RF05 a RF11: critérios, visitas previstas e atividades, candidatos, avaliação de elegibilidade, consentimento e inclusão. Tabelas já criadas (`usuario`, `estudo`, `candidato`) aparecem como estão nas migrações. O que ainda não foi implementado é a proposta que cada task deve seguir; mudanças devem ser registradas aqui antes de virar migração.
 
 ---
 
@@ -253,4 +254,4 @@ O Flyway aplica em ordem e não aceita dois arquivos com o mesmo número. Cada t
 
 ## 7. Fora desta sprint
 
-`visita` (agendamento real, RF12–RF13), resultados de avaliações (RF14), solicitações de reagendamento e de retirada (RF19–RF20) e a conta do participante seguem o rascunho do [[MER-v1]] e entram no MER da Sprint 3.
+`visita` (agendamento real, RF12–RF13), resultados de avaliações (RF14), solicitações de reagendamento e de retirada (RF19–RF20) e a conta do participante seguem o rascunho do [MER-v1](MER-v1.md) e entram no MER da Sprint 3.

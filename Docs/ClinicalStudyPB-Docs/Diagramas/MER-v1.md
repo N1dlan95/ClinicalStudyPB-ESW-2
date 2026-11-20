@@ -11,10 +11,12 @@ status: Em revisão
 
 # ClinicalStudyPB: dúvidas e decisões do MER
 
-> [!NOTE] Atualização
-> O modelo de RF05 a RF11 (Sprint 2), com diagrama, dicionário de dados e numeração das migrações, está em [[MER-v2]]. Este documento fica como registro da Sprint 1.
+> [!NOTE]
+> **Atualização**
+> O modelo de RF05 a RF11 (Sprint 2), com diagrama, dicionário de dados e numeração das migrações, está em [MER-v2](MER-v2.md). Este documento fica como registro da Sprint 1.
 
-> [!info] Objetivo
+> [!NOTE]
+> **Objetivo**
 > Reunir em um só lugar as dúvidas para a professora, as decisões já tomadas na modelagem, o espaço para o MER e os fluxos principais de informação. O que ainda está em aberto fica marcado para ser fechado depois da conversa com a professora.
 
 Documento de contexto: 
@@ -23,7 +25,8 @@ Documento de contexto:
 
 ## 1. Dúvidas para a professora
 
-> [!question] Como usar
+> [!NOTE]
+> **Como usar**
 > Preencher o campo **Resposta** durante ou depois da conversa.
 
 ### 1. Critérios (RF05)
@@ -78,7 +81,7 @@ Pode ser candidato em mais de um estudo ao mesmo tempo?
 ## 3. MER
 
 
-![[CrinicalStudy.drawio.png]]
+*(A imagem original `CrinicalStudy.drawio.png` não está no repositório. O diagrama atualizado está no [MER-v2](MER-v2.md).)*
 
 ```mermaid
 erDiagram
@@ -194,7 +197,8 @@ flowchart TD
 | `decidido_por` | Usuário coordenador |
 | `decidido_em` | |
 
-> [!warning] Regra a validar no backend
+> [!WARNING]
+> **Regra a validar no backend**
 > Com a visita ligada ao usuário, o banco não impede agendar visita para quem não foi incluído no estudo. A service deve conferir se existe um `Candidato` com esse `usuario_id`, o `estudo_id` correspondente e status INCLUIDO.
 
 ### Pendências

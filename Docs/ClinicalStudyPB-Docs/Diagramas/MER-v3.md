@@ -7,16 +7,17 @@ tags:
 atualizado: 2026-11-17
 status: Em revisão
 task: T-81 (Azure 3746)
-substitui: "[[MER-v2]]"
+substitui: "MER-v2.md"
 ---
 
 # ClinicalStudyPB: MER/DER da Sprint 3 (RF12 a RF18)
 
 > [!NOTE]
-> Continua o [[MER-v2]] (RF05 a RF11). Cobre a Release 2: conta do participante, agendamento e status das visitas, resultados fictícios, histórico, retirada e o app do participante. O que já existe na branch `feat/3751-conta-participante-api` aparece como **Implementado**. O resto é a **proposta** que cada task deve seguir. Mude este documento antes de criar uma migração diferente.
+> Continua o [MER-v2](MER-v2.md) (RF05 a RF11). Cobre a Release 2: conta do participante, agendamento e status das visitas, resultados fictícios, histórico, retirada e o app do participante. O que já existe na branch `feat/3751-conta-participante-api` aparece como **Implementado**. O resto é a **proposta** que cada task deve seguir. Mude este documento antes de criar uma migração diferente.
 
-> [!warning] Premissas
-> As dúvidas 3, 4 e 5 do [[MER-v1]] (avaliações, visitas em grupo e conta do participante) continuam sem resposta registrada no repositório (T-79). As decisões abaixo marcadas como **Premissa** podem mudar se a professora responder diferente.
+> [!WARNING]
+> **Premissas**
+> As dúvidas 3, 4 e 5 do [MER-v1](MER-v1.md) (avaliações, visitas em grupo e conta do participante) continuam sem resposta registrada no repositório (T-79). As decisões abaixo marcadas como **Premissa** podem mudar se a professora responder diferente.
 
 ---
 
@@ -40,7 +41,7 @@ substitui: "[[MER-v2]]"
 
 ## 2. Diagrama
 
-Só as tabelas novas ou alteradas na Sprint 3. As demais estão no [[MER-v2]].
+Só as tabelas novas ou alteradas na Sprint 3. As demais estão no [MER-v2](MER-v2.md).
 
 ```mermaid
 erDiagram
@@ -183,7 +184,7 @@ O contrato das rotas implementadas está em [`openapi.yaml`](../api/openapi.yaml
 
 ## 6. Migrações
 
-Continua a tabela do [[MER-v2]] (seção 6). Cada task usa o número reservado. Se precisar de outro, atualize esta tabela no mesmo PR.
+Continua a tabela do [MER-v2](MER-v2.md) (seção 6). Cada task usa o número reservado. Se precisar de outro, atualize esta tabela no mesmo PR.
 
 | Versão | Conteúdo | Task | Situação |
 |---|---|---|---|

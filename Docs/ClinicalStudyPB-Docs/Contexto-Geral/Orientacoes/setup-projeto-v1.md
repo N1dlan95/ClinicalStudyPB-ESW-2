@@ -6,8 +6,9 @@ atualizado: 2026-10-23
 
 # Setup do projeto — ClinicalStudyPB
 
-> [!info] Para quê serve este documento
-> Registro do que foi feito na montagem da base do projeto na [[sprint-1]] e das decisões tomadas, para que toda a equipe entenda a estrutura antes de começar a desenvolver.
+> [!NOTE]
+> **Para quê serve este documento**
+> Registro do que foi feito na montagem da base do projeto na [sprint-1](../../../../releases/release1/sprints/sprint-1.md) e das decisões tomadas, para que toda a equipe entenda a estrutura antes de começar a desenvolver.
 
 ## 1. Stack escolhida (Stack A)
 
@@ -19,7 +20,8 @@ atualizado: 2026-10-23
 | Banco | PostgreSQL (em contêiner Docker) |
 | Testes | JUnit, Mockito, Vitest, Jest, Playwright |
 
-> [!note] TypeScript
+> [!NOTE]
+> **TypeScript**
 > O enunciado da Stack A indica **React + TypeScript** (web) e compartilhamento de conhecimento de TypeScript entre web e mobile. Por isso o projeto web usa o template `react-ts`. TypeScript é JavaScript com tipos: todo JavaScript válido funciona nele.
 
 ## 2. Estrutura do repositório
@@ -37,7 +39,8 @@ clinicalstudypb/
 └── README.md
 ```
 
-> [!warning] Nome da pasta do React
+> [!WARNING]
+> **Nome da pasta do React**
 > Neste documento a pasta é `web` (combina com "aplicação web" do enunciado). Se a equipe preferir `frontend`, escolha **um nome só** e use-o em README, Docker e CI.
 
 ### Por que o código não fica dentro de `releases/`
@@ -127,7 +130,8 @@ backend/src/test/java/br/com/clinicalstudypb/
 └── (mesma estrutura de pacotes do código)
 ```
 
-> [!tip] Regras importantes
+> [!TIP]
+> **Regras importantes**
 > - Os pacotes novos precisam ficar **dentro do pacote da classe principal** (`br.com.clinicalstudypb`), senão o Spring não encontra os componentes.
 > - A linha `package ...;` no topo do arquivo deve coincidir com a pasta.
 > - O caminho `db/migration` é o padrão do Flyway; não mude o nome.
@@ -160,14 +164,16 @@ cd backend
 ./mvnw spring-boot:run             # Windows: mvnw.cmd spring-boot:run
 ```
 
-> [!warning] Armadilhas
+> [!WARNING]
+> **Armadilhas**
 > - O backend **só sobe com o banco rodando** (Spring e Flyway tentam conectar).
 > - Com o Spring Security, **todos os endpoints retornam 401** e o console mostra uma senha aleatória. É esperado até configurarmos RF02/RF03. Para testar antes, use um `SecurityConfig` temporário que libere tudo.
 > - Se aparecer erro de "banco não suportado" no Flyway, falta o módulo `flyway-database-postgresql`.
 
 ## 4. Banco de dados e Docker
 
-> [!info] Responsável
+> [!NOTE]
+> **Responsável**
 > O ambiente Docker (T-07) é do **QA / DevOps**. O trecho abaixo é um ponto de partida.
 
 ### Conceitos
@@ -233,7 +239,8 @@ npm run dev
 
 Abra `http://localhost:5173` (parar com `Ctrl + C`).
 
-> [!warning] Duas perguntas diferentes durante a criação
+> [!WARNING]
+> **Duas perguntas diferentes durante a criação**
 > - **Pergunta do npm** (`Need to install the following packages: create-vite@... Ok to proceed?`): responda **`y`**. Respondendo "não", aparece `npm error canceled`.
 > - **Perguntas do Vite** (opções experimentais, instalar e iniciar agora): responda **No**.
 > - Se a pasta tiver `.gitkeep`, apague antes (PowerShell: `rm web\.gitkeep`; cmd: `del web\.gitkeep`) ou escolha *Ignore files and continue*.
@@ -316,7 +323,8 @@ export const api = axios.create({
 
 Em `package.json`, no bloco `scripts`, adicionar: `"test": "vitest run"`.
 
-> [!warning] Combinado com o backend
+> [!WARNING]
+> **Combinado com o backend**
 > Os endpoints do Spring devem começar com **`/api`** (por exemplo `@RequestMapping("/api/estudos")`).
 
 ### Verificação
@@ -358,4 +366,4 @@ Responsabilidade do **desenvolvedor mobile** (T-19): projeto React Native + Expo
 
 1. Discutir a arquitetura em equipe (camadas, DTOs, autenticação).
 2. Funcionalidade-modelo no backend (por exemplo `Estudo`) para os demais seguirem o padrão.
-3. Distribuição das tasks conforme o [[sprint-1]].
+3. Distribuição das tasks conforme o [sprint-1](../../../../releases/release1/sprints/sprint-1.md).

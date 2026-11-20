@@ -6,11 +6,12 @@ status: rascunho
 
 # Como acessar o contrato da API (openapi.yaml)
 
-> [!info] O que é este arquivo
+> [!NOTE]
+> **O que é este arquivo**
 > O `openapi.yaml` descreve todas as rotas da API do ClinicalStudyPB da **Sprint 1 (RF01 a RF04)**: login, usuários, perfis e estudos. Ele é um texto em YAML. Para **ver** a documentação de forma visual (lista de rotas, exemplos e botão de testar), é preciso abri-lo em uma ferramenta de visualização. 
 > Este arquivo se encontra nessa mesma pasta, mas é necessário procurar pelo gerenciador de arquivos.
 
-Relacionados: [[contexto-desenvolvimento]] · [[duvidas-mer-professora]]
+Relacionados: `contexto-desenvolvimento` · `duvidas-mer-professora`
 
 ---
 
@@ -27,7 +28,8 @@ clinicalstudypb/
     └──Diagramas
 ```
 
-> [!note] Por quê
+> [!NOTE]
+> **Por quê**
 > O contrato é o combinado entre backend, web e mobile. Versionado no Git, todos veem a mesma versão e as mudanças passam por revisão de PR.
 
 ---
@@ -44,7 +46,8 @@ Não instala nada.
    - Alternativa: menu **File → Import file** e escolha o arquivo.
 4. A documentação aparece à direita. Se houver erro de sintaxe, ele é apontado no painel esquerdo.
 
-> [!warning] Cuidado
+> [!WARNING]
+> **Cuidado**
 > Os dados ficam só no navegador. Se fechar a aba sem salvar, perde as alterações feitas lá. Edite sempre o arquivo do repositório.
 
 ### Opção B: VS Code (bom para quem já edita o arquivo lá)
@@ -112,7 +115,8 @@ npx @redocly/cli lint openapi.yaml
 | **Schemas** (no final da página) | os formatos de dados, que viram os DTOs no backend |
 | **Authorize** | onde colar o token depois do login |
 
-> [!tip] Botão "Try it out"
+> [!TIP]
+> **Botão "Try it out"**
 > Ele só funciona se o **backend estiver rodando** em `http://localhost:8080`. Sem o backend, a chamada falha, mas a leitura do contrato continua funcionando normalmente.
 
 ---
@@ -126,7 +130,8 @@ Com a dependência **springdoc-openapi** no `pom.xml` (ainda na lista de pendên
 | Swagger UI | `http://localhost:8080/swagger-ui/index.html` |
 | Contrato gerado em JSON | `http://localhost:8080/v3/api-docs` |
 
-> [!note] Se usar o prefixo `/api`
+> [!NOTE]
+> **Se usar o prefixo `/api`**
 > Se o prefixo for configurado com `server.servlet.context-path=/api`, os endereços ganham o prefixo, por exemplo `http://localhost:8080/api/swagger-ui/index.html`.
 
 **Como usar os dois juntos:**

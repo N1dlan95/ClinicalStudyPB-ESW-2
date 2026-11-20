@@ -4,7 +4,7 @@ tags:
   - regressao
   - qa
   - bug-bash
-release: 1
+release: 2
 task: T-111
 data: 2026-11-18
 responsavel: Mirelle Casimiro
@@ -12,7 +12,7 @@ responsavel: Mirelle Casimiro
 
 # Roteiro de regressão e Bug Bash — RF01 a RF18
 
-Este documento consolida o roteiro de regressão da Release 1 e os fluxos de validação necessários para o Bug Bash de 19/11/2026, mantendo alinhamento com a documentação oficial do projeto e com os roteiros já existentes em `Docs/ClinicalStudyPB-Docs/Testes`.
+Este documento é o roteiro da Release 2: a regressão de RF01 a RF11, entregues na Release 1, e os fluxos novos de RF12 a RF18, para o Bug Bash de 19/11/2026, mantendo alinhamento com a documentação oficial do projeto e com os roteiros já existentes em `Docs/ClinicalStudyPB-Docs/Testes`.
 
 ## 1. Base de análise e fontes consultadas
 
@@ -21,11 +21,12 @@ Antes de atualizar o roteiro, foram revisados os materiais já existentes no rep
 - [`roteiro-regressao-rf01-rf04.md`](./roteiro-regressao-rf01-rf04.md)
 - [`bug-bash-2026-11-06.md`](./bug-bash-2026-11-06.md)
 - [`execucao-release1-2026-11-09.md`](./execucao-release1-2026-11-09.md)
-- [`README.md`](../../README.md)
-- [`releases/README-release1.md`](../../releases/README-release1.md)
-- [`mobile/README.md`](../../mobile/README.md)
+- [`README.md`](../../../README.md)
+- [`releases/release1/README.md`](../../../releases/release1/README.md)
+- [`mobile/README.md`](../../../mobile/README.md)
 - [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v1.md`](../Diagramas/MER-v1.md)
 - [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md`](../Diagramas/MER-v2.md)
+- [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v3.md`](../Diagramas/MER-v3.md)
 - [`Docs/ClinicalStudyPB-Docs/api/openapi.yaml`](../api/openapi.yaml)
 
 Também foram considerados os requisitos oficiais mapeados no README principal do projeto e os fluxos da modelagem do estudo clínico, sem inventar cenários não confirmados na documentação.
@@ -109,8 +110,8 @@ Para cada caso, o registro deve conter:
 | ID | Requisito | Fluxo testado | Perfil | Pré-condições | Dados | Resultado esperado | Obtido | Status | Observações | Evidência | Data do teste |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | R-13 | RF03 | Menu e acessos por perfil | ADMINISTRADOR / PESQUISADOR / COORDENADOR | Usuários autenticados | Perfis diferentes | Menus e rotas compatíveis com permissão | | Não executado | | | |
-| R-14 | RF03 | Bloqueio de rota `/usuarios` | PESQUISADOR / COORDENADOR | Usuário logado | URL manual | Acesso negado com redirecionamento | | Não executado | | | |
-| R-15 | RF03 | Bloqueio de rota `/estudos/novo` | COORDENADOR / ADMINISTRADOR | Usuário logado | URL manual | Acesso negado | | Não executado | | | |
+| R-14 | RF03 | Bloqueio de rota `/usuarios` | PESQUISADOR / COORDENADOR | Usuário logado | URL manual | Tela "Acesso negado" na própria rota, sem redirecionar | | Não executado | | | |
+| R-15 | RF03 | Bloqueio de rota `/estudos/novo` | COORDENADOR / ADMINISTRADOR | Usuário logado | URL manual | Tela "Acesso negado" na própria rota, sem redirecionar | | Não executado | | | |
 | R-16 | RF03 | Acesso sem autenticação | QUALQUER | Sessão inexistente | URL protegida | Redirecionamento para login | | Não executado | | | |
 
 ### RF04 — Cadastro e manutenção de estudos
@@ -130,16 +131,16 @@ Para cada caso, o registro deve conter:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | R-23 | RF05 | Cadastrar critério de inclusão/exclusão | PESQUISADOR | Estudo em planejamento | Descrição e tipo | Critério salvo na ficha do estudo | | Não executado | | | |
 | R-24 | RF06 | Cadastrar visita prevista | PESQUISADOR | Estudo ativo | Ordem e atividades do protocolo | Visitas criadas com ordem serial | | Não executado | | | |
-| R-25 | RF07 | Transição de estado do estudo | PESQUISADOR / COORDENADOR | Estudo em planejamento | Estado alvo | Estado validado e mudança correta | | Não executado | | | |
+| R-25 | RF07 | Transição de estado do estudo | PESQUISADOR | Estudo em planejamento | Estado alvo | Transições válidas aceitas (PLANEJAMENTO → RECRUTAMENTO → EXECUCAO → ENCERRADO; RECRUTAMENTO → PLANEJAMENTO); transição inválida ou para o mesmo estado rejeitada com mensagem | | Não executado | Só o pesquisador muda o estado. Com COORDENADOR, `PATCH /estudos/{id}/estado` responde 403 | | |
 | R-26 | RF08 | Cadastro de candidatos | COORDENADOR | Estudo ativo | Dados do candidato e e-mail | Cadastro em estudo e estado inicial correto | | Não executado | | | |
-| R-27 | RF09 | Avaliação de elegibilidade | COORDENADOR | Candidato cadastrado | Resultado e comentário | Estado atualizado conforme decisão | | Não executado | | | |
-| R-28 | RF10 | Consentimento simulado | COORDENADOR | Candidato elegível | Consentimento ou recusa | Registro conforme regra do estudo | | Não executado | | | |
+| R-27 | RF09 | Avaliação de elegibilidade | COORDENADOR | Candidato cadastrado em estudo com critérios | Sim/Não para cada critério, com observação opcional | Sistema calcula o resultado: ELEGIVEL se atende todos os critérios de inclusão e nenhum de exclusão, senão NAO_ELEGIVEL. Todos os critérios precisam ser respondidos | | Não executado | | | |
+| R-28 | RF10 | Consentimento simulado | COORDENADOR | Candidato elegível | Registro do consentimento (não existe recusa) | Consentimento salvo com data e responsável; segunda tentativa, candidato não elegível ou estudo encerrado são bloqueados com mensagem | | Não executado | | | |
 | R-29 | RF11 | Inclusão com limite de vagas | COORDENADOR | Candidato elegível com consentimento | Vagas disponíveis | Inclusão válida; limite respeitado | | Não executado | | | |
 | R-30 | RF11 | Inclusão com vagas esgotadas | COORDENADOR | Estudo sem vagas | Candidato elegível | Bloqueio com mensagem específica | | Não executado | | | |
 
 ## 5. RF12 a RF18: inclusão de fluxos confirmados e pendências
 
-A documentação oficial em `MER-v1.md`, `MER-v2.md` e no `mobile/README.md` confirma a existência dos fluxos de visitas, avaliações, retirada e acompanhamento do participante. Ainda assim, alguns requisitos exigem confirmação mais explícita antes da execução de testes manuais, e esse cenário deve ser registrado como pendência de esclarecimento em vez de suposição.
+A documentação oficial em `MER-v1.md`, `MER-v2.md`, `MER-v3.md` e no `mobile/README.md` confirma a existência dos fluxos de visitas, avaliações, retirada e acompanhamento do participante. Ainda assim, alguns requisitos exigem confirmação mais explícita antes da execução de testes manuais, e esse cenário deve ser registrado como pendência de esclarecimento em vez de suposição.
 
 ### 5.1. Fluxos confirmados
 
@@ -148,15 +149,14 @@ A documentação oficial em `MER-v1.md`, `MER-v2.md` e no `mobile/README.md` con
 | RF12 | Agendar visitas no estudo / acompanhamento do participante | COORDENADOR | Confirmado no MER-v1 |
 | RF13 | Registrar comparecimento, ausência ou cancelamento de visitas | COORDENADOR | Confirmado no MER-v1 |
 | RF14 | Registrar resultados fictícios das avaliações e manter histórico | COORDENADOR | Confirmado no MER-v1 |
+| RF15 | Histórico de visitas (todas as situações) e resultados, por data | COORDENADOR / PESQUISADOR | Definido no MER-v3 (proposta) |
 | RF16 | Retirada direta do participante pelo coordenador | COORDENADOR | Confirmado no MER-v1 |
 | RF17 | Estudos do participante no app | PARTICIPANTE | Confirmado no `mobile/README.md` |
 | RF18 | Visitas do participante no app | PARTICIPANTE | Confirmado no `mobile/README.md` |
 
-### 5.2. Pendência de confirmação
+### 5.2. Observação sobre o RF15
 
-| Requisito | Observação |
-| --- | --- |
-| RF15 | Não há documentação operacional definitiva suficiente no repositório para detalhar o cenário de teste sem risco de inventar comportamento. Registrar como pendência de requisito até confirmação formal. Responsável por confirmar com a professora: Adrielly. Assim que o requisito for confirmado, a Mirelle escreve os casos e o RF15 entra no bloco dela (seção 6). |
+O RF15 (histórico de visitas e resultados) está definido no [MER-v3](../Diagramas/MER-v3.md), mas ainda como proposta. O caso R-43 cobre o requisito. Se a funcionalidade não estiver pronta no dia do bug bash, o caso fica como `Bloqueado`, e não como reprovado.
 
 ### 5.3. Casos de teste para RF12 a RF18
 
@@ -168,6 +168,7 @@ A documentação oficial em `MER-v1.md`, `MER-v2.md` e no `mobile/README.md` con
 | R-34 | RF13 | Reagendamento e duplicidade de registros | COORDENADOR | Visita agendada | Nova data e motivo | Sistema rejeita operações inválidas | | Não executado | | | |
 | R-35 | RF14 | Registro de resultado fictício da avaliação | COORDENADOR | Participante com visita e avaliação prevista | Dados da avaliação | Resultado anexado e persistente | | Não executado | | | |
 | R-36 | RF14 | Tentativa de avaliação fora do contexto válido | COORDENADOR | Visita sem participante ou sem estudo | Dados inconsistentes | Rejeição da operação | | Não executado | | | |
+| R-43 | RF15 | Consulta do histórico do participante | COORDENADOR / PESQUISADOR | Participante com visitas em situações diferentes e resultados registrados | Participante incluído | Visitas (agendada, realizada, ausente, cancelada) e resultados listados por data | | Não executado | Proposta no MER-v3: se ainda não estiver implementado, marcar como Bloqueado | | |
 | R-37 | RF16 | Retirada direta do participante | COORDENADOR | Participante incluído | Motivo e confirmação | Estado do participante atualizado para retirado | | Não executado | | | |
 | R-38 | RF16 | Retirada sem autorização ou com participante inexistente | COORDENADOR | Dados inválidos | ID ou status inconsistentes | Validação e bloqueio | | Não executado | | | |
 | R-39 | RF17 | Visualização dos estudos do participante no app | PARTICIPANTE | Participante autenticado | Conta de participante | Lista de estudos incluídos com status/visita | | Não executado | Requer app em execução | | |
@@ -184,9 +185,9 @@ Cada caso tem **um responsável**, que executa e preenche o caso, e **um apoio**
 | Arthur | Web 1 | RF01 a RF03: usuários, login e permissões | R-01 a R-16 | Mirelle |
 | Nidlan | Web 2 | RF04 a RF07: estudos, critérios, visitas previstas e estados | R-17 a R-25 | Arthur |
 | Jasmine | Backend | RF08 a RF11: candidatos, avaliação, consentimento e inclusão | R-26 a R-30 | Nidlan |
-| Mirelle Casimiro | QA / DevOps | RF12 a RF14: agendamento, presença e avaliações; RF15 quando confirmado | R-31 a R-36 | Jasmine |
+| Mirelle Casimiro | QA / DevOps | RF12 a RF15: agendamento, presença, resultados e histórico | R-31 a R-36 e R-43 | Jasmine |
 | Maria Eduarda | Mobile / Backend | RF16 a RF18: retirada e app do participante | R-37 a R-42 | Mirelle |
-| Adrielly | Gerente | Gestão: confirma o RF15, revisa os cards de Bug no Azure e define o responsável de cada um | — | Mirelle |
+| Adrielly | Gerente | Gestão: revisa os cards de Bug no Azure e define o responsável de cada um | — | Mirelle |
 
 ### 6.1. Quem corrige e quem retesta
 

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import clinicalstudypb.visita.ResultadoAtividadeRepository;
 import clinicalstudypb.visita.VisitaRepository;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -47,9 +48,12 @@ class VisitaPrevistaServiceTest {
 	@Mock
 	private VisitaRepository visitasAgendadas;
 
+	@Mock
+	private ResultadoAtividadeRepository resultados;
+
 	@BeforeEach
 	void configurar() {
-		servico = new VisitaPrevistaService(repositorio, estudos, entityManager, visitasAgendadas);
+		servico = new VisitaPrevistaService(repositorio, estudos, entityManager, visitasAgendadas, resultados);
 		estudo = mock(Estudo.class);
 		ReflectionTestUtils.setField(estudo, "id", 1L);
 	}
@@ -222,6 +226,22 @@ class VisitaPrevistaServiceTest {
 					assertThat(excecao.getStatus()).isEqualTo(HttpStatus.CONFLICT);
 					assertThat(excecao.getMessage()).isEqualTo(
 							"Não é possível alterar visitas previstas de um estudo encerrado");
+				});
+		verify(entityManager, never()).flush();
+	}
+
+	@Test
+	void atualizarVisitaPrevistaComResultadosFalha() {
+		// Task 3763: a edição recria as atividades, e as que já têm resultado não podem ser apagadas
+		VisitaPrevista existente = visita(1L, 1);
+		when(estudos.buscar(1L)).thenReturn(estudo);
+		when(repositorio.findByIdAndEstudoId(1L, 1L)).thenReturn(Optional.of(existente));
+		when(resultados.existsByAtividadeVisitaPrevistaId(1L)).thenReturn(true);
+
+		assertThatThrownBy(() -> servico.atualizar(1L, 1L, dados(1, List.of())))
+				.isInstanceOfSatisfying(RegraNegocioException.class, excecao -> {
+					assertThat(excecao.getCodigo()).isEqualTo("VISITA_PREVISTA_COM_RESULTADOS");
+					assertThat(excecao.getStatus()).isEqualTo(HttpStatus.CONFLICT);
 				});
 		verify(entityManager, never()).flush();
 	}

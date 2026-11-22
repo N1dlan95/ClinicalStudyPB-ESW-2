@@ -44,4 +44,7 @@ public interface VisitaRepository extends JpaRepository<Visita, Long> {
 
 	boolean existsByVisitaPrevistaId(Long visitaPrevistaId);
 
+	// Task 3768: na retirada, as visitas ainda AGENDADA do participante são canceladas
+	List<Visita> findByParticipanteIdAndStatus(Long candidatoId, StatusVisita status);
+
 }

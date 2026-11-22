@@ -5,7 +5,7 @@ tags:
   - mer
   - duvidas
   - sprint-1
-atualizado: 2026-10-24
+atualizado: 2026-11-21
 status: Em revisão
 ---
 
@@ -13,7 +13,11 @@ status: Em revisão
 
 > [!NOTE]
 > **Atualização**
-> O modelo de RF05 a RF11 (Sprint 2), com diagrama, dicionário de dados e numeração das migrações, está em [MER-v2](MER-v2.md). Este documento fica como registro da Sprint 1.
+> O modelo de RF05 a RF11 (Sprint 2), com diagrama, dicionário de dados e numeração das migrações, está em [MER-v2](MER-v2.md). O da Release 2 (RF12 a RF18) está em [MER-v3](MER-v3.md). Este documento fica como registro da Sprint 1.
+
+> [!WARNING]
+> **Premissas da Sprint 3 (T-79)**
+> As dúvidas 3, 4, 5 e 7 não tiveram resposta da professora até o prazo de 11/11. Como combinado no planning, a equipe seguiu a proposta do planning e registrou cada uma como **premissa** no campo Resposta. Se a professora responder diferente, o [MER-v3](MER-v3.md) e as tasks afetadas são ajustados.
 
 > [!NOTE]
 > **Objetivo**
@@ -42,22 +46,27 @@ Basta registrar um resultado final (elegível sim/não, com observação) ou é 
 ### 3. Avaliações (RF14)
 A avaliação sempre ocorre dentro de uma visita, ou pode existir sozinha? "Avaliações previstas" são as atividades da visita (RF06)?
 
-**Resposta:** _a preencher_
+**Resposta:** sem resposta até 11/11. **Premissa:** as "avaliações previstas" são as atividades da visita prevista (RF06). A avaliação sempre acontece dentro de uma visita, e o resultado fictício é registrado por atividade, só em visita REALIZADA ([MER-v3, decisão 6](MER-v3.md#1-decisões-da-sprint-3)).
 
 ### 4. Visitas e turmas
 As visitas são sempre individuais (por participante) ou pode haver visitas em grupo, com uma turma de participantes e uma equipe de pesquisadores e coordenador?
 
-**Resposta:** _a preencher_
+**Resposta:** sem resposta até 11/11. **Premissa:** as visitas são individuais, uma por participante. Visita em grupo (turma) fica fora do escopo ([MER-v3, decisão 3](MER-v3.md#1-decisões-da-sprint-3)).
 
 ### 5. Contas de participante (RF01)
 O admin cria a conta antes da inclusão, ou o sistema cria automaticamente quando o candidato é incluído (RF11)?
 
-**Resposta:** _a preencher_
+**Resposta:** sem resposta até 11/11. **Premissa:** o sistema cria a conta `PARTICIPANTE` automaticamente na inclusão, com o e-mail do candidato e uma senha provisória. Se a pessoa já tem conta de participante (outro estudo), a conta é reaproveitada ([MER-v3, decisão 1](MER-v3.md#1-decisões-da-sprint-3)).
 
 ### 6. Candidato em vários estudos
 Pode ser candidato em mais de um estudo ao mesmo tempo?
 
 **Resposta:** _a preencher_
+
+### 7. Vaga na retirada (RF16)
+Quando o participante é retirado do estudo, a vaga dele volta a ficar disponível?
+
+**Resposta:** sem resposta até 11/11. **Premissa:** sim. A contagem de vagas considera só os candidatos INCLUIDO, então a vaga é liberada automaticamente quando o status muda para RETIRADO ([MER-v3, decisão 8](MER-v3.md#1-decisões-da-sprint-3)).
 
 ---
 
@@ -72,9 +81,9 @@ Pode ser candidato em mais de um estudo ao mesmo tempo?
 | Solicitação de reagendamento e solicitação de retirada ficam em tabelas separadas | Decidido |
 | Entidade `Avaliações` mantida como está no diagrama atual | Decidido |
 | Equipe do estudo (pesquisadores e coordenador) como tabela de vínculo com o estudo | Sugerido, a confirmar |
-| Turma (agrupar participantes) e visita ligada à turma | Aguarda a dúvida 4 |
+| Turma (agrupar participantes) e visita ligada à turma | Fora do escopo (premissa da dúvida 4) |
 | Separar `visita_prevista` (molde do protocolo, RF06) de `visita` (agendamento real) | Sugerido, a confirmar |
-| Conta do participante criada pelo admin ou pelo sistema | Aguarda a dúvida 5 |
+| Conta do participante criada pelo admin ou pelo sistema | Criada pelo sistema na inclusão (premissa da dúvida 5) |
 
 ---
 

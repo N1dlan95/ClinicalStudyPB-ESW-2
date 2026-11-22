@@ -153,9 +153,11 @@ O GitHub Actions executa os testes e a cobertura a cada pull request, e um PR s�
 ├── frontend/                # aplicação web (código e testes em frontend/frontend)
 ├── mobile/                  # app do participante (congelado na Release 1)
 ├── Docs/ClinicalStudyPB-Docs/
-│   ├── Contexto-Geral/      # contexto e requisitos
+│   ├── Contexto-Geral/      # contexto, requisitos e orientações (incluindo tutorial de FigCraft)
 │   ├── Diagramas/           # MER/DER (MER-v1, MER-v2)
+│   ├── PrototiposTela/      # protótipos de interface (.figcraft e .fig)
 │   ├── Sprints/             # planejamento e registro de cada sprint
+│   ├── Testes/              # planejamento e relatórios de testes
 │   └── api/                 # contrato OpenAPI
 ├── releases/               # documentação de cada release
 ├── .github/                 # workflows de CI
@@ -163,6 +165,8 @@ O GitHub Actions executa os testes e a cobertura a cada pull request, e um PR s�
 ├── DOCKER.md
 └── .env.example
 ```
+
+> **Protótipos de Interface:** Os arquivos editáveis de tela ficam em [`Docs/ClinicalStudyPB-Docs/PrototiposTela/`](Docs/ClinicalStudyPB-Docs/PrototiposTela). Para instruções de uso da ferramenta e integração com agentes de IA (MCP), consulte o [Tutorial do FigCraft](Docs/ClinicalStudyPB-Docs/Contexto-Geral/Orientacoes/tutorial-figcraft.md).
 
 ## Fluxo de trabalho
 

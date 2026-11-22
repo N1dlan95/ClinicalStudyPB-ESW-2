@@ -108,7 +108,7 @@ Os detalhes (logs, volumes, remoção dos dados e configuração de produção c
 
 ### Credenciais fictícias
 
-A migração V2 cria um usuário de teste para cada perfil. Os dados são fictícios e valem apenas para o ambiente de desenvolvimento e avaliação.
+A migração V2 cria um usuário de teste para cada perfil, e a V14 cria mais três contas de participante. Os dados são fictícios e valem apenas para o ambiente de desenvolvimento e avaliação.
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
@@ -116,12 +116,26 @@ A migração V2 cria um usuário de teste para cada perfil. Os dados são fictí
 | PESQUISADOR | `pesquisador@clinicalstudypb.test` | `Senha@123` |
 | COORDENADOR | `coordenador@clinicalstudypb.test` | `Senha@123` |
 | PARTICIPANTE | `participante@clinicalstudypb.test` | `Senha@123` |
+| PARTICIPANTE | `participante2@clinicalstudypb.test` | `Senha@123` |
+| PARTICIPANTE | `participante3@clinicalstudypb.test` | `Senha@123` |
+| PARTICIPANTE | `participante4@clinicalstudypb.test` | `Senha@123` |
+
+As contas de participante entram só no app. Todas estão no **Estudo de Qualidade do Sono em Adultos** (V14):
+
+| Conta | Participante | Situação no estudo |
+| --- | --- | --- |
+| `participante@` | Paula Participante | Incluída: triagem realizada, seguimento e visita final agendados |
+| `participante2@` | Lucas Mendes | Incluído: triagem realizada, ausente no seguimento, visita final agendada |
+| `participante3@` | Beatriz Santos | Incluída: triagem realizada, seguimento cancelado e reagendado |
+| `participante4@` | Otávio Nunes | Retirado do estudo, com motivo e data |
 
 
 
 ### Dados de demonstração
 
 A migração V10 cria dados fictícios para explorar o sistema sem cadastro manual: cinco estudos, um em cada estado (com critérios e visitas), e candidatos em todos os status. Por exemplo, o estudo de diabetes tem candidatos em todos os status, e o de asma está com as vagas esgotadas.
+
+A migração V14 completa o acompanhamento da Release 2 no estudo de qualidade do sono: participantes com conta no app, visitas em todos os status (agendada, realizada com resultados, ausente e cancelada com motivo) e um participante retirado. As datas são relativas ao dia em que o banco é criado, então as visitas agendadas ficam sempre no futuro.
 
 Para voltar aos dados iniciais, recrie o banco com `docker compose down -v` e depois `docker compose up -d`.
 

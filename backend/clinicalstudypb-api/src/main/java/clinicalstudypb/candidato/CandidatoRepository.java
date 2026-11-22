@@ -12,18 +12,18 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 
-// As consultas de leitura já trazem quem registrou o consentimento, porque a resposta da API mostra o nome
+// As consultas de leitura já trazem quem registrou o consentimento e a retirada, porque a resposta da API
+// mostra os nomes
 public interface CandidatoRepository extends JpaRepository<Candidato, Long> {
 
-	@EntityGraph(attributePaths = "consentimentoRegistradoPor")
+	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Page<Candidato> findByEstudoId(Long estudoId, Pageable paginacao);
 
-	@EntityGraph(attributePaths = "consentimentoRegistradoPor")
+	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Page<Candidato> findByEstudoIdAndStatus(Long estudoId, StatusCandidato status, Pageable paginacao);
 
-	@EntityGraph(attributePaths = "consentimentoRegistradoPor")
+	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Optional<Candidato> findByIdAndEstudoId(Long id, Long estudoId);
-
 	boolean existsByEstudoIdAndEmailIgnoreCase(Long estudoId, String email);
 
 	boolean existsByEstudoIdAndEmailIgnoreCaseAndIdNot(Long estudoId, String email, Long id);

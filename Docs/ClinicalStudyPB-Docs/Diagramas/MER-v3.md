@@ -17,7 +17,7 @@ continua: "MER-v2.md"
 
 > [!WARNING]
 > **Premissas**
-> As dúvidas 3, 4 e 5 do [MER-v1](MER-v1.md) (avaliações, visitas em grupo e conta do participante) continuam sem resposta registrada no repositório (T-79). As decisões abaixo marcadas como **Premissa** podem mudar se a professora responder diferente.
+> As dúvidas 3, 4, 5 e 7 do [MER-v1](MER-v1.md) (avaliações, visitas em grupo, conta do participante e vaga na retirada) não tiveram resposta da professora até o prazo de 11/11 (T-79). A equipe seguiu a proposta do planning, e cada premissa está registrada no campo Resposta do MER-v1. As decisões abaixo marcadas como **Premissa** podem mudar se a professora responder diferente.
 
 ---
 
@@ -35,6 +35,9 @@ continua: "MER-v2.md"
 | 8 | Retirada (RF16) | Colunas no `candidato` (quando, por quem e motivo), como foi feito no consentimento. Status vai para RETIRADO. As visitas AGENDADAS daquele participante viram CANCELADA com o motivo "Retirada do participante" | Proposta (3768) |
 | 9 | Conta depois da retirada | A conta continua ativa: o app lista as participações INCLUIDO e RETIRADO (RF17), e o participante segue vendo o próprio histórico. Desativar a conta fica com o administrador (RF01), e uma conta desativada não é reativada sozinha numa nova inclusão (3751) | Proposta (3768) |
 | 10 | App do participante (RF17/RF18) | `/participantes/me/estudos` e `/participantes/me/visitas` usam o `sub` do token: participações com `candidato.usuario_id` = usuário logado. O participante nunca informa ids de outra pessoa | Proposta (3773, 3775) |
+| 8 | Retirada (RF16) | Colunas no `candidato` (quando, por quem e motivo), como foi feito no consentimento. Status vai para RETIRADO. As visitas AGENDADAS daquele participante viram CANCELADA com o motivo "Retirada do participante". A vaga é liberada automaticamente, porque a contagem de vagas usa só INCLUIDO | Proposta (3768). Premissa da dúvida 7 |
+| 9 | Conta depois da retirada | A conta só é desativada se a pessoa não tiver outra participação INCLUIDO. Assim ela continua vendo o histórico no app enquanto participa de outro estudo | Proposta (3768) |
+| 10 | App do participante (RF17/RF18) | `/me/estudos` e `/me/visitas` usam o `sub` do token: participações com `candidato.usuario_id` = usuário logado. O participante nunca informa ids de outra pessoa | Proposta (3773, 3775) |
 | 11 | Solicitações (RF19/RF20) | Confirmar presença, pedir reagendamento e pedir retirada pelo app ficam fora da Sprint 3, mesmo aparecendo nos tipos do mobile | Fora da sprint |
 
 ---

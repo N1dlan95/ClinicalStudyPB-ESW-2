@@ -13,6 +13,7 @@ import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.config.erro.ValidacaoException;
 import clinicalstudypb.estudo.Estudo;
 import clinicalstudypb.estudo.EstudoService;
+import clinicalstudypb.visita.ResultadoAtividadeRepository;
 import clinicalstudypb.visita.VisitaRepository;
 import clinicalstudypb.visitaprevista.dto.AtividadeRequest;
 import clinicalstudypb.visitaprevista.dto.VisitaPrevistaRequest;
@@ -25,13 +26,15 @@ public class VisitaPrevistaService {
 	private final EstudoService estudos;
 	private final EntityManager entityManager;
 	private final VisitaRepository visitasAgendadas;
+	private final ResultadoAtividadeRepository resultados;
 
 	public VisitaPrevistaService(VisitaPrevistaRepository repositorio, EstudoService estudos,
-			EntityManager entityManager, VisitaRepository visitasAgendadas) {
+			EntityManager entityManager, VisitaRepository visitasAgendadas, ResultadoAtividadeRepository resultados) {
 		this.repositorio = repositorio;
 		this.estudos = estudos;
 		this.entityManager = entityManager;
 		this.visitasAgendadas = visitasAgendadas;
+		this.resultados = resultados;
 	}
 
 	@Transactional(readOnly = true)
@@ -65,6 +68,11 @@ public class VisitaPrevistaService {
 	public VisitaPrevista atualizar(Long estudoId, Long id, VisitaPrevistaRequest dados) {
 		VisitaPrevista visita = buscar(estudoId, id);
 		validarEstudoAberto(visita.getEstudo());
+		// Task 3763: a edição recria as atividades, e as que já têm resultado (RF14) não podem ser apagadas
+		if (resultados.existsByAtividadeVisitaPrevistaId(id)) {
+			throw new RegraNegocioException("VISITA_PREVISTA_COM_RESULTADOS",
+					"Esta visita prevista já tem resultados registrados e não pode ser alterada", HttpStatus.CONFLICT);
+		}
 		validarOrdens(dados);
 		if (repositorio.existsByEstudoIdAndOrdemAndIdNot(estudoId, dados.ordem(), id)) {
 			throw ordemRepetida("ordem", "Já existe uma visita prevista com esta ordem no estudo");

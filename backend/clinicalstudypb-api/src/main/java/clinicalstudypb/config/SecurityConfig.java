@@ -54,6 +54,8 @@ public class SecurityConfig {
 				.requestMatchers("/estudos/*/candidatos", "/estudos/*/candidatos/**").hasRole(COORDENADOR)
 				// RF09 a RF13: avaliação, consentimento, inclusão, conta do participante e visitas, somente coordenador
 				.requestMatchers("/candidatos/**").hasRole(COORDENADOR)
+				// RF14: consulta dos resultados da visita, antes da regra de /visitas/** (o PUT fica com o coordenador)
+				.requestMatchers(HttpMethod.GET, "/visitas/*/resultados").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				.requestMatchers("/visitas", "/visitas/**").hasRole(COORDENADOR)
 				// RF06: visitas previstas, somente pesquisador. Esta regra precede /estudos/**.
 				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)

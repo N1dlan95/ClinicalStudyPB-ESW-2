@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Sprints/pendencia-visitas-data-hora.md",
+                "file": "Testes/roteiro-regressao-rf01-rf04.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "pendencia-visitas-data-hora"
+              "title": "roteiro-regressao-rf01-rf04"
             }
           }
         ]
@@ -190,14 +190,15 @@
   },
   "active": "7da7570ae07779bd",
   "lastOpenFiles": [
-    "Diagramas/MER-v2.md",
+    "Contexto-Geral/ClinicalStudyPB.md",
+    "Testes/bug-bash-2026-11-06.md",
+    "Sprints/sprint-2.md",
+    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
     "Diagramas/fluxo-recrutamento.md",
     "Sprints/pendencia-visitas-data-hora.md",
-    "Sprints/sprint-2.md",
+    "Diagramas/MER-v2.md",
     "Sprints/sprint-1.md",
     "Diagramas/MER-v1.md",
-    "Contexto-Geral/Dinâmica-e-Requisitos.pdf",
-    "Testes/bug-bash-2026-11-06.md",
     "Testes/roteiro-regressao-rf01-rf04.md",
     "Contexto-Geral/Orientacoes/setup-projeto-v1.md",
     "Testes",

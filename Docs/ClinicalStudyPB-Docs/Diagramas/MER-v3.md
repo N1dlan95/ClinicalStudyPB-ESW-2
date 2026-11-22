@@ -33,7 +33,7 @@ continua: "MER-v2.md"
 | 6 | Avaliações previstas (RF14) | As "avaliações previstas" são as `atividade` da visita prevista (RF06). O resultado fictício é registrado por atividade, só em visita REALIZADA | Proposta (3763). Premissa da dúvida 3 |
 | 7 | Histórico (RF15) | Consulta, sem tabela nova: visitas do participante com os resultados, em ordem de data | Proposta (3765) |
 | 8 | Retirada (RF16) | Colunas no `candidato` (quando, por quem e motivo), como foi feito no consentimento. Status vai para RETIRADO. As visitas AGENDADAS daquele participante viram CANCELADA com o motivo "Retirada do participante" | Proposta (3768) |
-| 9 | Conta depois da retirada | A conta só é desativada se a pessoa não tiver outra participação INCLUIDO. Assim ela continua vendo o histórico no app enquanto participa de outro estudo | Proposta (3768) |
+| 9 | Conta depois da retirada | A conta continua ativa: o app lista as participações INCLUIDO e RETIRADO (RF17), e o participante segue vendo o próprio histórico. Desativar a conta fica com o administrador (RF01), e uma conta desativada não é reativada sozinha numa nova inclusão (3751) | Proposta (3768) |
 | 10 | App do participante (RF17/RF18) | `/participantes/me/estudos` e `/participantes/me/visitas` usam o `sub` do token: participações com `candidato.usuario_id` = usuário logado. O participante nunca informa ids de outra pessoa | Proposta (3773, 3775) |
 | 11 | Solicitações (RF19/RF20) | Confirmar presença, pedir reagendamento e pedir retirada pelo app ficam fora da Sprint 3, mesmo aparecendo nos tipos do mobile | Fora da sprint |
 
@@ -109,7 +109,7 @@ Todas as tabelas também têm `criado_em` e `atualizado_em` (omitidos no diagram
 
 Índices: único parcial `(candidato_id, visita_prevista_id) WHERE status <> 'CANCELADA'`; `(candidato_id, data_hora)`; `(visita_prevista_id)`. A V11 também cria `ix_candidato_usuario` em `candidato (usuario_id)` para o app.
 
-Visita prevista com agendamentos não pode ser excluída (409 `VISITA_PREVISTA_COM_AGENDAMENTOS`).
+Visita prevista com agendamentos não pode ser excluída (409 `VISITA_PREVISTA_COM_AGENDAMENTOS`). Visita prevista com resultados registrados não pode ser editada (409 `VISITA_PREVISTA_COM_RESULTADOS`), porque a edição recria as atividades.
 
 ### 3.2 `resultado_atividade` (RF14, task 3763): proposta para a V12
 
@@ -122,7 +122,7 @@ Visita prevista com agendamentos não pode ser excluída (409 `VISITA_PREVISTA_C
 | `registrado_por_id` | BIGINT FK `usuario` | não | Quem registrou ou alterou por último |
 | `registrado_em` | TIMESTAMP | não | Quando registrou ou alterou por último |
 
-Único: `(visita_id, atividade_id)`. O PUT grava em lote: registrar de novo a mesma atividade substitui o resultado (upsert). A FK de `atividade_id` fica sem `ON DELETE CASCADE`: atividade com resultado não pode ser apagada junto com a visita prevista, e a visita prevista com agendamento já é protegida (`VISITA_PREVISTA_COM_AGENDAMENTOS`).
+Único: `(visita_id, atividade_id)`. O PUT grava em lote: registrar de novo a mesma atividade substitui o resultado (upsert). A FK de `atividade_id` fica sem `ON DELETE CASCADE`: atividade com resultado não pode ser apagada. A visita prevista com agendamento não pode ser excluída (`VISITA_PREVISTA_COM_AGENDAMENTOS`), e a que tem resultado não pode ser editada (`VISITA_PREVISTA_COM_RESULTADOS`), porque a edição apaga e recria as atividades.
 
 ### 3.3 `candidato`: retirada (RF16, task 3768): proposta para a V13
 
@@ -152,7 +152,7 @@ O seed (V10) já tem um candidato RETIRADO sem esses dados (estudo do sono). A V
 | RF17 | O app lista as participações do usuário logado (INCLUIDO e RETIRADO) com o estudo | `/participantes/me/estudos` | Proposta |
 | RF18 | O app lista as visitas das participações do usuário logado: próximas (AGENDADA, data futura) e histórico de comparecimento (REALIZADA, AUSENTE) | `/participantes/me/visitas` | Proposta |
 
-Códigos de erro novos da Sprint 3, além dos que já existem (`PARTICIPANTE_NAO_INCLUIDO`, `ESTUDO_ENCERRADO`, `VISITA_JA_AGENDADA`, `VISITA_JA_FINALIZADA`, `VISITA_AINDA_NAO_OCORREU`): `VISITA_NAO_REALIZADA`, `ATIVIDADE_FORA_DA_VISITA` e `PARTICIPANTE_JA_RETIRADO`. Todos respondem 409, no mesmo formato do `RegraNegocioException`.
+Códigos de erro novos da Sprint 3, além dos que já existem (`PARTICIPANTE_NAO_INCLUIDO`, `ESTUDO_ENCERRADO`, `VISITA_JA_AGENDADA`, `VISITA_JA_FINALIZADA`, `VISITA_AINDA_NAO_OCORREU`): `VISITA_NAO_REALIZADA`, `ATIVIDADE_FORA_DA_VISITA`, `VISITA_PREVISTA_COM_RESULTADOS` e `PARTICIPANTE_JA_RETIRADO`. Todos respondem 409, no mesmo formato do `RegraNegocioException`.
 
 ### Estados da visita
 

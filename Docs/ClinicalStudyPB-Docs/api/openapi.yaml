@@ -29,6 +29,7 @@ info:
     | 409 | `ORDEM_DUPLICADA` | Ordem de critério ou visita prevista repetida (RF05, RF06) |
     | 409 | `CRITERIO_EM_USO` | Critério já usado em avaliação (RF05) |
     | 409 | `VISITA_PREVISTA_COM_AGENDAMENTOS` | Visita prevista com visitas agendadas não pode ser excluída (RF06) |
+    | 409 | `VISITA_PREVISTA_COM_RESULTADOS` | Visita prevista com resultados registrados não pode ser editada (RF06, RF14, novo) |
     | 409 | `EMAIL_DUPLICADO_NO_ESTUDO`, `EMAIL_COM_CONTA` | E-mail repetido no estudo ou de alguém da equipe (RF08) |
     | 409 | `ESTUDO_SEM_CRITERIOS_DE_INCLUSAO`, `CANDIDATO_JA_INCLUIDO`, `CANDIDATO_COM_CONSENTIMENTO` | Avaliação não permitida (RF09) |
     | 409 | `CANDIDATO_NAO_ELEGIVEL`, `CONSENTIMENTO_JA_REGISTRADO` | Consentimento não permitido (RF10) |
@@ -506,7 +507,9 @@ paths:
     put:
       tags: [Visitas previstas]
       summary: Atualiza uma visita prevista e substitui suas atividades (RF06)
-      description: Perfil permitido PESQUISADOR.
+      description: |
+        Perfil permitido PESQUISADOR. A edição apaga e recria as atividades; por isso, a visita prevista que
+        já tem resultados registrados (RF14) não pode ser editada (409 `VISITA_PREVISTA_COM_RESULTADOS`).
       requestBody:
         required: true
         content:
@@ -1286,7 +1289,7 @@ paths:
         Na mesma transação: o status vai para RETIRADO, com data, motivo e responsável; as visitas AGENDADAS
         do participante viram CANCELADA com a observação "Retirada do participante" (REALIZADA, AUSENTE e
         CANCELADA não mudam). A vaga é liberada, porque a contagem de vagas considera só INCLUIDO.
-        A conta do participante só é desativada se ele não estiver INCLUIDO em outro estudo.
+        A conta do participante continua ativa: no app, ele segue vendo a participação RETIRADO (RF17).
         Regras, nesta ordem: estudo não encerrado (409 `ESTUDO_ENCERRADO`); participante não retirado antes
         (409 `PARTICIPANTE_JA_RETIRADO`); participante INCLUIDO (409 `PARTICIPANTE_NAO_INCLUIDO`);
         `motivo` obrigatório, até 500 caracteres (400 `VALIDACAO`).

@@ -31,6 +31,11 @@ public interface CandidatoRepository extends JpaRepository<Candidato, Long> {
 	@EntityGraph(attributePaths = { "estudo", "estudo.responsavel" })
 	List<Candidato> findByUsuarioIdAndStatusIn(Long usuarioId, Collection<StatusCandidato> status);
 
+	// RF15 (task 3765): o histórico mostra o estudo e quem registrou a retirada
+	@EntityGraph(attributePaths = { "estudo", "retiradaRegistradaPor" })
+	@Query("select c from Candidato c where c.id = :id")
+	Optional<Candidato> buscarParaHistorico(@Param("id") Long id);
+
 	boolean existsByEstudoIdAndEmailIgnoreCase(Long estudoId, String email);
 
 	boolean existsByEstudoIdAndEmailIgnoreCaseAndIdNot(Long estudoId, String email, Long id);

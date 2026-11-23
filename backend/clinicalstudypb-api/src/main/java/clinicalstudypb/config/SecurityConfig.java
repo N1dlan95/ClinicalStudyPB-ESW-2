@@ -55,8 +55,6 @@ public class SecurityConfig {
 				// RF08: candidatos de um estudo, somente coordenador. Fica antes das regras de /estudos/**,
 				// porque a primeira regra que combina com a rota é a que vale.
 				.requestMatchers("/estudos/*/candidatos", "/estudos/*/candidatos/**").hasRole(COORDENADOR)
-				// RF15: histórico do participante (só leitura), antes da regra de /candidatos/**
-				.requestMatchers(HttpMethod.GET, "/candidatos/*/historico").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				// RF09 a RF13: avaliação, consentimento, inclusão, conta do participante e visitas, somente coordenador
 				.requestMatchers("/candidatos/**").hasRole(COORDENADOR)
 				// RF14: consulta dos resultados da visita, antes da regra de /visitas/** (o PUT fica com o coordenador)

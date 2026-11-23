@@ -35,11 +35,6 @@ public interface VisitaRepository extends JpaRepository<Visita, Long> {
 	@Query("select v from Visita v where v.id = :id")
 	Optional<Visita> buscar(@Param("id") Long id);
 
-	// RF15 (task 3765): todas as visitas do participante, em qualquer status, da mais antiga para a mais recente
-	@EntityGraph(attributePaths = "visitaPrevista")
-	@Query("select v from Visita v where v.participante.id = :candidatoId order by v.dataHora asc, v.id asc")
-	List<Visita> buscarDoHistorico(@Param("candidatoId") Long candidatoId);
-
 	// Trava a visita até o fim da transação: dois registros de status ao mesmo tempo não passam juntos
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select v from Visita v where v.id = :id")

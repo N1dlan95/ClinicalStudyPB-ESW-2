@@ -187,7 +187,7 @@ Prefixo `/api`.
 | `PATCH /visitas/{id}/status` | RF13 | COORDENADOR | 3758 | Implementado |
 | `PUT /visitas/{id}/resultados` (`{itens: [{atividadeId, resultado, observacao}]}`) | RF14 | COORDENADOR | 3763 | Proposta |
 | `GET /visitas/{id}/resultados` (todas as atividades, com o resultado ou vazio) | RF14 | PESQUISADOR, COORDENADOR, ADMINISTRADOR | 3763 | Proposta |
-| `GET /candidatos/{id}/historico` (participação com a retirada e visitas em ordem com os resultados) | RF15 | PESQUISADOR, COORDENADOR, ADMINISTRADOR | 3765 | Proposta |
+| `GET /candidatos/{id}/historico` | RF15 | COORDENADOR, PESQUISADOR | 3765 | Proposta |
 | `POST /candidatos/{id}/retirada` (`{motivo}`) → candidato, visitas canceladas e vagas ocupadas/total | RF16 | COORDENADOR | 3768 | Proposta |
 | `GET /participantes/me/estudos` | RF17 | PARTICIPANTE | 3773 | Proposta |
 | `GET /participantes/me/visitas` | RF18 | PARTICIPANTE | 3775 | Proposta |

@@ -3,14 +3,15 @@ import { SessaoExpiradaError, notificarSessaoExpirada } from '../auth/sessaoExpi
 import type { EstudoParticipante, Visita } from './types';
 
 /**
- * Serviço do participante (RF17 a RF20).
+ * Serviço do participante (RF17 a RF20). Os dados vêm sempre do usuário do token.
  *
- * Endpoints PROVISÓRIOS até a API publicar o OpenAPI; ajuste só este arquivo:
- *   GET  /api/participante/estudos
- *   GET  /api/participante/visitas
- *   POST /api/participante/visitas/{id}/confirmacao
- *   POST /api/participante/visitas/{id}/reagendamento
- *   POST /api/participante/estudos/{id}/retirada
+ * Contrato da API (openapi.yaml, tag "App do participante"):
+ *   GET  /api/participantes/me/estudos   (RF17)
+ *   GET  /api/participantes/me/visitas   (RF18)
+ * Ainda sem rota no backend (Sprint 4), desligados em config/funcionalidades.ts:
+ *   POST /api/participantes/me/visitas/{id}/confirmacao    (RF19)
+ *   POST /api/participantes/me/visitas/{id}/reagendamento  (RF19)
+ *   POST /api/participantes/me/estudos/{id}/retirada       (RF20)
  * Com EXPO_PUBLIC_USE_MOCK=true, usa dados fictícios em memória.
  */
 export interface ParticipanteService {
@@ -45,40 +46,56 @@ async function requisicao<T>(token: string, metodo: 'GET' | 'POST', caminho: str
 }
 
 const servicoApi: ParticipanteService = {
-  listarEstudos: (t) => requisicao(t, 'GET', '/api/participante/estudos'),
-  listarVisitas: (t) => requisicao(t, 'GET', '/api/participante/visitas'),
-  confirmarPresenca: (t, id) => requisicao(t, 'POST', `/api/participante/visitas/${id}/confirmacao`),
-  solicitarReagendamento: (t, id) => requisicao(t, 'POST', `/api/participante/visitas/${id}/reagendamento`),
-  solicitarRetirada: (t, id) => requisicao(t, 'POST', `/api/participante/estudos/${id}/retirada`),
+  listarEstudos: (t) => requisicao(t, 'GET', '/api/participantes/me/estudos'),
+  listarVisitas: (t) => requisicao(t, 'GET', '/api/participantes/me/visitas'),
+  confirmarPresenca: (t, id) => requisicao(t, 'POST', `/api/participantes/me/visitas/${id}/confirmacao`),
+  solicitarReagendamento: (t, id) => requisicao(t, 'POST', `/api/participantes/me/visitas/${id}/reagendamento`),
+  solicitarRetirada: (t, id) => requisicao(t, 'POST', `/api/participantes/me/estudos/${id}/retirada`),
 };
 
-/** Dados fictícios para desenvolvimento e demonstração sem backend. */
+// Data e hora ISO (sem fuso) a tantos dias de hoje, para o modo simulado sempre ter visitas futuras
+function diasDeHoje(dias: number, hora = '09:00'): string {
+  const data = new Date();
+  data.setDate(data.getDate() + dias);
+  const dia = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
+  return `${dia}T${hora}:00`;
+}
+
+/** Dados fictícios para o modo simulado (EXPO_PUBLIC_USE_MOCK=true), no mesmo formato da API. */
 export function criarServicoMock(atrasoMs = 300): ParticipanteService {
+  const visitas: Visita[] = [
+    { id: 1, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Visita inicial', dataHora: diasDeHoje(-20, '10:00'), local: 'Ambulatório (fictício), sala 3', status: 'REALIZADA' },
+    { id: 2, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Retorno de 7 dias', dataHora: diasDeHoje(-13), local: 'Ambulatório (fictício), sala 3', status: 'AUSENTE' },
+    { id: 3, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Retorno de 30 dias', dataHora: diasDeHoje(10), local: 'Ambulatório (fictício), sala 3', status: 'AGENDADA' },
+    { id: 4, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Visita final', dataHora: diasDeHoje(70, '14:30'), local: null, status: 'AGENDADA' },
+  ];
   const estudos: EstudoParticipante[] = [
     {
       id: 1,
       titulo: 'Estudo de exemplo A',
       responsavel: 'Pesquisador Demo',
-      status: 'EXECUCAO',
-      dataInicio: '2026-10-15',
-      dataFim: '2027-03-31',
-      retiradaSolicitada: false,
+      estado: 'EXECUCAO',
+      dataInicio: diasDeHoje(-40).slice(0, 10),
+      dataFim: null,
+      candidatoId: 10,
+      participacao: 'INCLUIDO',
+      dataInclusao: diasDeHoje(-21).slice(0, 10),
+      retiradaEm: null,
+      proximaVisita: { id: 3, nome: 'Retorno de 30 dias', dataHora: diasDeHoje(10) },
     },
     {
       id: 2,
       titulo: 'Estudo de exemplo B',
       responsavel: 'Pesquisador Demo',
-      status: 'ENCERRADO',
-      dataInicio: '2026-01-10',
-      dataFim: '2026-06-30',
-      retiradaSolicitada: false,
+      estado: 'ENCERRADO',
+      dataInicio: diasDeHoje(-300).slice(0, 10),
+      dataFim: diasDeHoje(-120).slice(0, 10),
+      candidatoId: 11,
+      participacao: 'RETIRADO',
+      dataInclusao: diasDeHoje(-290).slice(0, 10),
+      retiradaEm: diasDeHoje(-200),
+      proximaVisita: null,
     },
-  ];
-  const visitas: Visita[] = [
-    { id: 1, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Visita 2 · Acompanhamento', dataHora: '2026-10-28T09:00', local: 'Ambulatório (fictício), sala 3', status: 'AGENDADA', presencaConfirmada: false, reagendamentoSolicitado: false },
-    { id: 2, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Visita 3 · Avaliação final', dataHora: '2026-11-25T14:30', local: 'Ambulatório (fictício), sala 3', status: 'AGENDADA', presencaConfirmada: false, reagendamentoSolicitado: false },
-    { id: 3, estudoId: 1, estudoTitulo: 'Estudo de exemplo A', nome: 'Visita 1 · Inclusão', dataHora: '2026-10-15T10:00', local: 'Ambulatório (fictício), sala 3', status: 'REALIZADA', presencaConfirmada: true, reagendamentoSolicitado: false },
-    { id: 4, estudoId: 2, estudoTitulo: 'Estudo de exemplo B', nome: 'Visita de triagem', dataHora: '2026-01-08T08:30', local: 'Ambulatório (fictício), sala 1', status: 'AUSENTE', presencaConfirmada: false, reagendamentoSolicitado: false },
   ];
   const espera = () => new Promise((r) => setTimeout(r, atrasoMs));
   const atualizarVisita = async (id: number, campos: Partial<Visita>) => {

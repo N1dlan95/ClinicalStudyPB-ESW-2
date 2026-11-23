@@ -6,9 +6,9 @@ import { Card } from '../../components/Card';
 import { Carregando, ErroCarregamento, ListaVazia } from '../../components/EstadoTela';
 import { StatusChip } from '../../components/StatusChip';
 import { colors } from '../../theme/colors';
-import { formatarData, formatarDataHora, rotuloStatusEstudo } from './formatacao';
+import { formatarData, formatarDataHora, rotuloParticipacao, rotuloStatusEstudo } from './formatacao';
 import type { ParticipanteService } from './participanteService';
-import type { EstudoParticipante, Visita } from './types';
+import type { EstudoParticipante } from './types';
 import { useCarregamento } from './useCarregamento';
 
 interface Props {
@@ -18,65 +18,57 @@ interface Props {
   onVerVisitas: () => void;
 }
 
-/** RF17: estudos em que o participante está incluído, com a próxima visita de cada um. */
+/** RF17: estudos em que o participante foi incluído, com a próxima visita de cada um. */
 export function EstudosView({ servico, token, nomeUsuario, onVerVisitas }: Props) {
-  const buscar = useCallback(
-    () => Promise.all([servico.listarEstudos(token), servico.listarVisitas(token)]),
-    [servico, token],
-  );
+  const buscar = useCallback(() => servico.listarEstudos(token), [servico, token]);
   const { dados, erro, carregando, recarregar } = useCarregamento(buscar);
 
   if (carregando && !dados) return <Carregando />;
   if (erro) return <ErroCarregamento mensagem={erro} onTentarNovamente={recarregar} />;
 
-  const [estudos, visitas] = dados ?? [[], []];
-  const proximaVisita = (estudoId: number): Visita | undefined =>
-    visitas
-      .filter((v) => v.estudoId === estudoId && v.status === 'AGENDADA')
-      .sort((a, b) => a.dataHora.localeCompare(b.dataHora))[0];
-
   return (
     <FlatList
-      data={estudos}
-      keyExtractor={(e) => String(e.id)}
+      data={dados ?? []}
+      keyExtractor={(e) => String(e.candidatoId)}
       ListHeaderComponent={<Cabecalho titulo="Meus estudos" subtitulo={`Olá, ${nomeUsuario}`} />}
-      ListEmptyComponent={<ListaVazia mensagem="Você ainda não está incluído em nenhum estudo." />}
+      ListEmptyComponent={<ListaVazia mensagem="Você ainda não participa de nenhum estudo." />}
       contentContainerStyle={styles.lista}
       onRefresh={recarregar}
       refreshing={carregando}
-      renderItem={({ item }) => <CardEstudo estudo={item} proxima={proximaVisita(item.id)} onVerVisitas={onVerVisitas} />}
+      renderItem={({ item }) => <CardEstudo estudo={item} onVerVisitas={onVerVisitas} />}
     />
   );
 }
 
-function CardEstudo({ estudo, proxima, onVerVisitas }: { estudo: EstudoParticipante; proxima?: Visita; onVerVisitas: () => void }) {
-  const status = rotuloStatusEstudo[estudo.status];
-  const encerrado = estudo.status === 'ENCERRADO';
+function CardEstudo({ estudo, onVerVisitas }: { estudo: EstudoParticipante; onVerVisitas: () => void }) {
+  const participacao = rotuloParticipacao[estudo.participacao];
+  const retirado = estudo.participacao === 'RETIRADO';
+  const periodo = retirado && estudo.retiradaEm
+    ? `Retirado em ${formatarData(estudo.retiradaEm)}`
+    : `Desde ${formatarData(estudo.dataInclusao)}`;
   return (
     <View style={styles.item}>
       <Card>
         <View style={styles.linha}>
-          <StatusChip texto={status.texto} tipo={status.tipo} />
-          <Text style={styles.periodo}>
-            {encerrado ? `Até ${formatarData(estudo.dataFim)}` : `Desde ${formatarData(estudo.dataInicio)}`}
-          </Text>
+          <StatusChip texto={participacao.texto} tipo={participacao.tipo} />
+          <Text style={styles.periodo}>{periodo}</Text>
         </View>
         <Text style={styles.titulo}>{estudo.titulo}</Text>
         <Text style={styles.muted}>Responsável: {estudo.responsavel}</Text>
-        {estudo.retiradaSolicitada && <StatusChip texto="Retirada solicitada" tipo="alerta" />}
-        {proxima && (
+        <Text style={styles.muted}>Estudo: {rotuloStatusEstudo[estudo.estado].texto}</Text>
+        {estudo.proximaVisita && (
           <View style={styles.proxima}>
             <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-            <View>
+            <View style={styles.flex}>
               <Text style={styles.proximaRotulo}>Próxima visita</Text>
               <Text style={styles.proximaTexto}>
-                {formatarDataHora(proxima.dataHora)} · {proxima.nome.split(' · ')[0]}
+                {formatarDataHora(estudo.proximaVisita.dataHora)} · {estudo.proximaVisita.nome}
               </Text>
             </View>
           </View>
         )}
         <Pressable onPress={onVerVisitas} accessibilityRole="link" style={styles.link}>
-          <Text style={styles.linkTexto}>{encerrado ? 'Ver histórico' : 'Ver visitas'}</Text>
+          <Text style={styles.linkTexto}>{retirado ? 'Ver histórico' : 'Ver visitas'}</Text>
         </Pressable>
       </Card>
     </View>
@@ -90,6 +82,7 @@ const styles = StyleSheet.create({
   periodo: { fontSize: 12, color: colors.textMuted },
   titulo: { fontSize: 17, fontWeight: '600', color: colors.text },
   muted: { fontSize: 14, color: colors.textMuted },
+  flex: { flex: 1 },
   proxima: { flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: colors.background, borderRadius: 8, padding: 12 },
   proximaRotulo: { fontSize: 12, color: colors.textMuted },
   proximaTexto: { fontSize: 14, fontWeight: '600', color: colors.text },

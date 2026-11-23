@@ -233,6 +233,11 @@ export function CandidatosListaPage() {
                       <Link to={`/estudos/${idEstudo}/candidatos/${c.id}/avaliacao`} className="link">
                         Avaliar
                       </Link>
+                      {(c.status === 'INCLUIDO' || c.status === 'RETIRADO') && (
+                        <Link to={`/estudos/${idEstudo}/candidatos/${c.id}/historico`} className="link">
+                          Histórico
+                        </Link>
+                      )}                      
                       {/* "Incluir" aparece para quem já pode ser incluído; com vagas esgotadas fica desabilitado */}
                       {(() => {
                         const bloqueio = bloqueioInclusao(c, estudo, ocupadas)

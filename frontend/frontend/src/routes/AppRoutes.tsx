@@ -11,10 +11,10 @@ import { EstadoEstudoPage } from '../features/estudos/EstadoEstudoPage'
 import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
 import { EstudosListaPage } from '../features/estudos/EstudosListaPage'
 import { VisitasPrevistasPage } from '../features/estudos/VisitasPrevistasPage'
-import { ResultadosVisitaPage } from '../features/visitas/ResultadosVisitaPage'
 import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
 import { UsuariosListaPage } from '../features/usuarios/UsuariosListaPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
+import { HistoricoParticipantePage } from '../features/historico/HistoricoParticipantePage'
 
 // Quem já está logado não precisa ver a tela de login de novo
 function RotaLogin() {
@@ -125,10 +125,10 @@ export function AppRoutes() {
             }
           />
           <Route
-            path="/estudos/:estudoId/visitas/:visitaId/resultados"
+            path="/estudos/:estudoId/candidatos/:id/historico"
             element={
-              <ExigePermissao permissao="verResultados">
-                <ResultadosVisitaPage />
+              <ExigePermissao permissao="verAcompanhamento">
+                <HistoricoParticipantePage />
               </ExigePermissao>
             }
           />

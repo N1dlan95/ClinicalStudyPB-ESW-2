@@ -206,12 +206,17 @@ export function CandidatoDetalhePage() {
         </div>
         {candidato && (
           <div className="formulario__acoes">
+            {(candidato.status === 'INCLUIDO' || candidato.status === 'RETIRADO') && (
+              <Link to={`${lista}/${candidato.id}/historico`} className="botao botao--contorno">
+                Ver histórico
+              </Link>
+            )}            
             <Link to={`${lista}/${candidato.id}/avaliacao`} className="botao botao--contorno">
               Avaliar elegibilidade
             </Link>
             <Link to={`${lista}/${candidato.id}/editar`} className="botao botao--contorno">
               Editar dados
-            </Link>
+            </Link>            
           </div>
         )}
       </div>

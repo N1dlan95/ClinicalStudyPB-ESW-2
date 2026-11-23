@@ -111,15 +111,20 @@ export function CandidatosListaPage() {
           <h1>Candidatos</h1>
           <p className="pagina__subtitulo">Cadastro e acompanhamento dos candidatos do estudo.</p>
         </div>
-        {emRecrutamento ? (
-          <Link to={`/estudos/${idEstudo}/candidatos/novo`} className="botao botao--primario">
-            + Novo candidato
+        <div className="formulario__acoes">
+          <Link to={`/estudos/${idEstudo}/agenda`} className="botao botao--contorno">
+            Agenda do estudo
           </Link>
-        ) : (
-          <button type="button" className="botao botao--primario" disabled>
-            + Novo candidato
-          </button>
-        )}
+          {emRecrutamento ? (
+            <Link to={`/estudos/${idEstudo}/candidatos/novo`} className="botao botao--primario">
+              + Novo candidato
+            </Link>
+          ) : (
+            <button type="button" className="botao botao--primario" disabled>
+              + Novo candidato
+            </button>
+          )}
+        </div>
       </div>
 
       {estudo && (
@@ -233,6 +238,14 @@ export function CandidatosListaPage() {
                       <Link to={`/estudos/${idEstudo}/candidatos/${c.id}/avaliacao`} className="link">
                         Avaliar
                       </Link>
+                      {c.status === 'INCLUIDO' && (
+                        <Link
+                          to={`/estudos/${idEstudo}/agenda/novo?participanteId=${c.id}`}
+                          className="link"
+                        >
+                          Agendar visita
+                        </Link>
+                      )}
                       {/* "Incluir" aparece para quem já pode ser incluído; com vagas esgotadas fica desabilitado */}
                       {(() => {
                         const bloqueio = bloqueioInclusao(c, estudo, ocupadas)

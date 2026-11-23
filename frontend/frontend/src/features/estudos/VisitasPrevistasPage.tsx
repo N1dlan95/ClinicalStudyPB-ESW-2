@@ -2,6 +2,7 @@ import '../../estilos/estudos.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AbasEstudo } from './AbasEstudo'
+import { salvarCacheVisitasPrevistas } from '../agenda/agendaService'
 import {
   atualizarVisitaPrevista,
   buscarEstudo,
@@ -54,7 +55,6 @@ interface AtividadeForm {
 
 interface ErrosVisita {
   nome?: string
-  ordem?: string
   diaPrevisto?: string
   janelaDias?: string
   atividades?: string
@@ -62,7 +62,6 @@ interface ErrosVisita {
 
 function validarVisita(
   nome: string,
-  ordem: string,
   diaPrevisto: string,
   janelaDias: string,
   atividades: AtividadeForm[],
@@ -73,11 +72,6 @@ function validarVisita(
     erros.nome = 'Informe o nome da visita.'
   } else if (nomeLimpo.length < 3) {
     erros.nome = 'O nome deve ter entre 3 e 120 caracteres.'
-  }
-
-  const numOrdem = Number(ordem)
-  if (!ordem.trim() || !Number.isInteger(numOrdem) || numOrdem <= 0) {
-    erros.ordem = 'A ordem deve ser maior que zero.'
   }
 
   const numDia = Number(diaPrevisto)
@@ -123,7 +117,7 @@ export function VisitasPrevistasPage() {
   const [salvando, setSalvando] = useState(false)
 
   const [editandoId, setEditandoId] = useState<number | null>(null)
-  const [ordem, setOrdem] = useState('1')
+  const [editandoOrdem, setEditandoOrdem] = useState<number | null>(null)
   const [nome, setNome] = useState('')
   const [diaPrevisto, setDiaPrevisto] = useState('0')
   const [janelaDias, setJanelaDias] = useState('')
@@ -147,7 +141,7 @@ export function VisitasPrevistasPage() {
         if (!ativo) return
         setEstudo(dadosEstudo)
         setVisitas(lista)
-        setOrdem(String(lista.length + 1))
+        salvarCacheVisitasPrevistas(estudoId, lista)
         // Por padrão, a prévia usa a data de início do estudo como D0
         setDataReferencia(dadosEstudo.dataInicio)
       })
@@ -166,9 +160,9 @@ export function VisitasPrevistasPage() {
     }
   }, [estudoId])
 
-  function limparFormulario(proximaOrdem = visitas.length + 1) {
+  function limparFormulario() {
     setEditandoId(null)
-    setOrdem(String(proximaOrdem))
+    setEditandoOrdem(null)
     setNome('')
     setDiaPrevisto('0')
     setJanelaDias('')
@@ -179,7 +173,7 @@ export function VisitasPrevistasPage() {
 
   function iniciarEdicao(visita: VisitaPrevista) {
     setEditandoId(visita.id)
-    setOrdem(String(visita.ordem))
+    setEditandoOrdem(visita.ordem)
     setNome(visita.nome)
     setDiaPrevisto(String(visita.diaPrevisto))
     setJanelaDias(visita.janelaDias !== null ? String(visita.janelaDias) : '')
@@ -219,12 +213,17 @@ export function VisitasPrevistasPage() {
     setMensagemErro('')
     setSucesso('')
 
-    const encontrados = validarVisita(nome, ordem, diaPrevisto, janelaDias, atividades)
+    const encontrados = validarVisita(nome, diaPrevisto, janelaDias, atividades)
     setErros(encontrados)
     if (Object.keys(encontrados).length > 0) return
 
+    const ordemCalculada =
+      editandoId !== null && editandoOrdem !== null
+        ? editandoOrdem
+        : visitas.reduce((maior, v) => Math.max(maior, v.ordem), 0) + 1
+
     const dados = {
-      ordem: Number(ordem),
+      ordem: ordemCalculada,
       nome: nome.trim(),
       diaPrevisto: Number(diaPrevisto),
       janelaDias: janelaDias.trim() ? Number(janelaDias) : null,
@@ -246,7 +245,8 @@ export function VisitasPrevistasPage() {
       }
       const atualizadas = await listarVisitasPrevistas(estudoId)
       setVisitas(atualizadas)
-      limparFormulario(atualizadas.length + 1)
+      salvarCacheVisitasPrevistas(estudoId, atualizadas)
+      limparFormulario()
     } catch (erro) {
       setMensagemErro(`Não foi possível salvar a visita prevista. ${traduzirErro(erro).message}`)
     } finally {
@@ -261,7 +261,8 @@ export function VisitasPrevistasPage() {
       await excluirVisitaPrevista(estudoId, visita.id)
       const restantes = visitas.filter((v) => v.id !== visita.id)
       setVisitas(restantes)
-      if (editandoId === visita.id) limparFormulario(restantes.length + 1)
+      salvarCacheVisitasPrevistas(estudoId, restantes)
+      if (editandoId === visita.id) limparFormulario()
       setSucesso('Visita prevista excluída com sucesso.')
     } catch (erro) {
       setMensagemErro(`Não foi possível excluir a visita prevista. ${traduzirErro(erro).message}`)
@@ -353,7 +354,7 @@ export function VisitasPrevistasPage() {
           <section>
             <h2>{editandoId !== null ? 'Editar visita prevista' : 'Nova visita prevista'}</h2>
             <div className="formulario__grade">
-              <label className="pn-campo">
+              <label className="pn-campo" style={{ gridColumn: '1 / -1' }}>
                 <span className="pn-campo__rotulo">Nome da visita *</span>
                 <input
                   className={
@@ -368,23 +369,6 @@ export function VisitasPrevistasPage() {
                   }}
                 />
                 {erros.nome && <span className="pn-campo__erro">{erros.nome}</span>}
-              </label>
-
-              <label className="pn-campo">
-                <span className="pn-campo__rotulo">Ordem da visita *</span>
-                <input
-                  className={
-                    erros.ordem ? 'pn-campo__entrada pn-campo__entrada--erro' : 'pn-campo__entrada'
-                  }
-                  placeholder="Ex.: 1"
-                  inputMode="numeric"
-                  value={ordem}
-                  onChange={(e) => {
-                    setOrdem(e.target.value)
-                    setErros((atuais) => ({ ...atuais, ordem: undefined }))
-                  }}
-                />
-                {erros.ordem && <span className="pn-campo__erro">{erros.ordem}</span>}
               </label>
 
               <label className="pn-campo">
@@ -553,9 +537,7 @@ export function VisitasPrevistasPage() {
             <header className="cartao-visita__cabecalho">
               <div>
                 <div className="cartao-visita__titulo">
-                  <h3>
-                    Visita #{visita.ordem} · {visita.nome}
-                  </h3>
+                  <h3>{visita.nome}</h3>
                   <span className="selo selo--dia">Dia D{visita.diaPrevisto}</span>
                   {visita.janelaDias !== null && (
                     <span className="selo selo--janela">Janela ± {visita.janelaDias} dias</span>

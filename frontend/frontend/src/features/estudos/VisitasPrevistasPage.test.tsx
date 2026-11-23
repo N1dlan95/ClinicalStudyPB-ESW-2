@@ -84,7 +84,7 @@ beforeEach(() => {
 describe('VisitasPrevistasPage', () => {
   it('mostra a prévia de data e hora a partir da data de referência e do horário', async () => {
     const usuario = renderizar()
-    await screen.findByText('Visita #1 · Visita de triagem')
+    await screen.findByText('Visita de triagem')
 
     // Por padrão, D0 = data de início do estudo (10/11/2026) e horário 08:00
     const textoCartao = () =>
@@ -106,7 +106,7 @@ describe('VisitasPrevistasPage', () => {
   it('exibe as visitas previstas e suas atividades', async () => {
     renderizar()
 
-    expect(await screen.findByText('Visita #1 · Visita de triagem')).toBeInTheDocument()
+    expect(await screen.findByText('Visita de triagem')).toBeInTheDocument()
     expect(screen.getByText('Dia D0')).toBeInTheDocument()
     expect(screen.getByText('Janela ± 2 dias')).toBeInTheDocument()
     expect(screen.getByText('Coleta de sangue')).toBeInTheDocument()
@@ -115,7 +115,7 @@ describe('VisitasPrevistasPage', () => {
 
   it('valida nome da visita e descrição das atividades antes de enviar', async () => {
     const usuario = renderizar()
-    await screen.findByText('Visita #1 · Visita de triagem')
+    await screen.findByText('Visita de triagem')
 
     await usuario.click(screen.getByRole('button', { name: '+ Cadastrar visita' }))
     expect(screen.getByText('Informe o nome da visita.')).toBeInTheDocument()
@@ -141,7 +141,7 @@ describe('VisitasPrevistasPage', () => {
       .mockResolvedValueOnce([...VISITAS, novaVisita])
 
     const usuario = renderizar()
-    await screen.findByText('Visita #1 · Visita de triagem')
+    await screen.findByText('Visita de triagem')
 
     await usuario.type(
       screen.getByPlaceholderText('Ex.: Visita de triagem'),
@@ -166,13 +166,13 @@ describe('VisitasPrevistasPage', () => {
       descricao: null,
       atividades: [{ ordem: 1, descricao: 'Avaliação clínica de acompanhamento' }],
     })
-    expect(await screen.findByText('Visita #2 · Visita de retorno D30')).toBeInTheDocument()
+    expect(await screen.findByText('Visita de retorno D30')).toBeInTheDocument()
   })
 
   it('permite excluir uma visita prevista', async () => {
     vi.mocked(excluirVisitaPrevista).mockResolvedValueOnce()
     const usuario = renderizar()
-    await screen.findByText('Visita #1 · Visita de triagem')
+    await screen.findByText('Visita de triagem')
 
     await usuario.click(screen.getByRole('button', { name: 'Excluir' }))
     expect(excluirVisitaPrevista).toHaveBeenCalledWith(1, 100)

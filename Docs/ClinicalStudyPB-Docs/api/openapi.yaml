@@ -1220,7 +1220,7 @@ paths:
       tags: [Histórico]
       summary: Histórico de visitas e resultados do participante (RF15, task 3765)
       description: |
-        Perfis permitidos: PESQUISADOR e COORDENADOR.
+        Perfis permitidos: PESQUISADOR, COORDENADOR e ADMINISTRADOR (somente leitura).
         Consulta, sem tabela nova: todas as visitas do participante (agendadas, realizadas, ausentes e canceladas),
         da mais antiga para a mais recente, cada uma com os resultados registrados. Também mostra a retirada,
         se houver. Candidato que nunca foi incluído responde 409 `PARTICIPANTE_NAO_INCLUIDO`.
@@ -1235,6 +1235,7 @@ paths:
                 participante:
                   candidatoId: 7
                   nome: João Candidato
+                  email: joao.candidato@email.com
                   status: INCLUIDO
                   dataInclusao: "2026-11-20"
                   retirada: null
@@ -2035,6 +2036,9 @@ components:
               format: int64
             nome:
               type: string
+            email:
+              type: string
+              format: email
             status:
               $ref: "#/components/schemas/StatusCandidato"
             dataInclusao:

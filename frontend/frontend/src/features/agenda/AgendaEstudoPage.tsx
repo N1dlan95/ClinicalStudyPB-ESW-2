@@ -1,8 +1,10 @@
 import '../../estilos/estudos.css'
 import '../../estilos/candidatos.css'
 import '../../estilos/agenda.css'
-import { useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AuthContext } from '../auth/AuthContext'
+import { temPermissao } from '../auth/permissoes'
 import { AbasEstudo } from '../estudos/AbasEstudo'
 import { isoParaBR } from '../estudos/datas'
 import { buscarEstudo } from '../estudos/estudosService'
@@ -36,6 +38,8 @@ const FILTROS_PERIODO: PeriodoFiltroVisita[] = [
 export function AgendaEstudoPage() {
   const { id } = useParams<{ id: string }>()
   const estudoId = Number(id)
+  const auth = useContext(AuthContext)
+  const podeAlterarEstadoVisita = temPermissao(auth?.usuario?.perfil, 'gerenciarVisitas')
 
   const [estudo, setEstudo] = useState<Estudo | null>(null)
   const [visitas, setVisitas] = useState<VisitaAgendada[]>([])
@@ -371,15 +375,19 @@ export function AgendaEstudoPage() {
                       )}
                     </td>
                     <td className="tabela__acao">
-                      <span className="tabela__acoes">
-                        <Link
-                          to={`/estudos/${estudoId}/agenda/${v.id}/acoes`}
-                          className="link"
-                          aria-label={`Registrar ação na visita de ${v.participante.nome}`}
-                        >
-                          {v.status === 'AGENDADA' ? 'Registrar ação' : 'Ver registro'}
-                        </Link>
-                      </span>
+                      {podeAlterarEstadoVisita ? (
+                        <span className="tabela__acoes">
+                          <Link
+                            to={`/estudos/${estudoId}/agenda/${v.id}/acoes`}
+                            className="link"
+                            aria-label={`Registrar ação na visita de ${v.participante.nome}`}
+                          >
+                            {v.status === 'AGENDADA' ? 'Registrar ação' : 'Ver registro'}
+                          </Link>
+                        </span>
+                      ) : (
+                        <span className="pn-campo__dica">Somente consulta</span>
+                      )}
                     </td>
                   </tr>
                 ))}

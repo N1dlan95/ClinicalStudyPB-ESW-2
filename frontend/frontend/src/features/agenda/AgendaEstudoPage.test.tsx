@@ -86,14 +86,17 @@ const VISITAS: VisitaAgendada[] = [
   },
 ]
 
-function renderizar() {
+function renderizar(perfil: 'COORDENADOR' | 'PESQUISADOR' = 'COORDENADOR') {
   const sessao: Sessao = {
     token: 'token-de-teste',
     usuario: {
-      id: 3,
-      nome: 'Carlos Coordenador',
-      email: 'coordenador@clinicalstudypb.test',
-      perfil: 'COORDENADOR',
+      id: perfil === 'COORDENADOR' ? 3 : 2,
+      nome: perfil === 'COORDENADOR' ? 'Carlos Coordenador' : 'Ana Pesquisadora',
+      email:
+        perfil === 'COORDENADOR'
+          ? 'coordenador@clinicalstudypb.test'
+          : 'pesquisador@clinicalstudypb.test',
+      perfil,
     },
   }
   localStorage.setItem('clinicalstudypb.sessao', JSON.stringify(sessao))
@@ -165,5 +168,15 @@ describe('AgendaEstudoPage', () => {
 
     await usuario.click(screen.getByRole('button', { name: 'Agendada' }))
     expect(listarVisitasAgendadas).toHaveBeenLastCalledWith(1, 'AGENDADA')
+  })
+
+  it('oculta a ação de mudar estado da visita para o pesquisador (somente consulta)', async () => {
+    renderizar('PESQUISADOR')
+
+    const linhaMaria = (await screen.findByText('Maria Souza')).closest('tr')!
+    expect(
+      within(linhaMaria).queryByRole('link', { name: /Registrar ação/i }),
+    ).not.toBeInTheDocument()
+    expect(within(linhaMaria).getByText('Somente consulta')).toBeInTheDocument()
   })
 })

@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { AuthContext } from '../auth/AuthContext'
+import { ExigePermissao } from '../auth/RotaProtegida'
 import { buscarEstudo } from '../estudos/estudosService'
 import type { Estudo } from '../estudos/tipos'
 import { AcoesVisitaPage } from './AcoesVisitaPage'
@@ -122,5 +124,40 @@ describe('AcoesVisitaPage', () => {
       motivoCancelamento: 'Solicitação de reagendamento pelo participante',
     })
     expect(await screen.findByRole('heading', { name: 'Agenda do estudo' })).toBeInTheDocument()
+  })
+
+  it('bloqueia o pesquisador com Acesso negado na rota protegida de ações da visita', () => {
+    render(
+      <AuthContext.Provider
+        value={{
+          usuario: {
+            id: 2,
+            nome: 'Ana Pesquisadora',
+            email: 'pesquisador@clinicalstudypb.test',
+            perfil: 'PESQUISADOR',
+          },
+          token: 't',
+          autenticado: true,
+          entrar: () => {},
+          sair: () => {},
+        }}
+      >
+        <MemoryRouter initialEntries={['/estudos/1/agenda/501/acoes']}>
+          <Routes>
+            <Route
+              path="/estudos/:id/agenda/:visitaId/acoes"
+              element={
+                <ExigePermissao permissao="gerenciarVisitas">
+                  <AcoesVisitaPage />
+                </ExigePermissao>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    )
+
+    expect(screen.getByRole('heading', { name: 'Acesso negado' })).toBeInTheDocument()
+    expect(screen.getByText(/alterar o estado das visitas/i)).toBeInTheDocument()
   })
 })

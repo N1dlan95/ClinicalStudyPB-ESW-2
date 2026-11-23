@@ -105,7 +105,7 @@ export function AppRoutes() {
           <Route
             path="/estudos/:id/agenda/:visitaId/acoes"
             element={
-              <ExigePermissao permissao="verEstudos">
+              <ExigePermissao permissao="gerenciarVisitas">
                 <AcoesVisitaPage />
               </ExigePermissao>
             }

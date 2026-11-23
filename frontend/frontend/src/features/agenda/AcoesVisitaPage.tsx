@@ -1,8 +1,10 @@
 import '../../estilos/estudos.css'
 import '../../estilos/candidatos.css'
 import '../../estilos/agenda.css'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useContext, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AuthContext } from '../auth/AuthContext'
+import { temPermissao } from '../auth/permissoes'
 import { AbasEstudo } from '../estudos/AbasEstudo'
 import { isoParaBR } from '../estudos/datas'
 import { buscarEstudo } from '../estudos/estudosService'
@@ -24,6 +26,10 @@ export function AcoesVisitaPage() {
   const estudoId = Number(id)
   const idVisita = Number(visitaId)
   const navegar = useNavigate()
+  const auth = useContext(AuthContext)
+  const somenteLeitura = Boolean(
+    auth?.usuario && !temPermissao(auth.usuario.perfil, 'gerenciarVisitas'),
+  )
 
   const [estudo, setEstudo] = useState<Estudo | null>(null)
   const [visita, setVisita] = useState<VisitaAgendada | null>(null)
@@ -173,8 +179,14 @@ export function AcoesVisitaPage() {
         </section>
       )}
 
+      {somenteLeitura && (
+        <div className="aviso aviso--atencao" role="status">
+          <strong>Somente consulta.</strong> Apenas o Coordenador pode alterar o estado da visita.
+        </div>
+      )}
+
       <form className="cartao formulario" onSubmit={enviar} noValidate>
-        <fieldset className="formulario__campos" disabled={salvando}>
+        <fieldset className="formulario__campos" disabled={salvando || somenteLeitura}>
           <section>
             <h2>Escolha a ação para esta visita</h2>
             <div className="opcoes-acao-visita" role="group" aria-label="Ações disponíveis para a visita">
@@ -275,7 +287,11 @@ export function AcoesVisitaPage() {
             <Link to={`/estudos/${estudoId}/agenda`} className="botao botao--contorno">
               Voltar
             </Link>
-            <button type="submit" className="botao botao--primario" disabled={salvando}>
+            <button
+              type="submit"
+              className="botao botao--primario"
+              disabled={salvando || somenteLeitura}
+            >
               {salvando
                 ? 'Salvando…'
                 : acao === 'REALIZADA'

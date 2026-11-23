@@ -1,6 +1,7 @@
 package clinicalstudypb.visita;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,5 +47,20 @@ public interface VisitaRepository extends JpaRepository<Visita, Long> {
 
 	// Task 3768: na retirada, as visitas ainda AGENDADA do participante são canceladas
 	List<Visita> findByParticipanteIdAndStatus(Long candidatoId, StatusVisita status);
+
+	// RF17 (task 3773): próxima visita agendada de uma participação, a partir de agora
+	@EntityGraph(attributePaths = "visitaPrevista")
+	Optional<Visita> findFirstByParticipanteIdAndStatusAndDataHoraGreaterThanEqualOrderByDataHoraAsc(Long candidatoId,
+			StatusVisita status, LocalDateTime aPartirDe);
+
+	// RF18 (task 3775): visitas de todas as participações de uma conta, por data e hora
+	@EntityGraph(attributePaths = { "participante", "participante.estudo", "visitaPrevista" })
+	@Query("""
+			select v from Visita v
+			where v.participante.usuario.id = :usuarioId
+			  and v.status in :status
+			order by v.dataHora asc, v.id asc
+			""")
+	List<Visita> buscarDaConta(@Param("usuarioId") Long usuarioId, @Param("status") Collection<StatusVisita> status);
 
 }

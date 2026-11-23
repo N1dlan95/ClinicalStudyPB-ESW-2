@@ -38,7 +38,7 @@ Pendências herdadas da Release 1:
 | Evidência | Onde encontrar |
 | --- | --- |
 | Relatório de testes e cobertura | a preencher (`relatorio-testes.md`); parcial de 22/11 na seção 4 |
-| Capturas de tela (web e app) | a preencher (`img/`) |
+| Capturas de tela (web e app) | Seção 5; app do participante concluído, web a preencher (`img/`) |
 | Regressão de RF01 a RF18 e bug bash | [`Testes/`](../../Docs/ClinicalStudyPB-Docs/Testes/) |
 | Contrato OpenAPI | [`openapi.yaml`](../../Docs/ClinicalStudyPB-Docs/api/openapi.yaml) |
 
@@ -69,3 +69,40 @@ Classes novas da Release 2: `RetiradaService`, `ResultadoService`, `ContaPartici
 **Ainda não medido:** o histórico (RF15) e os endpoints do app do participante (RF17 e RF18) ainda não estavam na `develop` nesta data. A regra do CI vale para eles quando entrarem, e a medição final vai para o `relatorio-testes.md` no fechamento da release.
 
 ![Relatório JaCoCo da develop em 22/11/2026](img/jacoco-2026-11-22.png)
+
+## 5. Capturas de tela
+
+Task 3792. Dados do seed da Release 2 (migração V14), com situações de sucesso e de erro.
+
+### App do participante (RF02, RF03, RF17 e RF18)
+
+Capturas do app rodando no modo web do Expo, em tela de celular (390 × 844), contra a API local. As contas são as do seed, com a senha `Senha@123`.
+
+**Login**
+
+| Situação | Captura |
+| --- | --- |
+| Formulário preenchido com a conta da participante | ![Login preenchido](img/app-login-01-formulario.png) |
+| Erro: e-mail ou senha incorretos | ![Erro de credenciais](img/app-login-02-erro-credenciais.png) |
+| Erro: perfil da equipe bloqueado no app (RF03) | ![Perfil bloqueado](img/app-login-03-perfil-bloqueado.png) |
+
+**Estudos (RF17)**
+
+| Situação | Captura |
+| --- | --- |
+| Paula: participação ativa, com responsável e próxima visita | ![Estudos da participante](img/app-estudos-01-lista-sucesso.png) |
+| Otávio: participação retirada, sem próxima visita | ![Participação retirada](img/app-estudos-02-participacao-retirada.png) |
+| Erro: sem conexão com o servidor, com opção de tentar de novo | ![Erro de conexão](img/app-estudos-03-erro-conexao.png) |
+
+**Visitas (RF18)**
+
+| Situação | Captura |
+| --- | --- |
+| Paula: próximas visitas e histórico de comparecimento | ![Próximas visitas e histórico](img/app-visitas-01-proximas-e-historico.png) |
+| Lucas: ausência registrada no histórico | ![Histórico com ausência](img/app-visitas-02-historico-com-ausencia.png) |
+
+Confirmar presença e pedir reagendamento (RF19) e o pedido de retirada pelo app (RF20) não aparecem, porque ficaram para a Sprint 4.
+
+### Painel web
+
+A preencher: agenda, agendamento, status da visita e acesso na inclusão (Nidlan); resultados, histórico do participante e retirada (Arthur).

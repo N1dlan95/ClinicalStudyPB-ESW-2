@@ -238,6 +238,11 @@ export function CandidatosListaPage() {
                       <Link to={`/estudos/${idEstudo}/candidatos/${c.id}/avaliacao`} className="link">
                         Avaliar
                       </Link>
+                      {(c.status === 'INCLUIDO' || c.status === 'RETIRADO') && (
+                        <Link to={`/estudos/${idEstudo}/candidatos/${c.id}/historico`} className="link">
+                          Histórico
+                        </Link>
+                      )}                      
                       {c.status === 'INCLUIDO' && (
                         <Link
                           to={`/estudos/${idEstudo}/agenda/novo?participanteId=${c.id}`}

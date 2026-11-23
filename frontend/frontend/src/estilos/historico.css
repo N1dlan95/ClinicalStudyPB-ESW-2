@@ -1,0 +1,30 @@
+/* Histórico do participante (RF15, T-97). Usa as variáveis e classes de painel.css, candidatos.css e visitas.css. */
+.historico__cabecalho-acoes { display: flex; gap: 8px; align-items: center; }
+
+.linha-tempo { margin: 0; padding: 18px 20px; }
+.linha-tempo__titulo { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
+.linha-tempo__titulo h2 { margin: 0; font-size: 14px; }
+.linha-tempo__titulo small { color: var(--texto-suave); font-size: 11px; }
+.linha-tempo__lista { list-style: none; margin: 0; padding: 0; }
+
+.visita-item { position: relative; display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--borda); }
+.visita-item:last-child { border-bottom: 0; }
+.visita-item__ponto { flex-shrink: 0; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%; background: #9aa5b1; }
+.visita-item__ponto--agendada { background: #1f4f8f; }
+.visita-item__ponto--realizada { background: #2e7d32; }
+.visita-item__ponto--ausente { background: #d9962b; }
+.visita-item__ponto--cancelada { background: #9a9a9a; }
+.visita-item__corpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.visita-item__topo { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.visita-item__topo strong { font-size: 14px; }
+.visita-item__quando { margin: 0; color: var(--texto-suave); font-size: 12px; }
+.visita-item__texto { margin: 0; color: var(--texto-suave); font-size: 12px; line-height: 1.5; }
+.visita-item__tabela { margin-top: 4px; border: 1px solid var(--borda); border-radius: 8px; overflow-x: auto; }
+
+.estado-vazio { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 28px 16px; text-align: center; }
+.estado-vazio strong { font-size: 14px; }
+.estado-vazio p { margin: 0; max-width: 360px; color: var(--texto-suave); font-size: 12px; }
+
+.esqueleto { height: 14px; margin-bottom: 10px; border-radius: 6px; background: var(--rosa-claro); }
+.esqueleto--titulo { width: 40%; height: 22px; }
+.esqueleto--linha { width: 70%; }

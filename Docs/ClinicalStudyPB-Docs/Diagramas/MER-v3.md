@@ -208,6 +208,6 @@ Continua a tabela do [MER-v2](MER-v2.md) (seção 6). Cada task usa o número re
 | V11 | `visita` + índice `candidato.usuario_id` | 3755 / 3758 | Na develop |
 | V12 | `V12__criar_resultado_atividade.sql` | 3763 | Reservada |
 | V13 | `V13__adicionar_retirada_candidato.sql` (`retirada_registrada_em`, `retirada_registrada_por_id`, `motivo_retirada`) | 3768 | Reservada |
-| V14 | seed da Release 2 (participantes com conta, visitas e resultados) | 3750 | Reservada |
+| V14 | `V14__seed_release2.sql`: seed da Release 2 (participantes com conta, visitas em todos os status, resultados e retirada) | 3750 | Criada (T-84) |
 
 A conta do participante (3751) não precisou de migração: `candidato.usuario_id` já existia desde a V4.

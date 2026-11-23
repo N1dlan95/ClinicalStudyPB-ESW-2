@@ -34,7 +34,8 @@ import clinicalstudypb.usuario.UsuarioRepository;
 // Erros dos endpoints de RF12 a RF16 no banco real: 403 por perfil, 401 sem token, 404, 400 de validação e os
 // 409 que VisitaIntegrationTest, ResultadoIntegrationTest e RetiradaIntegrationTest ainda não cobrem.
 // Os casos de sucesso e o fluxo da conta (inclusão + login) estão nesses testes e no RecrutamentoIntegrationTest.
-// O histórico (RF15) e /participantes/me/** (RF17 e RF18) entram aqui quando os endpoints existirem.
+// O sucesso e o isolamento de /participantes/me/** (RF17 e RF18) estão no ParticipanteIntegrationTest (PR #64).
+// O histórico (RF15, T-96) entra aqui quando o endpoint existir.
 // Precisa do PostgreSQL rodando, como no CI.
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -153,6 +154,23 @@ class AcompanhamentoErrosIntegrationTest {
 	void participanteNaoAcessaAAgendaNemOsResultadosPelaApiDaEquipe() throws Exception {
 		semPermissao(participante, get("/estudos/" + estudoId + "/visitas"), null);
 		semPermissao(participante, get("/visitas/" + agendadaId + "/resultados"), null);
+	}
+
+	// O participante entra só pelo app (/participantes/me/**, RF17 e RF18). As rotas da equipe recebem ids na URL,
+	// então liberar qualquer uma delas permitiria ver dados de outro participante. E a equipe não usa as rotas do app.
+	@Test
+	void participanteSoAcessaAsRotasDoAppEAEquipeNaoAcessaElas() throws Exception {
+		for (MockHttpServletRequestBuilder rotaDaEquipe : new MockHttpServletRequestBuilder[] {
+				get("/estudos/" + estudoId + "/visitas"), get("/candidatos/" + participanteId + "/visitas"),
+				get("/visitas/" + agendadaId), get("/visitas/" + agendadaId + "/resultados"),
+				get("/candidatos/" + participanteId + "/conta"),
+				get("/estudos/" + estudoId + "/candidatos/" + participanteId) }) {
+			semPermissao(participante, rotaDaEquipe, null);
+		}
+		for (Usuario usuario : new Usuario[] { pesquisadora, coordenador, administrador }) {
+			semPermissao(usuario, get("/participantes/me/estudos"), null);
+			semPermissao(usuario, get("/participantes/me/visitas"), null);
+		}
 	}
 
 	@Test

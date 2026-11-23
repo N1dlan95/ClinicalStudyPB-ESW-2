@@ -184,8 +184,9 @@ Documentação de regressão e Bug Bash: [Roteiro RF01 a RF18](Docs/ClinicalStud
 ├── mobile/                  # app do participante (congelado na Release 1)
 ├── e2e/                     # teste E2E com Playwright
 ├── Docs/ClinicalStudyPB-Docs/
-│   ├── Contexto-Geral/      # contexto e requisitos
+│   ├── Contexto-Geral/      # contexto, requisitos e orientações (tutorial do FigCraft)
 │   ├── Diagramas/           # MER/DER e diagrama do fluxo de recrutamento
+│   ├── PrototiposTela/      # protótipos de interface (.figcraft e .fig)
 │   ├── Testes/              # roteiro de regressão, bug bash e resultado da execução
 │   └── api/                 # contrato OpenAPI
 ├── releases/                # uma pasta por release: README, sprints, relatório de testes e capturas
@@ -196,6 +197,8 @@ Documentação de regressão e Bug Bash: [Roteiro RF01 a RF18](Docs/ClinicalStud
 ├── DOCKER.md
 └── .env.example
 ```
+
+> **Protótipos de Interface:** Os arquivos editáveis de tela ficam em [`Docs/ClinicalStudyPB-Docs/PrototiposTela/`](Docs/ClinicalStudyPB-Docs/PrototiposTela). Para instruções de uso da ferramenta e integração com agentes de IA (MCP), consulte o [Tutorial do FigCraft](Docs/ClinicalStudyPB-Docs/Contexto-Geral/Orientacoes/tutorial-figcraft.md).
 
 ## Fluxo de trabalho
 

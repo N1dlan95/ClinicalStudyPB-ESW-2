@@ -1,0 +1,9 @@
+/* Visitas e resultados (Release 2). Usa as variáveis e classes de painel.css, estudos.css e candidatos.css. */
+.selo--visita-agendada { background: #e4eefb; color: #1f4f8f; }
+.selo--visita-realizada { background: #e3f4e6; color: #2e7d32; }
+.selo--visita-ausente { background: var(--atencao-fundo); color: #8a5a00; }
+.selo--visita-cancelada { background: #ececec; color: #555; }
+
+/* Resultado e observação lado a lado; em tela estreita, um embaixo do outro */
+.resultado__campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.tabela__suave { color: var(--texto-suave); }

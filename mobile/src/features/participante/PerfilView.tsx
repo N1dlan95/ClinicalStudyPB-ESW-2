@@ -4,6 +4,7 @@ import { Botao } from '../../components/Botao';
 import { Cabecalho } from '../../components/Cabecalho';
 import { Card } from '../../components/Card';
 import { Carregando, ErroCarregamento } from '../../components/EstadoTela';
+import { FUNCIONALIDADES } from '../../config/funcionalidades';
 import { colors } from '../../theme/colors';
 import type { Usuario } from '../auth/types';
 import type { ParticipanteService } from './participanteService';
@@ -22,15 +23,22 @@ function iniciais(nome: string): string {
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase();
 }
 
-/** Dados do participante, RF20 (retirada voluntária) e RF02 (sair). */
+/**
+ * Dados do participante e RF02 (sair).
+ * RF20 (pedido de retirada pelo app) fica desligado até a Sprint 4: config/funcionalidades.ts.
+ */
 export function PerfilView({ servico, token, usuario, onSair }: Props) {
-  const buscar = useCallback(() => servico.listarEstudos(token), [servico, token]);
+  // Os estudos só são buscados para o pedido de retirada; com ele desligado, nada é chamado na API
+  const buscar = useCallback(
+    () => (FUNCIONALIDADES.solicitarRetirada ? servico.listarEstudos(token) : Promise.resolve([])),
+    [servico, token],
+  );
   const { dados, setDados, erro, carregando, recarregar } = useCarregamento(buscar);
 
   if (carregando && !dados) return <Carregando />;
   if (erro) return <ErroCarregamento mensagem={erro} onTentarNovamente={recarregar} />;
 
-  const ativos = (dados ?? []).filter((e) => e.status !== 'ENCERRADO');
+  const ativos = (dados ?? []).filter((e) => e.participacao === 'INCLUIDO' && e.estado !== 'ENCERRADO');
 
   return (
     <ScrollView contentContainerStyle={styles.conteudo}>

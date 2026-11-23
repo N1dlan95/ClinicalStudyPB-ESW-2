@@ -19,7 +19,7 @@ describe('participanteService (API real)', () => {
 
     await participanteService.listarEstudos('jwt-123');
 
-    expect(fetchMock).toHaveBeenCalledWith('http://api.teste/api/participante/estudos', expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith('http://api.teste/api/participantes/me/estudos', expect.objectContaining({
       headers: expect.objectContaining({ Authorization: 'Bearer jwt-123' }),
     }));
   });

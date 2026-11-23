@@ -1,5 +1,7 @@
 package clinicalstudypb.candidato;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -24,6 +26,11 @@ public interface CandidatoRepository extends JpaRepository<Candidato, Long> {
 
 	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Optional<Candidato> findByIdAndEstudoId(Long id, Long estudoId);
+
+	// RF17 (task 3773): participações de uma conta de participante, com o estudo e o responsável para a resposta
+	@EntityGraph(attributePaths = { "estudo", "estudo.responsavel" })
+	List<Candidato> findByUsuarioIdAndStatusIn(Long usuarioId, Collection<StatusCandidato> status);
+
 	boolean existsByEstudoIdAndEmailIgnoreCase(Long estudoId, String email);
 
 	boolean existsByEstudoIdAndEmailIgnoreCaseAndIdNot(Long estudoId, String email, Long id);

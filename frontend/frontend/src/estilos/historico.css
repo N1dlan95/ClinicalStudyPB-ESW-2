@@ -28,3 +28,7 @@
 .esqueleto { height: 14px; margin-bottom: 10px; border-radius: 6px; background: var(--rosa-claro); }
 .esqueleto--titulo { width: 40%; height: 22px; }
 .esqueleto--linha { width: 70%; }
+
+/* Diálogo de retirada (RF16, T-99) */
+.retirada__contador { align-self: flex-end; color: var(--texto-suave); font-size: 11px; }
+.dialogo .pn-campo { margin-bottom: 12px; }

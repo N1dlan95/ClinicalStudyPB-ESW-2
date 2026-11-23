@@ -12,7 +12,7 @@ import { bloqueioInclusao, mensagemErroInclusao } from './inclusao'
 import { dataConsentimento } from './consentimento'
 import { ROTULO_STATUS_CANDIDATO, type Candidato, type StatusCandidato } from './tipos'
 
-const FILTROS: (StatusCandidato | 'TODOS')[] = ['TODOS', 'CADASTRADO', 'ELEGIVEL', 'INELEGIVEL', 'INCLUIDO']
+const FILTROS: (StatusCandidato | 'TODOS')[] = ['TODOS', 'CADASTRADO', 'ELEGIVEL', 'INELEGIVEL', 'INCLUIDO', 'RETIRADO']
 
 export function CandidatosListaPage() {
   const { estudoId } = useParams<{ estudoId: string }>()

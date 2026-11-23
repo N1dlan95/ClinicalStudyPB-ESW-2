@@ -3,15 +3,15 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ErroVisitaApi } from '../visitas/visitasService'
 import { HistoricoParticipantePage } from './HistoricoParticipantePage'
-import { buscarHistorico } from './historicoService'
+import { buscarHistorico, registrarRetirada } from './historicoService'
 import type { Historico } from './tipos'
 
-vi.mock('./historicoService', () => ({ buscarHistorico: vi.fn() }))
+vi.mock('./historicoService', () => ({ buscarHistorico: vi.fn(), registrarRetirada: vi.fn() }))
 
 let perfilCoordenador = true
 vi.mock('../auth/useAutorizacao', () => ({
   useAutorizacao: () => ({
-    pode: (p: string) => (p === 'registrarResultados' || p === 'gerenciarCandidatos' ? perfilCoordenador : true),
+    pode: (p: string) => (['registrarResultados', 'gerenciarCandidatos', 'registrarRetirada'].includes(p) ? perfilCoordenador : true),
   }),
 }))
 
@@ -58,6 +58,7 @@ describe('HistoricoParticipantePage', () => {
 
   beforeEach(() => {
     vi.mocked(buscarHistorico).mockReset()
+    vi.mocked(registrarRetirada).mockReset()
     perfilCoordenador = true
   })
 
@@ -103,5 +104,88 @@ describe('HistoricoParticipantePage', () => {
     renderizar()
     fireEvent.click(await screen.findByText('Tentar de novo'))
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Paula Andrade' })).not.toBeNull())
+  })
+
+  describe('retirada (RF16)', () => {
+    const retirado: Historico = {
+      ...historico,
+      participante: {
+        ...historico.participante,
+        status: 'RETIRADO',
+        retirada: { registradaEm: '2026-11-23T10:00:00', registradaPor: 'Carla Coordenadora', motivo: 'Mudou de cidade' },
+      },
+    }
+
+    it('só o coordenador vê o botão, e só para participante incluído', async () => {
+      vi.mocked(buscarHistorico).mockResolvedValue(historico)
+      renderizar()
+      expect(await screen.findByText('Registrar retirada')).not.toBeNull()
+      cleanup()
+
+      perfilCoordenador = false
+      renderizar()
+      await screen.findByRole('heading', { name: 'Paula Andrade' })
+      expect(screen.queryByText('Registrar retirada')).toBeNull()
+      cleanup()
+
+      perfilCoordenador = true
+      vi.mocked(buscarHistorico).mockResolvedValue(retirado)
+      renderizar()
+      await screen.findByRole('heading', { name: 'Paula Andrade' })
+      expect(screen.queryByText('Registrar retirada')).toBeNull()
+    })
+
+    it('exige o motivo antes de enviar', async () => {
+      vi.mocked(buscarHistorico).mockResolvedValue(historico)
+      renderizar()
+      fireEvent.click(await screen.findByText('Registrar retirada'))
+      expect(screen.getByText(/As visitas agendadas serão canceladas/)).not.toBeNull()
+      fireEvent.click(screen.getByText('Confirmar retirada'))
+      expect(screen.getByText('Informe o motivo da retirada.')).not.toBeNull()
+      expect(registrarRetirada).not.toHaveBeenCalled()
+    })
+
+    it('registra a retirada, recarrega o histórico e mostra o resumo', async () => {
+      vi.mocked(buscarHistorico).mockResolvedValueOnce(historico).mockResolvedValueOnce(retirado)
+      vi.mocked(registrarRetirada).mockResolvedValue({ visitasCanceladas: 1, vagasOcupadas: 2, limiteParticipantes: 5 })
+      renderizar()
+      fireEvent.click(await screen.findByText('Registrar retirada'))
+      fireEvent.change(screen.getByLabelText(/Motivo da retirada/), { target: { value: 'Mudou de cidade' } })
+      fireEvent.click(screen.getByText('Confirmar retirada'))
+
+      expect(await screen.findByText(/Retirada registrada\. 1 visita agendada foi cancelada\. Vagas ocupadas: 2 de 5/)).not.toBeNull()
+      expect(registrarRetirada).toHaveBeenCalledWith(7, 'Mudou de cidade')
+      await waitFor(() => expect(screen.queryByText('Registrar retirada')).toBeNull())
+      expect(screen.getByText('Participante retirado', { selector: 'strong' })).not.toBeNull()
+      expect(screen.queryByRole('dialog')).toBeNull()
+    })
+
+    it('mostra o diálogo de "já retirado" e atualiza a página', async () => {
+      vi.mocked(buscarHistorico).mockResolvedValueOnce(historico).mockResolvedValueOnce(retirado)
+      vi.mocked(registrarRetirada).mockRejectedValue(
+        new ErroVisitaApi('Outra pessoa da equipe registrou a retirada.', 409, 'PARTICIPANTE_JA_RETIRADO'),
+      )
+      renderizar()
+      fireEvent.click(await screen.findByText('Registrar retirada'))
+      fireEvent.change(screen.getByLabelText(/Motivo da retirada/), { target: { value: 'Desistiu' } })
+      fireEvent.click(screen.getByText('Confirmar retirada'))
+
+      expect(await screen.findByText(/Participante já retirado\./)).not.toBeNull()
+      expect(screen.getByText('Fechar')).not.toBeNull()
+      fireEvent.click(screen.getByText('Atualizar a página'))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      await waitFor(() => expect(screen.getByText('Participante retirado', { selector: 'strong' })).not.toBeNull())
+    })
+
+    it('mantém o diálogo aberto com a mensagem quando a API recusa', async () => {
+      vi.mocked(buscarHistorico).mockResolvedValue(historico)
+      vi.mocked(registrarRetirada).mockRejectedValue(new ErroVisitaApi('Seu perfil não tem permissão.', 403, 'SEM_PERMISSAO'))
+      renderizar()
+      fireEvent.click(await screen.findByText('Registrar retirada'))
+      fireEvent.change(screen.getByLabelText(/Motivo da retirada/), { target: { value: 'Desistiu' } })
+      fireEvent.click(screen.getByText('Confirmar retirada'))
+      expect(await screen.findByText('Seu perfil não tem permissão.')).not.toBeNull()
+      expect(screen.getByRole('dialog')).not.toBeNull()
+    })
   })
 })

@@ -1,0 +1,222 @@
+/* Estilos das telas de agenda do estudo e execução de visitas (RF12 e RF13 — Release 2) */
+
+/* ---------- Indicadores / KPIs da agenda ---------- */
+.agenda-indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.agenda-indicador {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.agenda-indicador small {
+  color: var(--texto-suave);
+  font-size: 11px;
+}
+.agenda-indicador strong {
+  font-size: 20px;
+  color: var(--texto);
+}
+.agenda-indicador__detalhe {
+  font-size: 10px;
+  color: var(--texto-suave);
+}
+
+/* ---------- Filtros da agenda ---------- */
+.agenda-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+.agenda-filtros__linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.agenda-filtros__periodo {
+  width: 190px;
+}
+.agenda-filtros__datas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agenda-filtros__datas input {
+  width: 145px;
+}
+
+/* ---------- Selos de status da visita agendada ---------- */
+.selo--visita-agendada {
+  background: #e4eefb;
+  color: #1f4f8f;
+}
+.selo--visita-realizada {
+  background: #e3f4e6;
+  color: #2e7d32;
+}
+.selo--visita-ausente {
+  background: var(--atencao-fundo);
+  color: #8a5a00;
+}
+.selo--visita-cancelada {
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
+.selo--fora-janela {
+  background: var(--atencao-fundo);
+  border: 1px solid #f0d9a8;
+  color: #8a5a00;
+  margin-left: 6px;
+}
+
+/* ---------- Estados de vazio e carregando (R2-07 e R2-08) ---------- */
+.agenda-estado {
+  padding: 36px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.agenda-estado__icone {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--rosa-claro);
+  color: var(--vinho);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+.agenda-estado h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--texto);
+}
+.agenda-estado p {
+  margin: 0;
+  max-width: 460px;
+  color: var(--texto-suave);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.agenda-estado__acoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.agenda-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 680px;
+  margin-top: 8px;
+}
+.agenda-skeleton__linha {
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f5ecef 25%, #fbe9ef 50%, #f5ecef 75%);
+}
+
+/* ---------- Resumo da janela e sugestão no agendamento (R2-02 e R2-03) ---------- */
+.resumo-janela {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fcf8fa;
+  border: 1px solid var(--borda);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 18px;
+}
+.resumo-janela small {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 10px;
+}
+.resumo-janela strong {
+  font-size: 12px;
+  color: var(--texto);
+}
+
+/* ---------- Ações na visita agendada (R2-04 e R2-06) ---------- */
+.resumo-visita-agendada {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 24px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.resumo-visita-agendada small {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 10px;
+}
+.resumo-visita-agendada strong {
+  font-size: 13px;
+}
+
+.opcoes-acao-visita {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.opcao-acao-visita {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--texto);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.opcao-acao-visita:hover {
+  border-color: var(--vinho);
+}
+.opcao-acao-visita strong {
+  font-size: 13px;
+}
+.opcao-acao-visita small {
+  color: var(--texto-suave);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.opcao-acao-visita--ativa {
+  border-color: var(--vinho);
+  background: var(--rosa-claro);
+}
+.opcao-acao-visita--ativa strong {
+  color: var(--vinho);
+}
+.opcao-acao-visita--perigo.opcao-acao-visita--ativa {
+  border-color: var(--erro);
+  background: var(--erro-fundo);
+}
+.opcao-acao-visita--perigo.opcao-acao-visita--ativa strong {
+  color: var(--erro);
+}
+
+@media (max-width: 720px) {
+  .agenda-indicadores {
+    grid-template-columns: 1fr 1fr;
+  }
+  .opcoes-acao-visita {
+    grid-template-columns: 1fr;
+  }
+}

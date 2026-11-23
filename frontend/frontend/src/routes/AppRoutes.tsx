@@ -1,4 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AcoesVisitaPage } from '../features/agenda/AcoesVisitaPage'
+import { AgendaEstudoPage } from '../features/agenda/AgendaEstudoPage'
+import { AgendamentoVisitaFormPage } from '../features/agenda/AgendamentoVisitaFormPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ExigePermissao, RotaProtegida } from '../features/auth/RotaProtegida'
 import { useAutorizacao } from '../features/auth/useAutorizacao'
@@ -81,6 +84,30 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="editarEstudos">
                 <EstadoEstudoPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/agenda"
+            element={
+              <ExigePermissao permissao="verEstudos">
+                <AgendaEstudoPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/agenda/novo"
+            element={
+              <ExigePermissao permissao="verEstudos">
+                <AgendamentoVisitaFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:id/agenda/:visitaId/acoes"
+            element={
+              <ExigePermissao permissao="gerenciarVisitas">
+                <AcoesVisitaPage />
               </ExigePermissao>
             }
           />

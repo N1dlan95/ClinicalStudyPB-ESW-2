@@ -1,10 +1,14 @@
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { useAutorizacao } from '../auth/useAutorizacao'
+import { AuthContext } from '../auth/AuthContext'
+import { temPermissao, type Permissao } from '../auth/permissoes'
 
-export type AbaEstudo = 'dados' | 'criterios' | 'visitas' | 'estado'
+export type AbaEstudo = 'dados' | 'criterios' | 'visitas' | 'estado' | 'agenda'
 
 export function AbasEstudo({ estudoId, ativa }: { estudoId: number; ativa: AbaEstudo }) {
-  const { pode } = useAutorizacao()
+  const auth = useContext(AuthContext)
+  const perfil = auth?.usuario?.perfil ?? null
+  const pode = (permissao: Permissao) => temPermissao(perfil, permissao)
   const classe = (aba: AbaEstudo) =>
     aba === ativa ? 'abas-estudo__item abas-estudo__item--ativo' : 'abas-estudo__item'
 
@@ -33,6 +37,9 @@ export function AbasEstudo({ estudoId, ativa }: { estudoId: number; ativa: AbaEs
           Candidatos
         </Link>
       )}
+      <Link to={`/estudos/${estudoId}/agenda`} className={classe('agenda')}>
+        Agenda do estudo
+      </Link>
     </nav>
   )
 }

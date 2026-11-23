@@ -98,7 +98,8 @@ export function AppRoutes() {
           <Route
             path="/estudos/:id/agenda/novo"
             element={
-              <ExigePermissao permissao="verEstudos">
+              // Agendar é só do coordenador (a API recusa os outros perfis com 403)
+              <ExigePermissao permissao="gerenciarVisitas">
                 <AgendamentoVisitaFormPage />
               </ExigePermissao>
             }

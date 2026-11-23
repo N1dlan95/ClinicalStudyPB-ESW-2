@@ -7,7 +7,7 @@ import type { Sessao } from '../auth/tipos'
 import { buscarEstudo } from '../estudos/estudosService'
 import type { Estudo } from '../estudos/tipos'
 import { AgendaEstudoPage } from './AgendaEstudoPage'
-import { listarVisitasAgendadas } from './agendaService'
+import { ErroAgendaApi, listarVisitasAgendadas } from './agendaService'
 import type { VisitaAgendada } from './tipos'
 
 vi.mock('../estudos/estudosService', () => ({ buscarEstudo: vi.fn() }))
@@ -178,5 +178,49 @@ describe('AgendaEstudoPage', () => {
       within(linhaMaria).queryByRole('link', { name: /Registrar ação/i }),
     ).not.toBeInTheDocument()
     expect(within(linhaMaria).getByText('Somente consulta')).toBeInTheDocument()
+  })
+
+  // T-108B: botões por perfil, estado de erro e estado vazio sem ação para quem só consulta
+  it('o coordenador vê o agendamento e a ação de cada visita', async () => {
+    renderizar('COORDENADOR')
+
+    const linhaMaria = (await screen.findByText('Maria Souza')).closest('tr')!
+    expect(screen.getByRole('link', { name: '+ Agendar visita' })).toHaveAttribute('href', '/estudos/1/agenda/novo')
+    expect(
+      within(linhaMaria).getByRole('link', { name: 'Registrar ação na visita de Maria Souza' }),
+    ).toHaveAttribute('href', '/estudos/1/agenda/501/acoes')
+  })
+
+  it('o pesquisador não vê o botão de agendar', async () => {
+    renderizar('PESQUISADOR')
+
+    await screen.findByText('Maria Souza')
+    expect(screen.queryByRole('link', { name: '+ Agendar visita' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '+ Agendar visita' })).not.toBeInTheDocument()
+  })
+
+  it('no estado vazio, só o coordenador vê "Agendar primeira visita"', async () => {
+    vi.mocked(listarVisitasAgendadas).mockResolvedValue([])
+    renderizar('PESQUISADOR')
+
+    expect(await screen.findByText(/ainda não possui visitas agendadas/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: '+ Agendar primeira visita' })).not.toBeInTheDocument()
+  })
+
+  it('com o estudo encerrado, o botão de agendar fica desabilitado', async () => {
+    vi.mocked(buscarEstudo).mockResolvedValue({ ...ESTUDO, estado: 'ENCERRADO' })
+    renderizar('COORDENADOR')
+
+    await screen.findByText('Maria Souza')
+    expect(screen.getByRole('button', { name: '+ Agendar visita' })).toBeDisabled()
+  })
+
+  it('mostra o erro quando a agenda não carrega', async () => {
+    vi.mocked(listarVisitasAgendadas).mockRejectedValue(new ErroAgendaApi('Estudo não encontrado.', 404, 'NAO_ENCONTRADO'))
+    renderizar('COORDENADOR')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível carregar a agenda do estudo. Estudo não encontrado.',
+    )
   })
 })

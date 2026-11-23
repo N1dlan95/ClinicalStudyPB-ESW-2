@@ -37,7 +37,7 @@ export interface VisitaPrevistaResumo {
   id: number
   ordem: number
   nome: string
-  diaPrevisto: number
+  diaPrevisto: number | null // vem da lista de visitas previstas; nulo quando o perfil não pode consultá-la
   janelaDias: number | null
 }
 
@@ -66,7 +66,6 @@ export interface AgendamentoVisitaEntrada {
   dataAgendada: string // ISO: aaaa-mm-dd
   horaAgendada: string // hh:mm
   local: string | null
-  observacoes: string | null
 }
 
 export type AcaoExecucaoVisita = 'REALIZADA' | 'AUSENTE' | 'CANCELADA'

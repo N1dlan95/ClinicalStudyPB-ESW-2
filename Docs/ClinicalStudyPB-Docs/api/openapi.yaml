@@ -451,7 +451,7 @@ paths:
     get:
       tags: [Visitas previstas]
       summary: Lista visitas previstas e atividades de um estudo (RF06)
-      description: Perfil permitido PESQUISADOR.
+      description: Perfis permitidos PESQUISADOR, COORDENADOR e ADMINISTRADOR (o coordenador agenda as visitas a partir desta lista, RF12). Cadastrar, editar e excluir continuam só com o PESQUISADOR.
       responses:
         "200":
           description: Visitas previstas do estudo

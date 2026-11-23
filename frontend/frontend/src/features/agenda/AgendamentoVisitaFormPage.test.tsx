@@ -7,7 +7,7 @@ import type { Candidato } from '../candidatos/tipos'
 import { buscarEstudo, listarVisitasPrevistas } from '../estudos/estudosService'
 import type { Estudo, VisitaPrevista } from '../estudos/tipos'
 import { AgendamentoVisitaFormPage } from './AgendamentoVisitaFormPage'
-import { agendarVisita, listarVisitasAgendadas } from './agendaService'
+import { ErroAgendaApi, agendarVisita, listarVisitasAgendadas } from './agendaService'
 import type { VisitaAgendada } from './tipos'
 
 vi.mock('../estudos/estudosService', () => ({
@@ -173,23 +173,78 @@ describe('AgendamentoVisitaFormPage', () => {
     const usuario = renderizar()
     await screen.findByRole('heading', { name: 'Agendar visita' })
 
+    await usuario.type(screen.getByPlaceholderText(/Ambulatório Central/), 'Sala 2')
     await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
 
-    expect(agendarVisita).toHaveBeenCalledWith(
-      1,
-      {
-        participanteId: 10,
-        visitaPrevistaId: 100,
-        dataAgendada: '2027-01-25',
-        horaAgendada: '09:00',
-        local: 'Ambulatório Central · Sala 204',
-        observacoes: null,
-      },
-      expect.objectContaining({
-        participanteNome: 'Maria Souza',
-        visitaNome: 'Visita de retorno D15',
+    expect(agendarVisita).toHaveBeenCalledWith(1, {
+      participanteId: 10,
+      visitaPrevistaId: 100,
+      dataAgendada: '2027-01-25',
+      horaAgendada: '09:00',
+      local: 'Sala 2',
+    })
+    expect(await screen.findByRole('heading', { name: 'Agenda do estudo' })).toBeInTheDocument()
+  })
+
+  it('começa sem local preenchido e manda nulo quando ele fica vazio', async () => {
+    vi.mocked(agendarVisita).mockResolvedValueOnce({} as VisitaAgendada)
+    const usuario = renderizar()
+    await screen.findByRole('heading', { name: 'Agendar visita' })
+
+    expect(screen.getByPlaceholderText(/Ambulatório Central/)).toHaveValue('')
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
+
+    expect(agendarVisita).toHaveBeenCalledWith(1, expect.objectContaining({ local: null }))
+  })
+
+  // T-108B: visita prevista vazia e estudo sem visitas previstas
+  it('exige a visita prevista', async () => {
+    const usuario = renderizar()
+    await screen.findByRole('heading', { name: 'Agendar visita' })
+
+    await usuario.selectOptions(screen.getByLabelText(/Visita prevista \*/i), '')
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
+
+    expect(screen.getAllByText('Selecione a visita prevista do protocolo.').length).toBeGreaterThan(0)
+    expect(agendarVisita).not.toHaveBeenCalled()
+  })
+
+  it('avisa quando o estudo não tem visitas previstas', async () => {
+    vi.mocked(listarVisitasPrevistas).mockResolvedValue([])
+    renderizar()
+
+    expect(await screen.findByText('Nenhuma visita prevista cadastrada neste estudo')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Visitas previstas' })).toHaveAttribute(
+      'href',
+      '/estudos/1/visitas-previstas',
+    )
+  })
+
+  // T-108B: o 409 da API (outra pessoa agendou a mesma visita prevista) aparece no campo e no aviso
+  it('mostra o conflito 409 da API e continua no formulário', async () => {
+    vi.mocked(agendarVisita).mockRejectedValueOnce(
+      new ErroAgendaApi('Esta visita prevista já está agendada para o participante.', 409, 'VISITA_JA_AGENDADA', {
+        visitaPrevistaId: 'Esta visita prevista já está agendada para o participante.',
       }),
     )
-    expect(await screen.findByRole('heading', { name: 'Agenda do estudo' })).toBeInTheDocument()
+    const usuario = renderizar()
+    await screen.findByRole('heading', { name: 'Agendar visita' })
+
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
+
+    // Como o erro aponta o campo, a tela mostra a lista de impedimentos e a mensagem no próprio campo
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível confirmar o agendamento. Revise os impedimentos abaixo:',
+    )
+    expect(screen.getAllByText('Esta visita prevista já está agendada para o participante.').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: 'Agendar visita' })).toBeInTheDocument()
+  })
+
+  it('mostra o erro de carga sem inventar participantes', async () => {
+    vi.mocked(listarCandidatos).mockRejectedValueOnce(new ErroAgendaApi('Sem permissão.', 403, 'SEM_PERMISSAO'))
+    renderizar()
+
+    expect(await screen.findByText(/Não foi possível carregar os dados para agendamento/)).toBeInTheDocument()
+    expect(screen.queryByText(/Ana Ribeiro/)).not.toBeInTheDocument()
   })
 })

@@ -63,21 +63,36 @@ function CartaoConsentimento({
 function CartaoInclusao({
   candidato,
   estudo,
+  estudoId,
   ocupadas,
   aoIncluir,
 }: {
   candidato: Candidato
   estudo: Estudo | null
+  estudoId: number
   ocupadas: number | null
   aoIncluir: () => void
 }) {
   let conteudo
   if (candidato.status === 'INCLUIDO') {
     conteudo = (
-      <p className="consentimento__registrado">
-        <strong>Incluído no estudo</strong>
-        {candidato.dataInclusao ? ` em ${dataConsentimento(candidato.dataInclusao)}` : ''}.
-      </p>
+      <>
+        <p className="consentimento__registrado">
+          <strong>Incluído no estudo</strong>
+          {candidato.dataInclusao ? ` em ${dataConsentimento(candidato.dataInclusao)}` : ''}.
+        </p>
+        <div className="formulario__acoes">
+          <Link to={`/estudos/${estudoId}/agenda`} className="link">
+            Ver agenda do estudo
+          </Link>
+          <Link
+            to={`/estudos/${estudoId}/agenda/novo?participanteId=${candidato.id}`}
+            className="link"
+          >
+            Agendar visita
+          </Link>
+        </div>
+      </>
     )
   } else {
     const bloqueio = bloqueioInclusao(candidato, estudo, ocupadas)
@@ -266,6 +281,7 @@ export function CandidatoDetalhePage() {
             <CartaoInclusao
               candidato={candidato}
               estudo={estudo}
+              estudoId={idEstudo}
               ocupadas={ocupadas}
               aoIncluir={() => setConfirmandoInclusao(true)}
             />

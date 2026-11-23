@@ -40,11 +40,16 @@ export const DESCRICAO_PERMISSAO: Record<Permissao, string> = {
 // Resultados (RF14): pesquisador, coordenador e administrador consultam; só o coordenador registra.
 const PERMISSOES_POR_PERFIL: Record<Perfil, Permissao[]> = {
   ADMINISTRADOR: ['verEstudos', 'gerenciarUsuarios', 'verResultados', 'verAcompanhamento'],
-  COORDENADOR: ['verEstudos', 'gerenciarCandidatos', 'verResultados', 'registrarResultados', 'verAcompanhamento', 'registrarRetirada'],
+  COORDENADOR: [
+    'verEstudos',
+    'gerenciarCandidatos',
+    'gerenciarVisitas',
+    'verResultados',
+    'registrarResultados',
+    'verAcompanhamento',
+    'registrarRetirada',
+  ],
   PESQUISADOR: ['verEstudos', 'criarEstudos', 'editarEstudos', 'verResultados', 'verAcompanhamento'],
-  ADMINISTRADOR: ['verEstudos', 'gerenciarUsuarios', 'verResultados'],
-  COORDENADOR: ['verEstudos', 'gerenciarCandidatos', 'gerenciarVisitas', 'verResultados', 'registrarResultados'],
-  PESQUISADOR: ['verEstudos', 'criarEstudos', 'editarEstudos', 'verResultados'],
   // Participante usa só o aplicativo móvel: nenhuma permissão no painel web
   PARTICIPANTE: [],
 }

@@ -6,13 +6,41 @@ info:
   description: |
     Contrato da API REST do ClinicalStudyPB, compartilhada pela aplicação web e pelo aplicativo mobile.
 
-    **Escopo desta versão (Sprint 1):** RF01 a RF04 (usuários, autenticação, autorização por perfil e cadastro de estudos).
-    As demais rotas entram nas próximas sprints.
+    **Escopo:** RF01 a RF18. As rotas de RF14 a RF18 (resultados, histórico, retirada e app do participante)
+    são o contrato da Sprint 3 (task 3749): a web e o mobile podem montar as telas antes de o backend ficar pronto.
+    O modelo de dados está no `MER-v3.md`.
 
-    **Pontos ainda em aberto (a decidir pela equipe):**
-    - Prefixo `/api` (está no campo `servers`; mudar em um único lugar).
-    - Autenticação por JWT ou por sessão (o contrato usa Bearer JWT; trocar o `securitySchemes` se for sessão).
-    - Um usuário tem um único perfil (campo `perfil`); se a equipe decidir por vários, vira uma lista.
+    **Autenticação:** token JWT no cabeçalho `Authorization: Bearer <token>`, obtido em `POST /auth/login`.
+    Cada usuário tem um único perfil, e cada rota informa os perfis permitidos (os demais recebem 403).
+
+    **Erros:** todos usam o schema `Erro`. O campo `codigo` é estável e é o que a web e o mobile devem tratar:
+
+    | Status | Código | Quando |
+    | --- | --- | --- |
+    | 400 | `VALIDACAO` | Campo obrigatório ausente, formato errado ou fora do limite (o campo vem em `detalhes`) |
+    | 401 | `NAO_AUTENTICADO`, `CREDENCIAIS_INVALIDAS`, `USUARIO_INATIVO` | Sem token, token inválido, login errado ou usuário desativado |
+    | 403 | `SEM_PERMISSAO` | O perfil não pode usar a rota |
+    | 404 | `NAO_ENCONTRADO` | O recurso não existe |
+    | 409 | `EMAIL_DUPLICADO` | E-mail de usuário já cadastrado (RF01) |
+    | 409 | `TRANSICAO_ESTADO_INVALIDA` | Mudança de estado do estudo não permitida (RF07) |
+    | 409 | `ESTUDO_FORA_DO_PLANEJAMENTO` | Critério alterado fora do planejamento (RF05) |
+    | 409 | `ESTUDO_FORA_DE_RECRUTAMENTO` | Candidato ou avaliação fora do recrutamento (RF08, RF09) |
+    | 409 | `ESTUDO_ENCERRADO` | Operação em estudo encerrado (RF08 a RF16) |
+    | 409 | `ORDEM_DUPLICADA` | Ordem de critério ou visita prevista repetida (RF05, RF06) |
+    | 409 | `CRITERIO_EM_USO` | Critério já usado em avaliação (RF05) |
+    | 409 | `VISITA_PREVISTA_COM_AGENDAMENTOS` | Visita prevista com visitas agendadas não pode ser excluída (RF06) |
+    | 409 | `VISITA_PREVISTA_COM_RESULTADOS` | Visita prevista com resultados registrados não pode ser editada (RF06, RF14, novo) |
+    | 409 | `EMAIL_DUPLICADO_NO_ESTUDO`, `EMAIL_COM_CONTA` | E-mail repetido no estudo ou de alguém da equipe (RF08) |
+    | 409 | `ESTUDO_SEM_CRITERIOS_DE_INCLUSAO`, `CANDIDATO_JA_INCLUIDO`, `CANDIDATO_COM_CONSENTIMENTO` | Avaliação não permitida (RF09) |
+    | 409 | `CANDIDATO_NAO_ELEGIVEL`, `CONSENTIMENTO_JA_REGISTRADO` | Consentimento não permitido (RF10) |
+    | 409 | `CONSENTIMENTO_NAO_REGISTRADO`, `VAGAS_ESGOTADAS`, `EMAIL_DE_OUTRO_PERFIL` | Inclusão não permitida (RF11) |
+    | 409 | `PARTICIPANTE_NAO_INCLUIDO` | Visita, resultado ou retirada de quem não está INCLUIDO (RF12, RF16) |
+    | 409 | `VISITA_JA_AGENDADA` | Já existe agendamento ativo da mesma visita prevista (RF12) |
+    | 409 | `VISITA_JA_FINALIZADA` | Visita que já saiu de AGENDADA (RF12, RF13) |
+    | 409 | `VISITA_AINDA_NAO_OCORREU` | Realizada ou ausente antes da data marcada (RF13) |
+    | 409 | `VISITA_NAO_REALIZADA` | Resultado em visita que não está REALIZADA (RF14, novo) |
+    | 409 | `ATIVIDADE_FORA_DA_VISITA` | Atividade que não pertence à visita prevista da visita (RF14, novo) |
+    | 409 | `PARTICIPANTE_JA_RETIRADO` | Retirada de quem já foi retirado (RF16, novo) |
 
     Todos os dados são fictícios.
 
@@ -39,6 +67,18 @@ tags:
     description: Registro do consentimento simulado dos candidatos (RF10)
   - name: Inclusão
     description: Inclusão de candidatos nos estudos (RF11)
+  - name: Visitas
+    description: Agendamento e status das visitas dos participantes (RF12, RF13; tasks 3755 e 3758)
+  - name: Conta do participante
+    description: Acesso do participante incluído ao app (task 3751, RF02/RF17/RF18)
+  - name: Resultados
+    description: Resultados fictícios das atividades de uma visita realizada (RF14, task 3763)
+  - name: Histórico
+    description: Visitas e resultados do participante, por data (RF15, task 3765)
+  - name: Retirada
+    description: Retirada do participante do estudo (RF16, task 3768)
+  - name: App do participante
+    description: Estudos e visitas do participante logado (RF17 e RF18, tasks 3773 e 3775). Somente PARTICIPANTE.
 
 security:
   - bearerAuth: []
@@ -467,7 +507,9 @@ paths:
     put:
       tags: [Visitas previstas]
       summary: Atualiza uma visita prevista e substitui suas atividades (RF06)
-      description: Perfil permitido PESQUISADOR.
+      description: |
+        Perfil permitido PESQUISADOR. A edição apaga e recria as atividades; por isso, a visita prevista que
+        já tem resultados registrados (RF14) não pode ser editada (409 `VISITA_PREVISTA_COM_RESULTADOS`).
       requestBody:
         required: true
         content:
@@ -820,6 +862,10 @@ paths:
         Perfil permitido: COORDENADOR.
         O estudo deve estar em RECRUTAMENTO e possuir vaga disponível; o candidato deve estar elegível
         e ter consentimento registrado.
+        Na mesma operação, o sistema cria a conta PARTICIPANTE com o e-mail do candidato e devolve a senha
+        provisória em `conta.senhaProvisoria` (task 3751). Se já existe conta de participante com esse e-mail
+        (pessoa incluída antes em outro estudo), ela é reaproveitada e a senha não muda.
+        Se o e-mail pertence a um usuário da equipe, a inclusão é recusada com 409 `EMAIL_DE_OUTRO_PERFIL`.
       parameters:
         - name: candidatoId
           in: path
@@ -843,6 +889,541 @@ paths:
         "409":
           $ref: "#/components/responses/Conflito"
 
+  /candidatos/{candidatoId}/conta:
+    get:
+      tags: [Conta do participante]
+      summary: Consulta a conta do participante (task 3751)
+      description: |
+        Perfil permitido: COORDENADOR. A senha nunca é devolvida nesta rota.
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Conta do participante
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContaParticipante"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /candidatos/{candidatoId}/conta/senha-provisoria:
+    post:
+      tags: [Conta do participante]
+      summary: Gera uma nova senha provisória para o participante (task 3751)
+      description: |
+        Perfil permitido: COORDENADOR. A senha anterior deixa de valer e a nova é devolvida uma única vez
+        em `senhaProvisoria`.
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Nova senha gerada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContaParticipante"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /candidatos/{candidatoId}/visitas:
+    get:
+      tags: [Visitas]
+      summary: Lista as visitas do participante, por data (RF12)
+      description: "Perfil permitido: COORDENADOR."
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      responses:
+        "200":
+          description: Visitas do participante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Visitas]
+      summary: Agenda uma visita prevista para o participante (RF12, task 3755)
+      description: |
+        Perfil permitido: COORDENADOR.
+        Regras, nesta ordem: participante INCLUIDO (409 `PARTICIPANTE_NAO_INCLUIDO`); estudo não encerrado
+        (409 `ESTUDO_ENCERRADO`); visita prevista do mesmo estudo (404); data dentro da janela
+        `dataInclusao + diaPrevisto ± janelaDias` (400 `VALIDACAO`, campo `dataHora`); nenhum outro agendamento
+        não cancelado da mesma visita prevista (409 `VISITA_JA_AGENDADA`).
+      parameters:
+        - $ref: "#/components/parameters/CandidatoIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaEntrada"
+      responses:
+        "201":
+          description: Visita agendada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /estudos/{id}/visitas:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas]
+      summary: Agenda de visitas do estudo (RF12)
+      description: |
+        Perfis permitidos: PESQUISADOR, COORDENADOR e ADMINISTRADOR. Ordenada por data e hora.
+        `de` e `ate` filtram o período [de, ate).
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/StatusVisita"
+        - name: de
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: ate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Visitas do estudo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /visitas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Visitas]
+      summary: Detalha uma visita
+      description: "Perfil permitido: COORDENADOR."
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+    put:
+      tags: [Visitas]
+      summary: Reagenda uma visita ainda AGENDADA (RF12, task 3755)
+      description: |
+        Perfil permitido: COORDENADOR. A nova data também precisa ficar dentro da janela.
+        Visita já registrada responde 409 `VISITA_JA_FINALIZADA`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaReagendamento"
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /visitas/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [Visitas]
+      summary: Registra a visita como realizada, ausente ou cancelada (RF13, task 3758)
+      description: |
+        Perfil permitido: COORDENADOR. Só sai de AGENDADA, uma vez (409 `VISITA_JA_FINALIZADA`).
+        REALIZADA e AUSENTE só depois da data e hora marcadas (409 `VISITA_AINDA_NAO_OCORREU`).
+        CANCELADA exige o motivo em `observacao` (400 `VALIDACAO`). Estudo encerrado: 409 `ESTUDO_ENCERRADO`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaStatusEntrada"
+      responses:
+        "200":
+          description: Visita
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /visitas/{id}/resultados:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [Resultados]
+      summary: Lista as atividades da visita com os resultados (RF14, task 3763)
+      description: |
+        Perfis permitidos: PESQUISADOR, COORDENADOR e ADMINISTRADOR.
+        Traz todas as atividades da visita prevista, na ordem do protocolo. Atividade ainda sem resultado
+        vem com `resultado`, `registradoEm` e `registradoPor` nulos. Funciona para visita em qualquer status.
+      responses:
+        "200":
+          description: Atividades da visita e seus resultados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultadosVisita"
+              example:
+                visitaId: 12
+                status: REALIZADA
+                itens:
+                  - atividadeId: 4
+                    ordem: 1
+                    descricao: Aferir pressão arterial
+                    resultado: PA 120x80
+                    observacao: null
+                    registradoEm: "2026-12-01T10:15:00"
+                    registradoPor: Carla Coordenadora
+                  - atividadeId: 5
+                    ordem: 2
+                    descricao: Coletar glicemia em jejum
+                    resultado: null
+                    observacao: null
+                    registradoEm: null
+                    registradoPor: null
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Resultados]
+      summary: Registra ou altera os resultados das atividades da visita, em lote (RF14, task 3763)
+      description: |
+        Perfil permitido: COORDENADOR.
+        Grava cada item enviado: se a atividade já tem resultado, ele é substituído (upsert), registrando
+        quem e quando alterou. Atividades que não vierem na lista ficam como estão.
+        Regras, nesta ordem: estudo não encerrado (409 `ESTUDO_ENCERRADO`); visita REALIZADA
+        (409 `VISITA_NAO_REALIZADA`); cada atividade da visita prevista desta visita (409 `ATIVIDADE_FORA_DA_VISITA`);
+        `resultado` obrigatório, até 500 caracteres (400 `VALIDACAO`). Se um item falhar, nada é gravado.
+        Devolve a lista completa, igual ao GET.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResultadosEntrada"
+            example:
+              itens:
+                - atividadeId: 4
+                  resultado: PA 120x80
+                - atividadeId: 5
+                  resultado: Glicemia 92 mg/dL
+                  observacao: Participante em jejum de 10 horas
+      responses:
+        "200":
+          description: Resultados gravados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultadosVisita"
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          description: Regra de negócio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+              example:
+                timestamp: "2026-11-30T15:00:00-03:00"
+                status: 409
+                codigo: VISITA_NAO_REALIZADA
+                mensagem: Só é possível registrar resultados de uma visita realizada
+
+  /candidatos/{candidatoId}/historico:
+    parameters:
+      - $ref: "#/components/parameters/CandidatoIdPath"
+    get:
+      tags: [Histórico]
+      summary: Histórico de visitas e resultados do participante (RF15, task 3765)
+      description: |
+        Perfis permitidos: PESQUISADOR e COORDENADOR.
+        Consulta, sem tabela nova: todas as visitas do participante (agendadas, realizadas, ausentes e canceladas),
+        da mais antiga para a mais recente, cada uma com os resultados registrados. Também mostra a retirada,
+        se houver. Candidato que nunca foi incluído responde 409 `PARTICIPANTE_NAO_INCLUIDO`.
+      responses:
+        "200":
+          description: Histórico do participante
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Historico"
+              example:
+                participante:
+                  candidatoId: 7
+                  nome: João Candidato
+                  status: INCLUIDO
+                  dataInclusao: "2026-11-20"
+                  retirada: null
+                estudo:
+                  id: 3
+                  titulo: Estudo de Controle Glicêmico
+                visitas:
+                  - id: 12
+                    visitaPrevista:
+                      id: 2
+                      ordem: 1
+                      nome: Visita inicial
+                    dataHora: "2026-12-01T09:00:00"
+                    local: Sala 2
+                    status: REALIZADA
+                    observacao: null
+                    resultados:
+                      - atividadeId: 4
+                        ordem: 1
+                        descricao: Aferir pressão arterial
+                        resultado: PA 120x80
+                        observacao: null
+                        registradoEm: "2026-12-01T10:15:00"
+                        registradoPor: Carla Coordenadora
+                  - id: 13
+                    visitaPrevista:
+                      id: 3
+                      ordem: 2
+                      nome: Retorno de 30 dias
+                    dataHora: "2026-12-30T09:00:00"
+                    local: null
+                    status: AGENDADA
+                    observacao: null
+                    resultados: []
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          $ref: "#/components/responses/Conflito"
+
+  /candidatos/{candidatoId}/retirada:
+    parameters:
+      - $ref: "#/components/parameters/CandidatoIdPath"
+    post:
+      tags: [Retirada]
+      summary: Registra a retirada do participante do estudo (RF16, task 3768)
+      description: |
+        Perfil permitido: COORDENADOR.
+        Na mesma transação: o status vai para RETIRADO, com data, motivo e responsável; as visitas AGENDADAS
+        do participante viram CANCELADA com a observação "Retirada do participante" (REALIZADA, AUSENTE e
+        CANCELADA não mudam). A vaga é liberada, porque a contagem de vagas considera só INCLUIDO.
+        A conta do participante continua ativa: no app, ele segue vendo a participação RETIRADO (RF17).
+        Regras, nesta ordem: estudo não encerrado (409 `ESTUDO_ENCERRADO`); participante não retirado antes
+        (409 `PARTICIPANTE_JA_RETIRADO`); participante INCLUIDO (409 `PARTICIPANTE_NAO_INCLUIDO`);
+        `motivo` obrigatório, até 500 caracteres (400 `VALIDACAO`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RetiradaEntrada"
+            example:
+              motivo: Participante mudou de cidade e não poderá comparecer às visitas
+      responses:
+        "200":
+          description: Participante retirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Retirada"
+              example:
+                candidato:
+                  id: 7
+                  estudoId: 3
+                  nome: João Candidato
+                  email: joao@exemplo.test
+                  telefone: null
+                  dataNascimento: "1990-05-20"
+                  status: RETIRADO
+                  consentimento:
+                    registradoEm: "2026-11-19T14:00:00"
+                    registradoPor: Carla Coordenadora
+                  dataInclusao: "2026-11-20"
+                  possuiConta: true
+                  retirada:
+                    registradaEm: "2026-12-10T16:30:00"
+                    registradaPor: Carla Coordenadora
+                    motivo: Participante mudou de cidade e não poderá comparecer às visitas
+                visitasCanceladas: 2
+                vagasOcupadas: 4
+                limiteParticipantes: 10
+        "400":
+          $ref: "#/components/responses/RequisicaoInvalida"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          description: Regra de negócio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+              example:
+                timestamp: "2026-12-10T16:30:00-03:00"
+                status: 409
+                codigo: PARTICIPANTE_JA_RETIRADO
+                mensagem: Este participante já foi retirado do estudo
+
+  /participantes/me/estudos:
+    get:
+      tags: [App do participante]
+      summary: Estudos do participante logado (RF17, task 3773)
+      description: |
+        Perfil permitido: PARTICIPANTE. Usa o usuário do token: nenhum id é informado, e o participante
+        só vê as próprias participações. Traz as participações INCLUIDO e RETIRADO, das mais recentes
+        para as mais antigas, com a próxima visita agendada de cada uma.
+      responses:
+        "200":
+          description: Participações do usuário logado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EstudoDoParticipante"
+              example:
+                - id: 3
+                  titulo: Estudo de Controle Glicêmico
+                  responsavel: Ana Pesquisadora
+                  estado: EXECUCAO
+                  dataInicio: "2026-11-01"
+                  dataFim: "2027-03-31"
+                  candidatoId: 7
+                  participacao: INCLUIDO
+                  dataInclusao: "2026-11-20"
+                  retiradaEm: null
+                  proximaVisita:
+                    id: 13
+                    nome: Retorno de 30 dias
+                    dataHora: "2026-12-30T09:00:00"
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+
+  /participantes/me/visitas:
+    get:
+      tags: [App do participante]
+      summary: Visitas do participante logado (RF18, task 3775)
+      description: |
+        Perfil permitido: PARTICIPANTE. Usa o usuário do token, como `/participantes/me/estudos`.
+        Traz as visitas AGENDADA, REALIZADA e AUSENTE de todas as participações, por data e hora.
+        As canceladas não aparecem. O app separa as próximas (AGENDADA) do histórico de comparecimento
+        (REALIZADA e AUSENTE).
+      responses:
+        "200":
+          description: Visitas do usuário logado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisitaDoParticipante"
+              example:
+                - id: 12
+                  estudoId: 3
+                  estudoTitulo: Estudo de Controle Glicêmico
+                  nome: Visita inicial
+                  dataHora: "2026-12-01T09:00:00"
+                  local: Sala 2
+                  status: REALIZADA
+                - id: 13
+                  estudoId: 3
+                  estudoTitulo: Estudo de Controle Glicêmico
+                  nome: Retorno de 30 dias
+                  dataHora: "2026-12-30T09:00:00"
+                  local: null
+                  status: AGENDADA
+        "401":
+          $ref: "#/components/responses/NaoAutenticado"
+        "403":
+          $ref: "#/components/responses/SemPermissao"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -852,6 +1433,13 @@ components:
       description: Enviar o token no cabeçalho Authorization como "Bearer <token>".
 
   parameters:
+    CandidatoIdPath:
+      name: candidatoId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
     IdPath:
       name: id
       in: path
@@ -1104,6 +1692,24 @@ components:
           type: string
           format: date
           nullable: true
+        possuiConta:
+          type: boolean
+          description: Verdadeiro quando o participante já tem conta de acesso ao app (task 3751)
+        retirada:
+          $ref: "#/components/schemas/RetiradaCandidato"
+
+    RetiradaCandidato:
+      type: object
+      nullable: true
+      description: Preenchida só quando o status é RETIRADO (RF16, task 3768)
+      properties:
+        registradaEm:
+          type: string
+          format: date-time
+        registradaPor:
+          type: string
+        motivo:
+          type: string
 
     AvaliacaoRespostaEntrada:
       type: object
@@ -1180,13 +1786,374 @@ components:
 
     Inclusao:
       type: object
-      required: [vagasOcupadas, limiteParticipantes]
+      required: [vagasOcupadas, limiteParticipantes, conta]
       properties:
         vagasOcupadas:
           type: integer
           format: int64
         limiteParticipantes:
           type: integer
+        conta:
+          $ref: "#/components/schemas/ContaParticipante"
+
+    StatusVisita:
+      type: string
+      enum: [AGENDADA, REALIZADA, AUSENTE, CANCELADA]
+
+    VisitaEntrada:
+      type: object
+      required: [visitaPrevistaId, dataHora]
+      properties:
+        visitaPrevistaId:
+          type: integer
+          format: int64
+        dataHora:
+          type: string
+          format: date-time
+          example: "2026-12-01T09:00:00"
+        local:
+          type: string
+          maxLength: 120
+          nullable: true
+
+    VisitaReagendamento:
+      type: object
+      required: [dataHora]
+      properties:
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          maxLength: 120
+          nullable: true
+
+    VisitaStatusEntrada:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [REALIZADA, AUSENTE, CANCELADA]
+        observacao:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Obrigatória no cancelamento (motivo)
+
+    Visita:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        estudoId:
+          type: integer
+          format: int64
+        participante:
+          type: object
+          properties:
+            candidatoId:
+              type: integer
+              format: int64
+            nome:
+              type: string
+        visitaPrevista:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            ordem:
+              type: integer
+            nome:
+              type: string
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/StatusVisita"
+        observacao:
+          type: string
+          nullable: true
+        janela:
+          type: object
+          nullable: true
+          description: Datas permitidas para a visita (dataInclusao + diaPrevisto ± janelaDias)
+          properties:
+            inicio:
+              type: string
+              format: date
+            fim:
+              type: string
+              format: date
+        agendadaPor:
+          type: string
+        statusRegistradoEm:
+          type: string
+          format: date-time
+          nullable: true
+        statusRegistradoPor:
+          type: string
+          nullable: true
+
+    ContaParticipante:
+      type: object
+      required: [usuarioId, email, ativo, contaExistente]
+      properties:
+        usuarioId:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+          description: E-mail de acesso ao app (o mesmo do candidato, em minúsculas)
+        ativo:
+          type: boolean
+        contaExistente:
+          type: boolean
+          description: Verdadeiro quando a conta já existia antes desta operação
+        senhaProvisoria:
+          type: string
+          nullable: true
+          description: |
+            Preenchida só quando a senha acabou de ser gerada (conta nova ou nova senha provisória).
+            Não é guardada em texto e não aparece de novo; o coordenador entrega ao participante.
+
+    ResultadoItemEntrada:
+      type: object
+      required: [atividadeId, resultado]
+      additionalProperties: false
+      properties:
+        atividadeId:
+          type: integer
+          format: int64
+        resultado:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Valor fictício (por exemplo, "PA 120x80")
+        observacao:
+          type: string
+          maxLength: 500
+          nullable: true
+
+    ResultadosEntrada:
+      type: object
+      required: [itens]
+      additionalProperties: false
+      properties:
+        itens:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ResultadoItemEntrada"
+
+    ResultadoAtividade:
+      type: object
+      description: Uma atividade da visita prevista, com o resultado registrado ou nulo
+      properties:
+        atividadeId:
+          type: integer
+          format: int64
+        ordem:
+          type: integer
+        descricao:
+          type: string
+        resultado:
+          type: string
+          nullable: true
+        observacao:
+          type: string
+          nullable: true
+        registradoEm:
+          type: string
+          format: date-time
+          nullable: true
+        registradoPor:
+          type: string
+          nullable: true
+
+    ResultadosVisita:
+      type: object
+      properties:
+        visitaId:
+          type: integer
+          format: int64
+        status:
+          $ref: "#/components/schemas/StatusVisita"
+        itens:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResultadoAtividade"
+
+    HistoricoVisita:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        visitaPrevista:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            ordem:
+              type: integer
+            nome:
+              type: string
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/StatusVisita"
+        observacao:
+          type: string
+          nullable: true
+          description: Motivo do cancelamento ou anotação
+        resultados:
+          type: array
+          description: Só as atividades com resultado registrado (vazio se a visita não foi realizada)
+          items:
+            $ref: "#/components/schemas/ResultadoAtividade"
+
+    Historico:
+      type: object
+      properties:
+        participante:
+          type: object
+          properties:
+            candidatoId:
+              type: integer
+              format: int64
+            nome:
+              type: string
+            status:
+              $ref: "#/components/schemas/StatusCandidato"
+            dataInclusao:
+              type: string
+              format: date
+            retirada:
+              $ref: "#/components/schemas/RetiradaCandidato"
+        estudo:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            titulo:
+              type: string
+        visitas:
+          type: array
+          description: Da mais antiga para a mais recente
+          items:
+            $ref: "#/components/schemas/HistoricoVisita"
+
+    RetiradaEntrada:
+      type: object
+      required: [motivo]
+      additionalProperties: false
+      properties:
+        motivo:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    Retirada:
+      type: object
+      properties:
+        candidato:
+          $ref: "#/components/schemas/Candidato"
+        visitasCanceladas:
+          type: integer
+          description: Quantas visitas AGENDADAS foram canceladas pela retirada
+        vagasOcupadas:
+          type: integer
+          format: int64
+          description: Vagas ocupadas depois da retirada
+        limiteParticipantes:
+          type: integer
+
+    EstudoDoParticipante:
+      type: object
+      description: Uma participação do usuário logado (RF17)
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Id do estudo
+        titulo:
+          type: string
+        responsavel:
+          type: string
+          description: Nome do pesquisador responsável
+        estado:
+          $ref: "#/components/schemas/EstadoEstudo"
+        dataInicio:
+          type: string
+          format: date
+        dataFim:
+          type: string
+          format: date
+          nullable: true
+        candidatoId:
+          type: integer
+          format: int64
+        participacao:
+          type: string
+          enum: [INCLUIDO, RETIRADO]
+        dataInclusao:
+          type: string
+          format: date
+        retiradaEm:
+          type: string
+          format: date-time
+          nullable: true
+        proximaVisita:
+          type: object
+          nullable: true
+          description: Próxima visita AGENDADA desta participação
+          properties:
+            id:
+              type: integer
+              format: int64
+            nome:
+              type: string
+            dataHora:
+              type: string
+              format: date-time
+
+    VisitaDoParticipante:
+      type: object
+      description: Uma visita do usuário logado (RF18)
+      properties:
+        id:
+          type: integer
+          format: int64
+        estudoId:
+          type: integer
+          format: int64
+        estudoTitulo:
+          type: string
+        nome:
+          type: string
+          description: Nome da visita prevista
+        dataHora:
+          type: string
+          format: date-time
+        local:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [AGENDADA, REALIZADA, AUSENTE]
 
     PerfilTipo:
       type: string
@@ -1427,7 +2394,7 @@ components:
           example: 404
         codigo:
           type: string
-          description: Código curto para o front tratar (VALIDACAO, NAO_ENCONTRADO, EMAIL_DUPLICADO...)
+          description: Código curto para o front tratar. A lista completa está na descrição do contrato (info).
         mensagem:
           type: string
         detalhes:

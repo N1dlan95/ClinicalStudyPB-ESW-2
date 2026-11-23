@@ -76,6 +76,11 @@ public class Usuario {
 		this.perfil = perfil;
 	}
 
+	// Task 3751: nova senha provisória do participante (recebe o hash, nunca a senha em texto)
+	public void definirSenhaHash(String senhaHash) {
+		this.senhaHash = senhaHash;
+	}
+
 	public void definirAtivo(boolean ativo) {
 		this.ativo = ativo;
 	}

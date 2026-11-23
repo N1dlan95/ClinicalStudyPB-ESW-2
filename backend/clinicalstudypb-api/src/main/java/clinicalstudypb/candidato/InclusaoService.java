@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import clinicalstudypb.candidato.dto.InclusaoResponse;
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
+import clinicalstudypb.conta.ContaParticipanteService;
+import clinicalstudypb.conta.dto.ContaParticipanteResponse;
 import clinicalstudypb.config.erro.RegraNegocioException;
 import clinicalstudypb.estudo.EstadoEstudo;
 import clinicalstudypb.estudo.Estudo;
@@ -17,13 +19,16 @@ public class InclusaoService {
 
 	private final CandidatoRepository candidatos;
 	private final EstudoRepository estudos;
+	private final ContaParticipanteService contas;
 
-	public InclusaoService(CandidatoRepository candidatos, EstudoRepository estudos) {
+	public InclusaoService(CandidatoRepository candidatos, EstudoRepository estudos, ContaParticipanteService contas) {
 		this.candidatos = candidatos;
 		this.estudos = estudos;
+		this.contas = contas;
 	}
 
 	// Valida nesta ordem: estudo em recrutamento, candidato elegível, consentimento e vaga disponível.
+	// Depois cria (ou reaproveita) a conta do participante (task 3751); se ela falhar, nada é gravado.
 	// Candidato e estudo ficam travados até o fim da transação, para a última vaga não ser ocupada duas vezes.
 	@Transactional
 	public InclusaoResponse incluir(Long candidatoId) {
@@ -50,8 +55,9 @@ public class InclusaoService {
 			throw conflito("VAGAS_ESGOTADAS", "Todas as vagas do estudo estão ocupadas");
 		}
 
+		ContaParticipanteResponse conta = contas.vincularOuCriar(candidato);
 		candidato.incluir();
-		return new InclusaoResponse(vagasOcupadas + 1, estudo.getLimiteParticipantes());
+		return new InclusaoResponse(vagasOcupadas + 1, estudo.getLimiteParticipantes(), conta);
 	}
 
 	private static RegraNegocioException conflito(String codigo, String mensagem) {

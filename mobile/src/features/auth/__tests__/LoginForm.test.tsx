@@ -20,11 +20,11 @@ describe('<LoginForm />', () => {
     const user = userEvent.setup();
     await render(<LoginForm onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText('E-mail'), 'participante@clinicalstudy.pb');
-    await user.type(screen.getByLabelText('Senha'), 'senha123');
+    await user.type(screen.getByLabelText('E-mail'), 'participante@clinicalstudypb.test');
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123');
     await user.press(screen.getByRole('button', { name: 'Entrar' }));
 
-    expect(onSubmit).toHaveBeenCalledWith({ email: 'participante@clinicalstudy.pb', senha: 'senha123' });
+    expect(onSubmit).toHaveBeenCalledWith({ email: 'participante@clinicalstudypb.test', senha: 'Senha@123' });
   });
 
   it('exibe a mensagem de erro retornada pela autenticação', async () => {
@@ -32,10 +32,34 @@ describe('<LoginForm />', () => {
     const user = userEvent.setup();
     await render(<LoginForm onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText('E-mail'), 'participante@clinicalstudy.pb');
+    await user.type(screen.getByLabelText('E-mail'), 'participante@clinicalstudypb.test');
     await user.type(screen.getByLabelText('Senha'), 'errada');
     await user.press(screen.getByRole('button', { name: 'Entrar' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha incorretos.');
+  });
+
+  it('exibe a mensagem de usuário desativado vinda da API', async () => {
+    const onSubmit = jest.fn().mockRejectedValue(new AuthError('Usuário desativado. Procure o administrador'));
+    const user = userEvent.setup();
+    await render(<LoginForm onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText('E-mail'), 'participante@clinicalstudypb.test');
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123');
+    await user.press(screen.getByRole('button', { name: 'Entrar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Usuário desativado. Procure o administrador');
+  });
+
+  it('erro inesperado mostra uma mensagem genérica', async () => {
+    const onSubmit = jest.fn().mockRejectedValue(new Error('falha interna'));
+    const user = userEvent.setup();
+    await render(<LoginForm onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText('E-mail'), 'participante@clinicalstudypb.test');
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123');
+    await user.press(screen.getByRole('button', { name: 'Entrar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível entrar. Tente novamente.');
   });
 });

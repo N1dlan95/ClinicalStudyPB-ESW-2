@@ -35,7 +35,7 @@ import clinicalstudypb.usuario.UsuarioRepository;
 // 409 que VisitaIntegrationTest, ResultadoIntegrationTest e RetiradaIntegrationTest ainda não cobrem.
 // Os casos de sucesso e o fluxo da conta (inclusão + login) estão nesses testes e no RecrutamentoIntegrationTest.
 // O sucesso e o isolamento de /participantes/me/** (RF17 e RF18) estão no ParticipanteIntegrationTest (PR #64).
-// O histórico (RF15, T-96) entra aqui quando o endpoint existir.
+// O histórico (RF15) está no HistoricoIntegrationTest (PR #67).
 // Precisa do PostgreSQL rodando, como no CI.
 @SpringBootTest
 @AutoConfigureMockMvc

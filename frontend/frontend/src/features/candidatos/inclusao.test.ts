@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Estudo } from '../estudos/tipos'
 import { ErroCandidatoApi } from './candidatosService'
-import { bloqueioDoErro, bloqueioInclusao, mensagemErroInclusao } from './inclusao'
+import {
+  ERRO_EMAIL_OUTRO_PERFIL,
+  acessoDaInclusao,
+  bloqueioDoErro,
+  bloqueioInclusao,
+  mensagemErroInclusao,
+} from './inclusao'
 import type { Candidato } from './tipos'
 
 const ESTUDO: Estudo = {
@@ -65,5 +71,38 @@ describe('mensagens de erro da inclusão', () => {
       titulo: 'Não foi possível incluir o candidato',
       texto: 'Falha',
     })
+  })
+})
+
+describe('acesso do participante na inclusão (T-86)', () => {
+  const conta = {
+    usuarioId: 9,
+    email: 'ana@exemplo.test',
+    ativo: true,
+    contaExistente: false,
+    senhaProvisoria: 'Kx7#pQ2m',
+  }
+
+  it('conta criada agora traz a senha inicial', () => {
+    expect(acessoDaInclusao(conta)).toEqual({ tipo: 'NOVA', email: 'ana@exemplo.test', senha: 'Kx7#pQ2m' })
+  })
+
+  it('conta que já existia não traz senha', () => {
+    expect(acessoDaInclusao({ ...conta, contaExistente: true, senhaProvisoria: null })).toEqual({
+      tipo: 'EXISTENTE',
+      email: 'ana@exemplo.test',
+    })
+  })
+
+  it('sem o bloco da conta, ou conta nova sem senha, não mostra nada', () => {
+    expect(acessoDaInclusao(undefined)).toBeNull()
+    expect(acessoDaInclusao(null)).toBeNull()
+    expect(acessoDaInclusao({ ...conta, senhaProvisoria: null })).toBeNull()
+  })
+
+  it('erro de e-mail de outro perfil tem mensagem própria', () => {
+    expect(mensagemErroInclusao(new ErroCandidatoApi('x', 409, 'EMAIL_DE_OUTRO_PERFIL', {}))).toEqual(
+      ERRO_EMAIL_OUTRO_PERFIL,
+    )
   })
 })

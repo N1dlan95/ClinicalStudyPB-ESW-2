@@ -30,3 +30,11 @@ export interface Historico {
   estudo: { id: number; titulo: string }
   visitas: HistoricoVisita[] // da mais antiga para a mais recente
 }
+
+// POST /candidatos/{candidatoId}/retirada (openapi.yaml: Retirada). O candidato atualizado também vem na
+// resposta, mas a tela recarrega o histórico em vez de usá-lo.
+export interface ResultadoRetirada {
+  visitasCanceladas: number // quantas visitas AGENDADAS foram canceladas
+  vagasOcupadas: number // depois da retirada
+  limiteParticipantes: number
+}

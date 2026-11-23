@@ -10,11 +10,12 @@ import { isoParaBR } from '../estudos/datas'
 import { dataHoraBR } from '../visitas/datas'
 import { ROTULO_STATUS_VISITA, type ItemResultado } from '../visitas/tipos'
 import { ErroVisitaApi } from '../visitas/visitasService'
-import { buscarHistorico } from './historicoService'
+import { buscarHistorico, registrarRetirada } from './historicoService'
+import { RetiradaDialogo, type ErroRetirada } from './RetiradaDialogo'
 import type { Historico, HistoricoVisita } from './tipos'
 
 // RF15 (T-97): histórico do participante. Visitas da mais antiga para a mais recente, cada uma com os
-// resultados registrados. Somente leitura (a retirada, RF16, entra na task 3769).
+// resultados registrados. O coordenador também registra a retirada do participante (RF16, T-99).
 // Pesquisador, coordenador e administrador consultam; o link de resultados muda para o coordenador.
 
 function quando(visita: HistoricoVisita): string {
@@ -148,6 +149,10 @@ export function HistoricoParticipantePage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<ReturnType<typeof mensagemDeErro> | null>(null)
   const [tentativa, setTentativa] = useState(0)
+  const [retirando, setRetirando] = useState(false)
+  const [dialogoRetirada, setDialogoRetirada] = useState(false)
+  const [erroRetirada, setErroRetirada] = useState<ErroRetirada | null>(null)
+  const [sucesso, setSucesso] = useState('')
 
   useEffect(() => {
     let ativo = true
@@ -167,6 +172,42 @@ export function HistoricoParticipantePage() {
       ativo = false
     }
   }, [idCandidato, tentativa])
+
+  async function confirmarRetirada(motivo: string) {
+    setRetirando(true)
+    setErroRetirada(null)
+    try {
+      const resultado = await registrarRetirada(idCandidato, motivo)
+      const canceladas =
+        resultado.visitasCanceladas === 0
+          ? 'Nenhuma visita agendada foi cancelada.'
+          : resultado.visitasCanceladas === 1
+            ? '1 visita agendada foi cancelada.'
+            : `${resultado.visitasCanceladas} visitas agendadas foram canceladas.`
+      setSucesso(
+        `Retirada registrada. ${canceladas} Vagas ocupadas: ${resultado.vagasOcupadas} de ${resultado.limiteParticipantes}.`,
+      )
+      setDialogoRetirada(false)
+      try {
+        setHistorico(await buscarHistorico(idCandidato))
+      } catch {
+        setSucesso((atual) => `${atual} Atualize a página para ver o histórico atualizado.`)
+      }
+    } catch (e) {
+      const erro = e instanceof ErroVisitaApi ? e : null
+      setErroRetirada({
+        texto: erro?.message ?? 'Não foi possível falar com o servidor. Tente novamente.',
+        jaRetirado: erro?.codigo === 'PARTICIPANTE_JA_RETIRADO',
+      })
+    } finally {
+      setRetirando(false)
+    }
+  }
+
+  function fecharDialogoRetirada() {
+    setDialogoRetirada(false)
+    setErroRetirada(null)
+  }
 
   const listaCandidatos = `/estudos/${idEstudo}/candidatos`
   // A lista e o detalhe de candidatos são do coordenador; para os outros perfis, o nível fica sem link
@@ -215,8 +256,21 @@ export function HistoricoParticipantePage() {
             </span>
           )}
         </div>
-        {/* Task 3769 (RF16): botão "Registrar retirada" entra aqui. T-90: "Agendar visita", quando integrada. */}
-        <div className="historico__cabecalho-acoes" />
+        {/* T-90: botão "Agendar visita" entra aqui quando a tela for integrada. */}
+        <div className="historico__cabecalho-acoes">
+          {participante?.status === 'INCLUIDO' && pode('registrarRetirada') && (
+            <button
+              type="button"
+              className="botao botao--contorno"
+              onClick={() => {
+                setSucesso('')
+                setDialogoRetirada(true)
+              }}
+            >
+              Registrar retirada
+            </button>
+          )}
+        </div>
       </div>
 
       {erro && (
@@ -230,6 +284,12 @@ export function HistoricoParticipantePage() {
             </button>
           )}
         </>
+      )}
+
+      {sucesso && (
+        <div className="aviso aviso--sucesso" role="status">
+          {sucesso}
+        </div>
       )}
 
       {participante && (
@@ -284,6 +344,20 @@ export function HistoricoParticipantePage() {
             )}
           </section>
         </>
+      )}
+
+      {dialogoRetirada && participante && (
+        <RetiradaDialogo
+          nome={participante.nome}
+          confirmando={retirando}
+          erro={erroRetirada}
+          aoConfirmar={confirmarRetirada}
+          aoCancelar={fecharDialogoRetirada}
+          aoAtualizar={() => {
+            fecharDialogoRetirada()
+            setTentativa((n) => n + 1)
+          }}
+        />
       )}
 
       <footer className="pagina__rodape">

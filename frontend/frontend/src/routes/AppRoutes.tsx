@@ -14,6 +14,7 @@ import { EstadoEstudoPage } from '../features/estudos/EstadoEstudoPage'
 import { EstudoFormPage } from '../features/estudos/EstudoFormPage'
 import { EstudosListaPage } from '../features/estudos/EstudosListaPage'
 import { VisitasPrevistasPage } from '../features/estudos/VisitasPrevistasPage'
+import { ResultadosVisitaPage } from '../features/visitas/ResultadosVisitaPage'
 import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
 import { UsuariosListaPage } from '../features/usuarios/UsuariosListaPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
@@ -147,6 +148,14 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="gerenciarCandidatos">
                 <CandidatoFormPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/visitas/:visitaId/resultados"
+            element={
+              <ExigePermissao permissao="verResultados">
+                <ResultadosVisitaPage />
               </ExigePermissao>
             }
           />

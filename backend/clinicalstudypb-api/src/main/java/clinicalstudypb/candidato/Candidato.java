@@ -72,6 +72,17 @@ public class Candidato {
 	@Column(name = "data_inclusao")
 	private LocalDate dataInclusao;
 
+	// RF16 (task 3768): quando, por quem e por que o participante foi retirado
+	@Column(name = "retirada_registrada_em")
+	private LocalDateTime retiradaRegistradaEm;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "retirada_registrada_por_id")
+	private Usuario retiradaRegistradaPor;
+
+	@Column(name = "motivo_retirada", length = 500)
+	private String motivoRetirada;
+
 	@Column(name = "criado_em", nullable = false, updatable = false)
 	private LocalDateTime criadoEm;
 
@@ -135,6 +146,39 @@ public class Candidato {
 	public void incluir() {
 		this.status = StatusCandidato.INCLUIDO;
 		this.dataInclusao = LocalDate.now();
+	}
+
+	// Task 3751: liga o candidato incluído à conta PARTICIPANTE que ele usa no app
+	public void vincularConta(Usuario conta) {
+		this.usuario = conta;
+	}
+
+	public boolean possuiConta() {
+		return usuario != null;
+	}
+
+	// RF16: as validações da retirada ficam no RetiradaService
+	public void retirar(String motivo, Usuario responsavel) {
+		this.status = StatusCandidato.RETIRADO;
+		this.motivoRetirada = motivo;
+		this.retiradaRegistradaPor = responsavel;
+		this.retiradaRegistradaEm = LocalDateTime.now();
+	}
+
+	public boolean isRetiradaRegistrada() {
+		return retiradaRegistradaEm != null;
+	}
+
+	public LocalDateTime getRetiradaRegistradaEm() {
+		return retiradaRegistradaEm;
+	}
+
+	public Usuario getRetiradaRegistradaPor() {
+		return retiradaRegistradaPor;
+	}
+
+	public String getMotivoRetirada() {
+		return motivoRetirada;
 	}
 
 	public LocalDate getDataInclusao() {

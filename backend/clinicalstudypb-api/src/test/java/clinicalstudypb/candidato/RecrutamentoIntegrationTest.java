@@ -78,10 +78,11 @@ class RecrutamentoIntegrationTest {
 	private Long estudoId;
 	private Criterio idade;
 	private Criterio gestante;
+	private String sufixo;
 
 	@BeforeEach
 	void prepararDados() {
-		String sufixo = UUID.randomUUID().toString();
+		sufixo = UUID.randomUUID().toString();
 		coordenador = usuarios.save(new Usuario("Coordenador Recrutamento", "coord." + sufixo + "@clinical.test", null,
 				Perfil.COORDENADOR, "hash"));
 		pesquisadora = usuarios.save(new Usuario("Pesquisadora Recrutamento", "pesq." + sufixo + "@clinical.test", null,
@@ -97,10 +98,15 @@ class RecrutamentoIntegrationTest {
 	// Apaga só o que o teste criou: o banco é compartilhado com os outros testes de integração
 	@AfterEach
 	void limparDados() {
+		// Contas de participante criadas pela inclusão (task 3751): apagadas depois dos candidatos que apontam para elas
+		List<Long> contas = jdbc.queryForList(
+				"select usuario_id from candidato where estudo_id = ? and usuario_id is not null", Long.class, estudoId);
 		jdbc.update("delete from candidato where estudo_id = ?", estudoId);
 		jdbc.update("delete from criterio where estudo_id = ?", estudoId);
 		jdbc.update("delete from estudo where id = ?", estudoId);
 		jdbc.update("delete from usuario where id in (?, ?)", coordenador.getId(), pesquisadora.getId());
+		contas.forEach(id -> jdbc.update(
+				"delete from usuario where id = ? and not exists (select 1 from candidato where usuario_id = ?)", id, id));
 	}
 
 	// ---- Fluxo completo
@@ -129,6 +135,105 @@ class RecrutamentoIntegrationTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("INCLUIDO"))
 				.andExpect(jsonPath("$.dataInclusao").value(LocalDate.now().toString()));
+	}
+
+	// ---- Conta do participante (task 3751; testes da task 3778)
+
+	@Test
+	void inclusaoCriaAContaEOParticipanteEntraComASenhaProvisoria() throws Exception {
+		String email = "novo." + sufixo + "@teste.com";
+		Long candidatoId = candidatoProntoParaIncluir(email);
+
+		String resposta = mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/inclusao")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.conta.email").value(email))
+				.andExpect(jsonPath("$.conta.ativo").value(true))
+				.andExpect(jsonPath("$.conta.contaExistente").value(false))
+				.andReturn().getResponse().getContentAsString();
+		String senha = JsonPath.read(resposta, "$.conta.senhaProvisoria");
+		Long usuarioId = ((Number) JsonPath.read(resposta, "$.conta.usuarioId")).longValue();
+
+		assertThat(jdbc.queryForObject("select usuario_id from candidato where id = ?", Long.class, candidatoId))
+				.isEqualTo(usuarioId);
+		assertThat(jdbc.queryForObject("select perfil from usuario where id = ?", String.class, usuarioId))
+				.isEqualTo("PARTICIPANTE");
+		// A senha não fica gravada em texto
+		assertThat(jdbc.queryForObject("select senha_hash from usuario where id = ?", String.class, usuarioId))
+				.isNotEqualTo(senha).startsWith("$2");
+
+		entrar(email, senha)
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.usuario.id").value(usuarioId))
+				.andExpect(jsonPath("$.usuario.perfil").value("PARTICIPANTE"));
+
+		mvc.perform(comoCoordenador(get("/estudos/" + estudoId + "/candidatos/" + candidatoId)))
+				.andExpect(jsonPath("$.possuiConta").value(true));
+		mvc.perform(comoCoordenador(get("/candidatos/" + candidatoId + "/conta")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.usuarioId").value(usuarioId))
+				.andExpect(jsonPath("$.senhaProvisoria").doesNotExist());
+	}
+
+	@Test
+	void participanteQueJaTemContaContinuaComAMesmaSenha() throws Exception {
+		String email = "antigo." + sufixo + "@teste.com";
+		Usuario existente = usuarios.save(new Usuario("Participante antigo", email, null, Perfil.PARTICIPANTE, "hash"));
+		Long candidatoId = candidatoProntoParaIncluir(email.toUpperCase());
+
+		mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/inclusao")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.conta.usuarioId").value(existente.getId()))
+				.andExpect(jsonPath("$.conta.contaExistente").value(true))
+				.andExpect(jsonPath("$.conta.senhaProvisoria").doesNotExist());
+
+		assertThat(jdbc.queryForObject("select count(*) from usuario where lower(email) = ?", Long.class, email))
+				.isEqualTo(1);
+		assertThat(jdbc.queryForObject("select senha_hash from usuario where id = ?", String.class, existente.getId()))
+				.isEqualTo("hash");
+	}
+
+	@Test
+	void emailDeUsuarioDaEquipeBloqueiaAInclusaoSemGravarNada() throws Exception {
+		Long candidatoId = candidatoProntoParaIncluir(coordenador.getEmail());
+
+		mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/inclusao")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("EMAIL_DE_OUTRO_PERFIL"));
+
+		Candidato candidato = candidatos.findById(candidatoId).orElseThrow();
+		assertThat(candidato.getStatus()).isEqualTo(StatusCandidato.ELEGIVEL);
+		assertThat(candidato.getDataInclusao()).isNull();
+		assertThat(jdbc.queryForObject("select usuario_id from candidato where id = ?", Long.class, candidatoId))
+				.isNull();
+	}
+
+	@Test
+	void novaSenhaProvisoriaInvalidaASenhaAnterior() throws Exception {
+		String email = "senha." + sufixo + "@teste.com";
+		Long candidatoId = candidatoProntoParaIncluir(email);
+		String inclusao = mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/inclusao")))
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString();
+		String senhaAnterior = JsonPath.read(inclusao, "$.conta.senhaProvisoria");
+
+		String redefinicao = mvc.perform(comoCoordenador(post("/candidatos/" + candidatoId + "/conta/senha-provisoria")))
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString();
+		String novaSenha = JsonPath.read(redefinicao, "$.senhaProvisoria");
+
+		assertThat(novaSenha).isNotEqualTo(senhaAnterior);
+		entrar(email, senhaAnterior).andExpect(status().isUnauthorized());
+		entrar(email, novaSenha).andExpect(status().isOk());
+	}
+
+	@Test
+	void candidatoAindaNaoIncluidoNaoTemConta() throws Exception {
+		Long candidatoId = cadastrarPelaApi("sem.conta." + sufixo + "@teste.com");
+
+		mvc.perform(comoCoordenador(get("/candidatos/" + candidatoId + "/conta")))
+				.andExpect(status().isNotFound());
+		mvc.perform(comoCoordenador(get("/estudos/" + estudoId + "/candidatos/" + candidatoId)))
+				.andExpect(jsonPath("$.possuiConta").value(false));
 	}
 
 	// ---- Candidatos
@@ -327,6 +432,11 @@ class RecrutamentoIntegrationTest {
 		finally {
 			threads.shutdownNow();
 		}
+	}
+
+	private org.springframework.test.web.servlet.ResultActions entrar(String email, String senha) throws Exception {
+		return mvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"email\": \"%s\", \"senha\": \"%s\"}".formatted(email, senha)));
 	}
 
 	private Long cadastrarPelaApi(String email) throws Exception {

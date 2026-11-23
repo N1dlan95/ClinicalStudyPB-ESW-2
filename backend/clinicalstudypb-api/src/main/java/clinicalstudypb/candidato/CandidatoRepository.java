@@ -1,5 +1,7 @@
 package clinicalstudypb.candidato;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -12,17 +14,27 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 
-// As consultas de leitura já trazem quem registrou o consentimento, porque a resposta da API mostra o nome
+// As consultas de leitura já trazem quem registrou o consentimento e a retirada, porque a resposta da API
+// mostra os nomes
 public interface CandidatoRepository extends JpaRepository<Candidato, Long> {
 
-	@EntityGraph(attributePaths = "consentimentoRegistradoPor")
+	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Page<Candidato> findByEstudoId(Long estudoId, Pageable paginacao);
 
-	@EntityGraph(attributePaths = "consentimentoRegistradoPor")
+	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Page<Candidato> findByEstudoIdAndStatus(Long estudoId, StatusCandidato status, Pageable paginacao);
 
-	@EntityGraph(attributePaths = "consentimentoRegistradoPor")
+	@EntityGraph(attributePaths = { "consentimentoRegistradoPor", "retiradaRegistradaPor" })
 	Optional<Candidato> findByIdAndEstudoId(Long id, Long estudoId);
+
+	// RF17 (task 3773): participações de uma conta de participante, com o estudo e o responsável para a resposta
+	@EntityGraph(attributePaths = { "estudo", "estudo.responsavel" })
+	List<Candidato> findByUsuarioIdAndStatusIn(Long usuarioId, Collection<StatusCandidato> status);
+
+	// RF15 (task 3765): o histórico mostra o estudo e quem registrou a retirada
+	@EntityGraph(attributePaths = { "estudo", "retiradaRegistradaPor" })
+	@Query("select c from Candidato c where c.id = :id")
+	Optional<Candidato> buscarParaHistorico(@Param("id") Long id);
 
 	boolean existsByEstudoIdAndEmailIgnoreCase(Long estudoId, String email);
 

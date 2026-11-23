@@ -1,1 +1,5 @@
 .env
+
+# Configuração local do editor Obsidian
+.obsidian/
+.vscode/

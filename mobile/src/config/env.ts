@@ -2,10 +2,16 @@
  * Configuração de ambiente do app.
  *
  * EXPO_PUBLIC_API_URL: URL base da API REST (backend Spring Boot).
- *   Ex.: http://10.0.2.2:8080 no emulador Android (10.0.2.2 = localhost da máquina host).
- * Sem essa variável, o app usa um serviço de autenticação simulado (mock),
- * para que a tela possa ser desenvolvida e demonstrada antes da API ficar pronta.
+ *   Padrão: http://10.0.2.2:8080, o localhost da máquina vista de dentro do emulador Android.
+ *   Em celular físico, use o IP do computador na rede (ex.: http://192.168.0.10:8080).
+ * EXPO_PUBLIC_USE_MOCK=true: liga o modo simulado (dados fictícios em memória),
+ *   para demonstrar as telas sem o backend rodando.
+ *
+ * As variáveis precisam ser lidas pelo nome completo: o Expo troca process.env.EXPO_PUBLIC_*
+ * pelo valor na hora de montar o app.
  */
-export const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '') ?? '';
+const API_URL_PADRAO = 'http://10.0.2.2:8080';
 
-export const USE_MOCK_API = API_URL === '';
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL || API_URL_PADRAO).replace(/\/+$/, '');
+
+export const USE_MOCK_API = process.env.EXPO_PUBLIC_USE_MOCK === 'true';

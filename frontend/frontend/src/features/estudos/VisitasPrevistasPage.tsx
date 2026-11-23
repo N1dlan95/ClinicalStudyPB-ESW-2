@@ -17,7 +17,7 @@ import { ROTULO_ESTADO, type Estudo, type VisitaPrevista } from './tipos'
 // A visita prevista é um modelo do protocolo: o dia é relativo à inclusão (D0).
 // Para facilitar a leitura, a tela converte o dia relativo em data e hora a partir
 // de uma data de referência escolhida pelo usuário.
-// Pendência registrada em Docs/ClinicalStudyPB-Docs/Sprints/pendencia-visitas-data-hora.md
+// Pendência registrada em releases/release2/sprints/pendencia-visitas-data-hora.md
 
 // Soma dias a uma data ISO (aaaa-mm-dd) usando UTC, para não sofrer com fuso/horário de verão
 function somarDias(iso: string, dias: number): string {

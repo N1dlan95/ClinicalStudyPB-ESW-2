@@ -194,6 +194,34 @@ class CandidatoServiceTest {
 		return new CandidatoRequest(nome, email, telefone, NASCIMENTO);
 	}
 
+	// Bug bash 17/11: e-mail de participante com conta não muda (é o login do app)
+	@Test
+	void emailDeParticipanteComContaNaoMuda() {
+		Estudo estudo = estudo(1L, EstadoEstudo.RECRUTAMENTO);
+		Candidato candidato = candidato(5L, estudo, StatusCandidato.INCLUIDO);
+		candidato.vincularConta(new Usuario("João Silva", "joao@teste.com", null, Perfil.PARTICIPANTE, "hash"));
+		when(repositorio.findByIdAndEstudoId(5L, 1L)).thenReturn(Optional.of(candidato));
+
+		assertThatThrownBy(() -> servico.atualizar(1L, 5L,
+				new CandidatoRequest("João Silva", "outro@teste.com", null, NASCIMENTO)))
+				.isInstanceOfSatisfying(RegraNegocioException.class,
+						ex -> assertThat(ex.getCodigo()).isEqualTo("EMAIL_COM_CONTA"));
+		assertThat(candidato.getEmail()).isEqualTo("joao@teste.com");
+	}
+
+	@Test
+	void participanteComContaAindaAtualizaOsOutrosDados() {
+		Estudo estudo = estudo(1L, EstadoEstudo.RECRUTAMENTO);
+		Candidato candidato = candidato(5L, estudo, StatusCandidato.INCLUIDO);
+		candidato.vincularConta(new Usuario("João Silva", "joao@teste.com", null, Perfil.PARTICIPANTE, "hash"));
+		when(repositorio.findByIdAndEstudoId(5L, 1L)).thenReturn(Optional.of(candidato));
+
+		servico.atualizar(1L, 5L, new CandidatoRequest("João S. Silva", "JOAO@teste.com", "(83) 98888-0000", NASCIMENTO));
+
+		assertThat(candidato.getNome()).isEqualTo("João S. Silva");
+		assertThat(candidato.getTelefone()).isEqualTo("(83) 98888-0000");
+	}
+
 	static Estudo estudo(Long id, EstadoEstudo estado) {
 		Usuario pesquisadora = new Usuario("Ana Souza", "ana@teste.com", null, Perfil.PESQUISADOR, "hash");
 		Estudo estudo = new Estudo("Estudo de hipertensão", "Objetivo", pesquisadora,

@@ -1,0 +1,224 @@
+[
+ {
+  "caso": "R-01",
+  "descricao": "Listagem de usuários e filtros",
+  "ok": true,
+  "obtido": "7 usuários; filtro perfil={'PESQUISADOR'}; filtro ativo=false -> nenhum"
+ },
+ {
+  "caso": "R-02",
+  "descricao": "Cadastro de usuário com dados válidos",
+  "ok": true,
+  "obtido": "POST 201; aparece na busca: 1"
+ },
+ {
+  "caso": "R-03",
+  "descricao": "Cadastro com e-mail duplicado",
+  "ok": true,
+  "obtido": "409 EMAIL_DUPLICADO: Já existe um usuário com este e-mail"
+ },
+ {
+  "caso": "R-04",
+  "descricao": "Edição de usuário e desativação",
+  "ok": true,
+  "obtido": "PUT 200 nome=Usuário Bug Bash Editado; PATCH 200 ativo=False"
+ },
+ {
+  "caso": "R-05",
+  "descricao": "Bloqueio do próprio usuário",
+  "ok": false,
+  "obtido": "200 None: None"
+ },
+ {
+  "caso": "R-06",
+  "descricao": "Validação do formulário vazio",
+  "ok": true,
+  "obtido": "400 campos: ['email', 'nome', 'perfil', 'senha']"
+ },
+ {
+  "caso": "R-07",
+  "descricao": "Login com credenciais válidas",
+  "ok": true,
+  "obtido": "tokens emitidos: {'ADMINISTRADOR': True, 'PESQUISADOR': True, 'COORDENADOR': True}"
+ },
+ {
+  "caso": "R-09",
+  "descricao": "Login com senha incorreta",
+  "ok": true,
+  "obtido": "401 CREDENCIAIS_INVALIDAS: E-mail ou senha incorretos"
+ },
+ {
+  "caso": "R-11",
+  "descricao": "Usuário inativo bloqueado",
+  "ok": true,
+  "obtido": "401 USUARIO_INATIVO: Usuário desativado. Procure o administrador"
+ },
+ {
+  "caso": "R-14",
+  "descricao": "Bloqueio de /usuarios para pesquisador e coordenador (API)",
+  "ok": true,
+  "obtido": "pesquisador 403, coordenador 403"
+ },
+ {
+  "caso": "R-15",
+  "descricao": "Bloqueio de criar estudo para coordenador e administrador (API)",
+  "ok": true,
+  "obtido": "coordenador 403, administrador 403"
+ },
+ {
+  "caso": "R-16",
+  "descricao": "Acesso sem autenticação (API)",
+  "ok": true,
+  "obtido": "401 NAO_AUTENTICADO"
+ },
+ {
+  "caso": "R-17",
+  "descricao": "Listagem de estudos por perfil",
+  "ok": true,
+  "obtido": "status por perfil: {'adm': 200, 'pesq': 200, 'coord': 200}"
+ },
+ {
+  "caso": "R-18",
+  "descricao": "Cadastro de estudo com dados válidos",
+  "ok": true,
+  "obtido": "201 id=6 estado=PLANEJAMENTO"
+ },
+ {
+  "caso": "R-19",
+  "descricao": "Data de término anterior à inicial",
+  "ok": true,
+  "obtido": "400 ['dataFim: A data de término não pode ser anterior à data de início']"
+ },
+ {
+  "caso": "R-20",
+  "descricao": "Limite de participantes inválido",
+  "ok": true,
+  "obtido": "400 ['limiteParticipantes']"
+ },
+ {
+  "caso": "R-22",
+  "descricao": "Busca e filtro por estado",
+  "ok": true,
+  "obtido": "estado=EXECUCAO -> 1 ({'EXECUCAO'}); busca 'Sono' -> 1"
+ },
+ {
+  "caso": "R-23",
+  "descricao": "Cadastrar critério de inclusão/exclusão",
+  "ok": true,
+  "obtido": "inclusão 201, exclusão 201"
+ },
+ {
+  "caso": "R-24",
+  "descricao": "Cadastrar visita prevista com atividades",
+  "ok": true,
+  "obtido": "201/201; atividades=2"
+ },
+ {
+  "caso": "R-25",
+  "descricao": "Transições de estado do estudo",
+  "ok": true,
+  "obtido": "PLANEJAMENTO:409/TRANSICAO_ESTADO_INVALIDA; EXECUCAO:409/TRANSICAO_ESTADO_INVALIDA; RECRUTAMENTO:200; coord->EXECUCAO:403"
+ },
+ {
+  "caso": "R-26",
+  "descricao": "Cadastro de candidatos",
+  "ok": true,
+  "obtido": "201/201 status=CADASTRADO"
+ },
+ {
+  "caso": "R-27",
+  "descricao": "Avaliação de elegibilidade",
+  "ok": true,
+  "obtido": "incompleta 400; completa 200 -> ELEGIVEL"
+ },
+ {
+  "caso": "R-28",
+  "descricao": "Consentimento simulado",
+  "ok": true,
+  "obtido": "1ª 200; 2ª 409 CONSENTIMENTO_JA_REGISTRADO"
+ },
+ {
+  "caso": "R-29",
+  "descricao": "Inclusão com limite de vagas",
+  "ok": true,
+  "obtido": "200 vagas 1/1; senha provisória: True"
+ },
+ {
+  "caso": "R-30",
+  "descricao": "Inclusão com vagas esgotadas",
+  "ok": true,
+  "obtido": "409 VAGAS_ESGOTADAS: Todas as vagas do estudo estão ocupadas"
+ },
+ {
+  "caso": "R-31",
+  "descricao": "Agendamento de visita para participante incluído",
+  "ok": true,
+  "obtido": "agendar 201/201; participante vê [12, 13]"
+ },
+ {
+  "caso": "R-32",
+  "descricao": "Agendamento para participante não incluído",
+  "ok": true,
+  "obtido": "409 PARTICIPANTE_NAO_INCLUIDO"
+ },
+ {
+  "caso": "R-33",
+  "descricao": "Registro de realizada, ausente e cancelada",
+  "ok": true,
+  "obtido": "realizada 200; ausente antes da hora 409 VISITA_AINDA_NAO_OCORREU; cancelar sem motivo 400"
+ },
+ {
+  "caso": "R-34",
+  "descricao": "Reagendamento e duplicidade",
+  "ok": true,
+  "obtido": "reagendar realizada 409 VISITA_JA_FINALIZADA; duplicar 409 VISITA_JA_AGENDADA; fora da janela 400; reagendar válida 200"
+ },
+ {
+  "caso": "R-35",
+  "descricao": "Registro de resultado fictício",
+  "ok": true,
+  "obtido": "PUT 200; pesquisador lê ['PA 120x80', '92 mg/dL']"
+ },
+ {
+  "caso": "R-36",
+  "descricao": "Resultado fora do contexto válido",
+  "ok": true,
+  "obtido": "visita agendada 409 VISITA_NAO_REALIZADA; atividade de fora 409 ATIVIDADE_FORA_DA_VISITA; visita inexistente 404"
+ },
+ {
+  "caso": "R-43",
+  "descricao": "Consulta do histórico do participante",
+  "ok": true,
+  "obtido": "200 visitas=[('Triagem', 'REALIZADA', 2), ('Retorno', 'AGENDADA', 0)]; não incluído 409"
+ },
+ {
+  "caso": "R-37",
+  "descricao": "Retirada direta do participante",
+  "ok": true,
+  "obtido": "200 status=RETIRADO; canceladas=1; vagas=0; visita agendada -> CANCELADA"
+ },
+ {
+  "caso": "R-38",
+  "descricao": "Retirada sem autorização ou inválida",
+  "ok": true,
+  "obtido": "pesquisador 403; inexistente 404; segunda 409 PARTICIPANTE_JA_RETIRADO; motivo vazio 400"
+ },
+ {
+  "caso": "R-39",
+  "descricao": "Estudos do participante (API do app)",
+  "ok": true,
+  "obtido": "200 [('Estudo de Qualidade do Sono em Adultos', None)]"
+ },
+ {
+  "caso": "R-40",
+  "descricao": "Equipe não acessa as rotas do app",
+  "ok": true,
+  "obtido": "equipe em /participantes/me: {'pesq': 403, 'coord': 403, 'adm': 403}; participante em /estudos: 403"
+ },
+ {
+  "caso": "R-41",
+  "descricao": "Próximas visitas do participante (API do app)",
+  "ok": true,
+  "obtido": "200 3 visitas, status ['AGENDADA', 'REALIZADA']"
+ }
+]

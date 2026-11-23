@@ -7,7 +7,7 @@ import { LoginForm } from '../features/auth/LoginForm';
 import { colors } from '../theme/colors';
 
 export default function LoginScreen() {
-  const { sessao, entrar } = useAuth();
+  const { sessao, aviso, entrar } = useAuth();
 
   if (sessao) {
     return <Redirect href="/" />;
@@ -23,6 +23,12 @@ export default function LoginScreen() {
             </Text>
             <Text style={styles.subtitulo}>Acesso do participante</Text>
           </View>
+
+          {aviso && (
+            <View style={styles.avisoSessao} accessible accessibilityRole="alert" accessibilityLiveRegion="polite">
+              <Text style={styles.avisoSessaoTexto}>{aviso}</Text>
+            </View>
+          )}
 
           <LoginForm
             onSubmit={async (credenciais) => {
@@ -48,4 +54,6 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 28, fontWeight: '700', color: colors.primary },
   subtitulo: { fontSize: 16, color: colors.textMuted, marginTop: 4 },
   aviso: { marginTop: 24, textAlign: 'center', fontSize: 12, color: colors.textMuted },
+  avisoSessao: { backgroundColor: colors.warningBackground, borderRadius: 8, padding: 12, marginBottom: 16 },
+  avisoSessaoTexto: { color: colors.warningStrong, fontSize: 14 },
 });

@@ -28,6 +28,7 @@ public class SecurityConfig {
 	private static final String ADMINISTRADOR = Perfil.ADMINISTRADOR.name();
 	private static final String PESQUISADOR = Perfil.PESQUISADOR.name();
 	private static final String COORDENADOR = Perfil.COORDENADOR.name();
+	private static final String PARTICIPANTE = Perfil.PARTICIPANTE.name();
 
 	// RF02: só o login é público; as demais rotas exigem o token JWT no cabeçalho Authorization.
 	// RF03: cada rota libera apenas os perfis previstos na especificação e no openapi.yaml.
@@ -47,13 +48,20 @@ public class SecurityConfig {
 				.requestMatchers("/error").permitAll()
 				// Autenticação: qualquer perfil logado
 				.requestMatchers("/auth/**").authenticated()
+				// RF17/RF18: app do participante. Os dados vêm sempre do usuário do token, nunca de um id na URL.
+				.requestMatchers("/participantes/me", "/participantes/me/**").hasRole(PARTICIPANTE)
 				// RF01: usuários e perfis, somente administrador
 				.requestMatchers("/usuarios", "/usuarios/**", "/perfis").hasRole(ADMINISTRADOR)
 				// RF08: candidatos de um estudo, somente coordenador. Fica antes das regras de /estudos/**,
 				// porque a primeira regra que combina com a rota é a que vale.
 				.requestMatchers("/estudos/*/candidatos", "/estudos/*/candidatos/**").hasRole(COORDENADOR)
-				// RF09 a RF11: avaliação, consentimento e inclusão de candidatos, somente coordenador
+				// RF15: histórico do participante (só leitura), antes da regra de /candidatos/**
+				.requestMatchers(HttpMethod.GET, "/candidatos/*/historico").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
+				// RF09 a RF13: avaliação, consentimento, inclusão, conta do participante e visitas, somente coordenador
 				.requestMatchers("/candidatos/**").hasRole(COORDENADOR)
+				// RF14: consulta dos resultados da visita, antes da regra de /visitas/** (o PUT fica com o coordenador)
+				.requestMatchers(HttpMethod.GET, "/visitas/*/resultados").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
+				.requestMatchers("/visitas", "/visitas/**").hasRole(COORDENADOR)
 				// RF06: visitas previstas, somente pesquisador. Esta regra precede /estudos/**.
 				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)
 				// RF07: mudança de estado, antes das regras genéricas de /estudos/**

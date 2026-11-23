@@ -97,6 +97,34 @@ describe('HistoricoParticipantePage', () => {
     expect(screen.queryByText('Tentar de novo')).toBeNull()
   })
 
+  // T-108B: participante já retirado ao abrir o histórico
+  it('mostra o participante retirado com a data, quem registrou e o motivo', async () => {
+    vi.mocked(buscarHistorico).mockResolvedValue({
+      ...historico,
+      participante: {
+        ...historico.participante,
+        status: 'RETIRADO',
+        retirada: { registradaEm: '2026-11-23T10:00:00', registradaPor: 'Carla Coordenadora', motivo: 'Mudou de cidade' },
+      },
+    })
+    renderizar()
+
+    expect(await screen.findByRole('heading', { name: 'Paula Andrade' })).not.toBeNull()
+    expect(screen.getByText('Retirado', { selector: '.selo' })).not.toBeNull()
+    const aviso = screen.getByText('Participante retirado', { selector: 'strong' }).parentElement!
+    expect(aviso.textContent).toContain('23/11/2026 10:00')
+    expect(aviso.textContent).toContain('Carla Coordenadora')
+    expect(aviso.textContent).toContain('Mudou de cidade')
+  })
+
+  it('participante incluído não mostra o aviso de retirada', async () => {
+    vi.mocked(buscarHistorico).mockResolvedValue(historico)
+    renderizar()
+
+    await screen.findByRole('heading', { name: 'Paula Andrade' })
+    expect(screen.queryByText('Participante retirado', { selector: 'strong' })).toBeNull()
+  })
+
   it('permite tentar de novo depois de um erro de servidor', async () => {
     vi.mocked(buscarHistorico).mockRejectedValueOnce(new ErroVisitaApi('Sem conexão.', null, null))
     vi.mocked(buscarHistorico).mockResolvedValueOnce(historico)

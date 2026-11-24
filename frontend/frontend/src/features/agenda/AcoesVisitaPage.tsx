@@ -153,12 +153,14 @@ export function AcoesVisitaPage() {
           <div>
             <small>Participante</small>
             <strong>{visita.participante.nome}</strong>
-            <small>{visita.participante.email}</small>
+            {visita.participante.email && <small>{visita.participante.email}</small>}
           </div>
           <div>
             <small>Visita prevista</small>
             <strong>{visita.visitaPrevista.nome}</strong>
-            <small>Dia D{visita.visitaPrevista.diaPrevisto}</small>
+            {visita.visitaPrevista.diaPrevisto !== null && (
+              <small>Dia D{visita.visitaPrevista.diaPrevisto}</small>
+            )}
           </div>
           <div>
             <small>Data e horário agendados</small>

@@ -9,49 +9,13 @@ import { AbasEstudo } from '../estudos/AbasEstudo'
 import { isoParaBR } from '../estudos/datas'
 import { buscarEstudo, listarVisitasPrevistas } from '../estudos/estudosService'
 import { ROTULO_ESTADO, type Estudo, type VisitaPrevista } from '../estudos/tipos'
-import {
-  agendarVisita,
-  lerCacheVisitasPrevistas,
-  listarVisitasAgendadas,
-  salvarCacheVisitasPrevistas,
-  traduzirErro,
-} from './agendaService'
+import { agendarVisita, listarVisitasAgendadas, traduzirErro } from './agendaService'
 import type { ErrosAgendamentoVisita, VisitaAgendada } from './tipos'
 import {
   analisarJanelaAgendamento,
   calcularJanelaVisita,
   validarAgendamentoVisita,
 } from './validacao'
-
-const CANDIDATOS_FALLBACK: Candidato[] = [
-  {
-    id: 101,
-    nome: 'Maria Souza',
-    email: 'maria.souza@exemplo.test',
-    telefone: '(83) 99999-1111',
-    dataNascimento: '1988-03-14',
-    status: 'INCLUIDO',
-    dataInclusao: '2026-11-10',
-  },
-  {
-    id: 102,
-    nome: 'Ana Ribeiro',
-    email: 'ana.ribeiro@exemplo.test',
-    telefone: '(83) 99999-2222',
-    dataNascimento: '1995-05-22',
-    status: 'INCLUIDO',
-    dataInclusao: '2026-11-12',
-  },
-  {
-    id: 103,
-    nome: 'João Lima',
-    email: 'joao.lima@exemplo.test',
-    telefone: '(83) 99999-3333',
-    dataNascimento: '1990-01-02',
-    status: 'ELEGIVEL',
-    dataInclusao: null,
-  },
-]
 
 export function AgendamentoVisitaFormPage() {
   const { id } = useParams<{ id: string }>()
@@ -69,8 +33,7 @@ export function AgendamentoVisitaFormPage() {
   const [visitaPrevistaId, setVisitaPrevistaId] = useState('')
   const [dataAgendada, setDataAgendada] = useState('')
   const [horaAgendada, setHoraAgendada] = useState('09:00')
-  const [local, setLocal] = useState('Ambulatório Central · Sala 204')
-  const [observacoes, setObservacoes] = useState('')
+  const [local, setLocal] = useState('')
 
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
@@ -81,19 +44,12 @@ export function AgendamentoVisitaFormPage() {
     let ativo = true
     Promise.all([
       buscarEstudo(estudoId),
-      listarCandidatos(estudoId).catch(() => CANDIDATOS_FALLBACK),
-      listarVisitasPrevistas(estudoId)
-        .then((lista) => {
-          salvarCacheVisitasPrevistas(estudoId, lista)
-          return lista
-        })
-        .catch(() => lerCacheVisitasPrevistas<VisitaPrevista>(estudoId)),
+      listarCandidatos(estudoId),
+      listarVisitasPrevistas(estudoId),
       listarVisitasAgendadas(estudoId),
     ])
-      .then(([dadosEstudo, listaCandidatosApi, listaVisitasPrevistas, listaAgendadas]) => {
+      .then(([dadosEstudo, listaCandidatos, listaVisitasPrevistas, listaAgendadas]) => {
         if (!ativo) return
-        const listaCandidatos =
-          listaCandidatosApi.length > 0 ? listaCandidatosApi : CANDIDATOS_FALLBACK
 
         setEstudo(dadosEstudo)
         setCandidatos(listaCandidatos)
@@ -196,26 +152,13 @@ export function AgendamentoVisitaFormPage() {
 
     setSalvando(true)
     try {
-      await agendarVisita(
-        estudoId,
-        {
-          participanteId: Number(participanteId),
-          visitaPrevistaId: Number(visitaPrevistaId),
-          dataAgendada: dataAgendada.trim(),
-          horaAgendada: horaAgendada.trim(),
-          local: local.trim() ? local.trim() : null,
-          observacoes: observacoes.trim() ? observacoes.trim() : null,
-        },
-        {
-          participanteNome: participanteSelecionado?.nome,
-          participanteEmail: participanteSelecionado?.email,
-          dataInclusao: participanteSelecionado?.dataInclusao ?? estudo?.dataInicio ?? null,
-          visitaOrdem: visitaPrevistaSelecionada?.ordem,
-          visitaNome: visitaPrevistaSelecionada?.nome,
-          diaPrevisto: visitaPrevistaSelecionada?.diaPrevisto,
-          janelaDias: visitaPrevistaSelecionada?.janelaDias ?? null,
-        },
-      )
+      await agendarVisita(estudoId, {
+        participanteId: Number(participanteId),
+        visitaPrevistaId: Number(visitaPrevistaId),
+        dataAgendada: dataAgendada.trim(),
+        horaAgendada: horaAgendada.trim(),
+        local: local.trim() ? local.trim() : null,
+      })
       navegar(`/estudos/${estudoId}/agenda`)
     } catch (e) {
       const traduzido = traduzirErro(e)
@@ -452,21 +395,9 @@ export function AgendamentoVisitaFormPage() {
               <input
                 className="pn-campo__entrada"
                 placeholder="Ex.: Ambulatório Central · Sala 204"
-                maxLength={160}
+                maxLength={120}
                 value={local}
                 onChange={(e) => setLocal(e.target.value)}
-              />
-            </label>
-
-            <label className="pn-campo" style={{ marginTop: '8px' }}>
-              <span className="pn-campo__rotulo">Observações / justificativa de janela</span>
-              <textarea
-                rows={3}
-                className="pn-campo__entrada"
-                placeholder="Opcional. Informe orientações ao participante ou justificativa caso a data esteja fora da janela."
-                maxLength={500}
-                value={observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
               />
             </label>
           </section>

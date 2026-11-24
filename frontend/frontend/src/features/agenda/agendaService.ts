@@ -1,9 +1,17 @@
-// Integração com a API de agenda de visitas do estudo (RF12 e RF13 — Release 2).
-// Enquanto o endpoint /estudos/{id}/visitas-agendadas ainda não estiver disponível no backend
-// (retornando 403 ou 404), o serviço utiliza armazenamento local (localStorage) com dados de
-// demonstração para permitir a navegação e o teste completo do fluxo no front-end.
+// Integração da agenda de visitas com a API (RF12 e RF13 — Release 2, tasks 3755 e 3758 do backend):
+//   GET   /estudos/{id}/visitas            agenda do estudo (filtros status, de e ate)
+//   GET   /visitas/{id}                    uma visita (coordenador)
+//   POST  /candidatos/{id}/visitas         agendar (coordenador): { visitaPrevistaId, dataHora, local }
+//   PATCH /visitas/{id}/status             realizada, ausente ou cancelada (coordenador): { status, observacao }
+// A API devolve a visita com participante (candidatoId e nome), visita prevista (id, ordem e nome), data e hora e a
+// janela já calculada. O e-mail e a situação do participante e o dia previsto da visita vêm da lista de candidatos
+// e da lista de visitas previstas, quando o perfil pode consultá-las; sem elas, a tela mostra o que a API trouxe.
 import { isAxiosError } from 'axios'
 import { api } from '../../services/api'
+import { listarCandidatos } from '../candidatos/candidatosService'
+import type { Candidato } from '../candidatos/tipos'
+import { listarVisitasPrevistas } from '../estudos/estudosService'
+import type { VisitaPrevista } from '../estudos/tipos'
 import type {
   AgendamentoVisitaEntrada,
   CampoAgendamentoVisita,
@@ -12,13 +20,29 @@ import type {
   StatusVisitaAgendada,
   VisitaAgendada,
 } from './tipos'
-import { analisarJanelaAgendamento } from './validacao'
+import { diferencaDiasIso, somarDiasIso } from './validacao'
 
 interface ErroApi {
   status?: number
   codigo?: string
   mensagem?: string
   detalhes?: { campo?: string; mensagem?: string }[]
+}
+
+// Formato da API (VisitaResponse no backend, VisitaResposta no openapi.yaml)
+export interface VisitaApi {
+  id: number
+  estudoId: number
+  participante: { candidatoId: number; nome: string }
+  visitaPrevista: { id: number; ordem: number; nome: string }
+  dataHora: string // aaaa-mm-ddThh:mm:ss
+  local: string | null
+  status: StatusVisitaAgendada
+  observacao: string | null
+  janela: { inicio: string; fim: string } | null
+  agendadaPor: string | null
+  statusRegistradoEm: string | null
+  statusRegistradoPor: string | null
 }
 
 export class ErroAgendaApi extends Error {
@@ -47,6 +71,13 @@ const CAMPOS: CampoAgendamentoVisita[] = [
   'motivoCancelamento',
 ]
 
+// Campos da API que correspondem a campos do formulário
+const CAMPO_DA_API: Record<string, CampoAgendamentoVisita> = {
+  dataHora: 'dataAgendada',
+  visitaPrevistaId: 'visitaPrevistaId',
+  observacao: 'motivoCancelamento',
+}
+
 function mensagemPorStatus(status: number | null): string {
   switch (status) {
     case 400:
@@ -54,7 +85,7 @@ function mensagemPorStatus(status: number | null): string {
     case 403:
       return 'Seu perfil não tem permissão para esta ação.'
     case 404:
-      return 'Estudo ou visita agendada não encontrada.'
+      return 'Estudo, participante ou visita não encontrados.'
     case 409:
       return 'A operação conflita com uma regra de agendamento do estudo.'
     default:
@@ -70,17 +101,14 @@ export function traduzirErro(erro: unknown): ErroAgendaApi {
   const errosCampos: ErrosAgendamentoVisita = {}
 
   for (const d of corpo.detalhes ?? []) {
-    const campo = CAMPOS.find((c) => c === d.campo)
+    const campo = CAMPOS.find((c) => c === d.campo) ?? (d.campo ? CAMPO_DA_API[d.campo] : undefined)
     if (campo && d.mensagem && !errosCampos[campo]) {
       errosCampos[campo] = d.mensagem
     }
   }
 
   const codigo = corpo.codigo ?? null
-  if (codigo === 'DATA_NO_PASSADO' && !errosCampos.dataAgendada) {
-    errosCampos.dataAgendada =
-      corpo.mensagem ?? 'Data no passado: a data do agendamento não pode ser anterior a hoje.'
-  } else if (codigo === 'VISITA_JA_AGENDADA' && !errosCampos.visitaPrevistaId) {
+  if (codigo === 'VISITA_JA_AGENDADA' && !errosCampos.visitaPrevistaId) {
     errosCampos.visitaPrevistaId =
       corpo.mensagem ??
       'Visita já agendada: este participante já possui um agendamento ativo para esta visita prevista.'
@@ -88,9 +116,6 @@ export function traduzirErro(erro: unknown): ErroAgendaApi {
     errosCampos.participanteId =
       corpo.mensagem ??
       'Participante não incluído: apenas participantes com status Incluído podem ter visitas agendadas.'
-  } else if (codigo === 'MOTIVO_OBRIGATORIO' && !errosCampos.motivoCancelamento) {
-    errosCampos.motivoCancelamento =
-      corpo.mensagem ?? 'Motivo obrigatório: informe o motivo do cancelamento da visita.'
   }
 
   const mensagem =
@@ -100,178 +125,127 @@ export function traduzirErro(erro: unknown): ErroAgendaApi {
   return new ErroAgendaApi(mensagem, status, codigo, errosCampos)
 }
 
-const CHAVE_STORAGE = (estudoId: number) => `clinicalstudypb.agenda.estudo.${estudoId}`
-const CHAVE_VISITAS_PREVISTAS = (estudoId: number) =>
-  `clinicalstudypb.visitasPrevistas.estudo.${estudoId}`
-
-export function salvarCacheVisitasPrevistas(estudoId: number, visitas: unknown[]) {
+async function chamar<T>(requisicao: () => Promise<{ data: T }>): Promise<T> {
   try {
-    localStorage.setItem(CHAVE_VISITAS_PREVISTAS(estudoId), JSON.stringify(visitas))
-  } catch {
-    // Ignora erro de escrita do localStorage
+    return (await requisicao()).data
+  } catch (erro) {
+    throw traduzirErro(erro)
   }
 }
 
-export function lerCacheVisitasPrevistas<T>(estudoId: number): T[] {
-  try {
-    const salvo = localStorage.getItem(CHAVE_VISITAS_PREVISTAS(estudoId))
-    if (salvo) return JSON.parse(salvo) as T[]
-  } catch {
-    // Ignora erro de leitura do localStorage
-  }
-  return []
+// ---------------------------------------------------------------------------
+// Conversão da resposta da API para o formato usado pelas telas da agenda
+// ---------------------------------------------------------------------------
+
+export interface DadosComplementares {
+  candidatos: Map<number, Candidato>
+  visitasPrevistas: Map<number, VisitaPrevista>
 }
 
-function carregarAgendaLocal(estudoId: number): VisitaAgendada[] {
-  try {
-    const salvo = localStorage.getItem(CHAVE_STORAGE(estudoId))
-    if (salvo) return JSON.parse(salvo) as VisitaAgendada[]
-  } catch {
-    // Ignora erro de leitura do localStorage
-  }
-  return []
-}
+const SEM_COMPLEMENTO: DadosComplementares = { candidatos: new Map(), visitasPrevistas: new Map() }
 
-function salvarAgendaLocal(estudoId: number, lista: VisitaAgendada[]) {
-  try {
-    localStorage.setItem(CHAVE_STORAGE(estudoId), JSON.stringify(lista))
-  } catch {
-    // Ignora erro de escrita do localStorage
+// Lista de candidatos (coordenador) e de visitas previstas (pesquisador, coordenador e administrador).
+// Quem não pode consultar uma delas continua vendo a agenda, só sem os dados extras.
+export async function carregarComplementos(estudoId: number): Promise<DadosComplementares> {
+  const [candidatos, previstas] = await Promise.allSettled([
+    listarCandidatos(estudoId),
+    listarVisitasPrevistas(estudoId),
+  ])
+  return {
+    candidatos: new Map(candidatos.status === 'fulfilled' ? candidatos.value.map((c) => [c.id, c]) : []),
+    visitasPrevistas: new Map(previstas.status === 'fulfilled' ? previstas.value.map((v) => [v.id, v]) : []),
   }
 }
 
-function rotaNaoImplementadaNoBackend(erro: unknown): boolean {
-  return (
-    isAxiosError(erro) &&
-    (erro.response?.status === 404 || erro.response?.status === 403)
-  )
+// Data sugerida: o meio da janela calculada pela API (inclusão + dia previsto)
+function meioDaJanela(janela: VisitaApi['janela']): string | null {
+  if (!janela) return null
+  return somarDiasIso(janela.inicio, Math.round(diferencaDiasIso(janela.fim, janela.inicio) / 2))
 }
 
-const rotaEstudo = (estudoId: number) => `/estudos/${estudoId}/visitas-agendadas`
+export function deVisitaApi(v: VisitaApi, extras: DadosComplementares = SEM_COMPLEMENTO): VisitaAgendada {
+  const candidato = extras.candidatos.get(v.participante.candidatoId)
+  const prevista = extras.visitasPrevistas.get(v.visitaPrevista.id)
+  const [data, hora = ''] = v.dataHora.split('T')
+  const dataAgendada = data.slice(0, 10)
+  const cancelada = v.status === 'CANCELADA'
+  return {
+    id: v.id,
+    estudoId: v.estudoId,
+    participante: {
+      id: v.participante.candidatoId,
+      nome: v.participante.nome,
+      email: candidato?.email ?? '',
+      status: candidato?.status ?? 'INCLUIDO',
+      dataInclusao: candidato?.dataInclusao ?? null,
+    },
+    visitaPrevista: {
+      id: v.visitaPrevista.id,
+      ordem: v.visitaPrevista.ordem,
+      nome: v.visitaPrevista.nome,
+      diaPrevisto: prevista?.diaPrevisto ?? null,
+      janelaDias: prevista?.janelaDias ?? null,
+    },
+    dataAgendada,
+    horaAgendada: hora.slice(0, 5),
+    dataSugerida: meioDaJanela(v.janela),
+    janelaInicio: v.janela?.inicio ?? null,
+    janelaFim: v.janela?.fim ?? null,
+    foraDaJanela: v.janela ? dataAgendada < v.janela.inicio || dataAgendada > v.janela.fim : false,
+    local: v.local,
+    // A API guarda um texto só: o motivo, no cancelamento, ou a anotação do registro, nos demais status
+    observacoes: cancelada ? null : v.observacao,
+    status: v.status,
+    motivoCancelamento: cancelada ? v.observacao : null,
+    atualizadoEm: v.statusRegistradoEm,
+    atualizadoPor: v.statusRegistradoPor,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Funções usadas pelas telas
+// ---------------------------------------------------------------------------
 
 export async function listarVisitasAgendadas(
   estudoId: number,
   status?: StatusVisitaAgendada,
 ): Promise<VisitaAgendada[]> {
-  const params = status ? { status } : undefined
-  try {
-    const resposta = await api.get<VisitaAgendada[]>(
-      rotaEstudo(estudoId),
-      params ? { params } : undefined,
-    )
-    return resposta.data
-  } catch (erro) {
-    if (rotaNaoImplementadaNoBackend(erro)) {
-      const todas = carregarAgendaLocal(estudoId)
-      return status ? todas.filter((v) => v.status === status) : todas
-    }
-    throw traduzirErro(erro)
-  }
+  const [visitas, extras] = await Promise.all([
+    chamar(() => api.get<VisitaApi[]>(`/estudos/${estudoId}/visitas`, status ? { params: { status } } : undefined)),
+    carregarComplementos(estudoId),
+  ])
+  return visitas.map((v) => deVisitaApi(v, extras))
 }
 
-export async function buscarVisitaAgendada(
-  estudoId: number,
-  visitaId: number,
-): Promise<VisitaAgendada> {
-  try {
-    return (await api.get<VisitaAgendada>(`${rotaEstudo(estudoId)}/${visitaId}`)).data
-  } catch (erro) {
-    if (rotaNaoImplementadaNoBackend(erro)) {
-      const encontrada = carregarAgendaLocal(estudoId).find((v) => v.id === visitaId)
-      if (encontrada) return encontrada
-    }
-    throw traduzirErro(erro)
-  }
+export async function buscarVisitaAgendada(estudoId: number, visitaId: number): Promise<VisitaAgendada> {
+  const [visita, extras] = await Promise.all([
+    chamar(() => api.get<VisitaApi>(`/visitas/${visitaId}`)),
+    carregarComplementos(estudoId),
+  ])
+  return deVisitaApi(visita, extras)
 }
 
-export interface ContextoCriacaoLocal {
-  participanteNome?: string
-  participanteEmail?: string
-  dataInclusao?: string | null
-  visitaOrdem?: number
-  visitaNome?: string
-  diaPrevisto?: number
-  janelaDias?: number | null
+// O agendamento é feito pelo participante (candidato incluído). A API recebe data e hora juntas.
+export async function agendarVisita(estudoId: number, dados: AgendamentoVisitaEntrada): Promise<VisitaAgendada> {
+  const visita = await chamar(() =>
+    api.post<VisitaApi>(`/candidatos/${dados.participanteId}/visitas`, {
+      visitaPrevistaId: dados.visitaPrevistaId,
+      dataHora: `${dados.dataAgendada}T${dados.horaAgendada}:00`,
+      local: dados.local,
+    }),
+  )
+  return deVisitaApi({ ...visita, estudoId: visita.estudoId ?? estudoId })
 }
 
-export async function agendarVisita(
-  estudoId: number,
-  dados: AgendamentoVisitaEntrada,
-  contextoLocal?: ContextoCriacaoLocal,
-): Promise<VisitaAgendada> {
-  try {
-    return (await api.post<VisitaAgendada>(rotaEstudo(estudoId), dados)).data
-  } catch (erro) {
-    if (rotaNaoImplementadaNoBackend(erro)) {
-      const atuais = carregarAgendaLocal(estudoId)
-      const diaPrevisto = contextoLocal?.diaPrevisto ?? 15
-      const janelaDias = contextoLocal?.janelaDias ?? 2
-      const dataInclusao = contextoLocal?.dataInclusao ?? '2026-11-10'
-      const analise = analisarJanelaAgendamento(dados.dataAgendada, dataInclusao, {
-        diaPrevisto,
-        janelaDias,
-      })
-      const nova: VisitaAgendada = {
-        id: Date.now(),
-        estudoId,
-        participante: {
-          id: dados.participanteId,
-          nome: contextoLocal?.participanteNome ?? `Participante #${dados.participanteId}`,
-          email: contextoLocal?.participanteEmail ?? 'participante@exemplo.test',
-          status: 'INCLUIDO',
-          dataInclusao,
-        },
-        visitaPrevista: {
-          id: dados.visitaPrevistaId,
-          ordem: contextoLocal?.visitaOrdem ?? 1,
-          nome: contextoLocal?.visitaNome ?? `Visita prevista #${dados.visitaPrevistaId}`,
-          diaPrevisto,
-          janelaDias,
-        },
-        dataAgendada: dados.dataAgendada,
-        horaAgendada: dados.horaAgendada,
-        dataSugerida: analise?.dataSugerida ?? dados.dataAgendada,
-        janelaInicio: analise?.janelaInicio ?? null,
-        janelaFim: analise?.janelaFim ?? null,
-        foraDaJanela: analise?.foraDaJanela ?? false,
-        local: dados.local,
-        observacoes: dados.observacoes,
-        status: 'AGENDADA',
-        motivoCancelamento: null,
-      }
-      salvarAgendaLocal(estudoId, [...atuais, nova])
-      return nova
-    }
-    throw traduzirErro(erro)
-  }
-}
-
+// No cancelamento, o motivo vai na observação (obrigatória para CANCELADA); nos demais, a anotação do atendimento.
 export async function registrarExecucaoVisita(
   estudoId: number,
   visitaId: number,
   dados: RegistroExecucaoVisitaEntrada,
 ): Promise<VisitaAgendada> {
-  try {
-    return (
-      await api.patch<VisitaAgendada>(`${rotaEstudo(estudoId)}/${visitaId}/status`, dados)
-    ).data
-  } catch (erro) {
-    if (rotaNaoImplementadaNoBackend(erro)) {
-      const atuais = carregarAgendaLocal(estudoId)
-      const atualizadas = atuais.map((v) =>
-        v.id === visitaId
-          ? {
-              ...v,
-              status: dados.status,
-              observacoes: dados.observacoes,
-              motivoCancelamento: dados.motivoCancelamento,
-            }
-          : v,
-      )
-      salvarAgendaLocal(estudoId, atualizadas)
-      const alvo = atualizadas.find((v) => v.id === visitaId)
-      if (alvo) return alvo
-    }
-    throw traduzirErro(erro)
-  }
+  const observacao = dados.status === 'CANCELADA' ? dados.motivoCancelamento : dados.observacoes
+  const visita = await chamar(() =>
+    api.patch<VisitaApi>(`/visitas/${visitaId}/status`, { status: dados.status, observacao }),
+  )
+  return deVisitaApi({ ...visita, estudoId: visita.estudoId ?? estudoId })
 }

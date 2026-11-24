@@ -62,6 +62,9 @@ public class SecurityConfig {
 				// RF14: consulta dos resultados da visita, antes da regra de /visitas/** (o PUT fica com o coordenador)
 				.requestMatchers(HttpMethod.GET, "/visitas/*/resultados").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				.requestMatchers("/visitas", "/visitas/**").hasRole(COORDENADOR)
+				// RF12: o coordenador agenda a partir das visitas previstas do protocolo, então pesquisador, coordenador
+				// e administrador consultam a lista. Cadastrar, editar e excluir continuam só com o pesquisador.
+				.requestMatchers(HttpMethod.GET, "/estudos/*/visitas-previstas").hasAnyRole(PESQUISADOR, COORDENADOR, ADMINISTRADOR)
 				// RF06: visitas previstas, somente pesquisador. Esta regra precede /estudos/**.
 				.requestMatchers("/estudos/*/visitas-previstas", "/estudos/*/visitas-previstas/**").hasRole(PESQUISADOR)
 				// RF07: mudança de estado, antes das regras genéricas de /estudos/**

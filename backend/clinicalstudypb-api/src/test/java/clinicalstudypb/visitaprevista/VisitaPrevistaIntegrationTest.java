@@ -120,10 +120,12 @@ class VisitaPrevistaIntegrationTest {
 				.andExpect(status().isNoContent());
 	}
 
+	// RF12: coordenador e administrador consultam a lista (o coordenador agenda a partir dela),
+	// mas cadastrar, editar e excluir continuam só com o pesquisador
 	@Test
-	void coordenadorENaoGerenciamVisitasPrevistas() throws Exception {
-		verificar403EmTodasAsOperacoes(Perfil.COORDENADOR);
-		verificar403EmTodasAsOperacoes(Perfil.ADMINISTRADOR);
+	void coordenadorEAdministradorSoConsultamVisitasPrevistas() throws Exception {
+		verificarSoConsulta(Perfil.COORDENADOR);
+		verificarSoConsulta(Perfil.ADMINISTRADOR);
 	}
 
 	@Test
@@ -140,9 +142,9 @@ class VisitaPrevistaIntegrationTest {
 				.andExpect(status().isUnauthorized());
 	}
 
-	private void verificar403EmTodasAsOperacoes(Perfil perfil) throws Exception {
+	private void verificarSoConsulta(Perfil perfil) throws Exception {
 		mvc.perform(comToken(get("/estudos/" + estudoId + "/visitas-previstas"), perfil))
-				.andExpect(status().isForbidden());
+				.andExpect(status().isOk());
 		mvc.perform(comToken(post("/estudos/" + estudoId + "/visitas-previstas")
 				.contentType(MediaType.APPLICATION_JSON).content(CORPO_VISITA), perfil))
 				.andExpect(status().isForbidden());

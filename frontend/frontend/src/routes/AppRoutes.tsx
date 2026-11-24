@@ -18,6 +18,7 @@ import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
 import { UsuariosListaPage } from '../features/usuarios/UsuariosListaPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
 import { HistoricoParticipantePage } from '../features/historico/HistoricoParticipantePage'
+import { ResultadosVisitaPage } from '../features/visitas/ResultadosVisitaPage'
 
 // Quem já está logado não precisa ver a tela de login de novo
 function RotaLogin() {
@@ -108,6 +109,14 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="gerenciarVisitas">
                 <AcoesVisitaPage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/visitas/:visitaId/resultados"
+            element={
+              <ExigePermissao permissao="verAcompanhamento">
+                <ResultadosVisitaPage />
               </ExigePermissao>
             }
           />

@@ -115,3 +115,56 @@ jobs:
 
       - name: Testes
         run: npm test
+
+  e2e:
+    name: E2E web (Release 2)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: e2e
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Iniciar aplicação
+        run: docker compose -f ../docker-compose.yml up -d --build
+
+      - name: Aguardar frontend
+        run: |
+          for attempt in {1..60}; do
+            frontend_status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://localhost:3000/login || true)
+            api_status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://localhost:3000/api/estudos || true)
+            if [[ "$frontend_status" == "200" && "$api_status" == "401" ]]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose -f ../docker-compose.yml logs
+          exit 1
+
+      - name: Executar E2E web
+        run: npm test
+
+      - name: Publicar relatório e evidências E2E
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-web-release2
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            releases/release2/img/e2e-acompanhamento-*.png
+          if-no-files-found: warn

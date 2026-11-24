@@ -39,6 +39,7 @@ Pendências herdadas da Release 1:
 | --- | --- |
 | Relatório de testes e cobertura | a preencher (`relatorio-testes.md`); parcial de 22/11 na seção 4 |
 | Capturas de tela (web e app) | Seção 5; app do participante concluído, web a preencher (`img/`) |
+| E2E web do acompanhamento (T-110) | Capturas `img/e2e-acompanhamento-*.png`; relatório e resultados Playwright no artefato `e2e-web-release2` do CI |
 | Regressão de RF01 a RF18 e bug bash | [`Testes/`](../../Docs/ClinicalStudyPB-Docs/Testes/) |
 | Contrato OpenAPI | [`openapi.yaml`](../../Docs/ClinicalStudyPB-Docs/api/openapi.yaml) |
 

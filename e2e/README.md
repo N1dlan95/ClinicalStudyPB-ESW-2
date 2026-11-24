@@ -1,4 +1,4 @@
-# Teste E2E web (task 3574)
+# Teste E2E web (tasks 3574 e T-110)
 
 Fluxo completo da Release 1 com Playwright, todo pela tela e com o perfil certo em cada etapa:
 
@@ -6,6 +6,8 @@ Fluxo completo da Release 1 com Playwright, todo pela tela e com o perfil certo 
 2. **Coordenador:** cadastra dois candidatos, avalia os dois como elegíveis, registra o consentimento e inclui o primeiro.
 
 Casos de erro cobertos: inclusão bloqueada sem consentimento e inclusão bloqueada com as vagas esgotadas (na tela e na API, `409 VAGAS_ESGOTADAS`).
+
+O mesmo cenário acompanha o participante incluído: confere o diálogo de acesso, agenda uma visita para alguns minutos depois, registra a realização e os resultados, valida o histórico e registra a retirada com liberação da vaga.
 
 ## Como rodar
 
@@ -29,6 +31,7 @@ Para ver o navegador durante o teste, use `npm run test:headed`.
 
 - **Prints de cada etapa:** pasta [`evidencias/`](evidencias/), sobrescritos a cada execução.
 - **Relatório HTML, com os prints e o vídeo:** fica em `e2e/playwright-report`. Para abrir, rode `npm run relatorio`.
+- **Evidências do acompanhamento:** capturas em `releases/release2/img/e2e-acompanhamento-*.png`; o CI também publica o relatório e os resultados do Playwright como artefato.
 
 | Print | Etapa |
 | --- | --- |

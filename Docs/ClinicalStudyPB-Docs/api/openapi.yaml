@@ -22,6 +22,7 @@ info:
     | 403 | `SEM_PERMISSAO` | O perfil não pode usar a rota |
     | 404 | `NAO_ENCONTRADO` | O recurso não existe |
     | 409 | `EMAIL_DUPLICADO` | E-mail de usuário já cadastrado (RF01) |
+    | 409 | `USUARIO_PROPRIO_DESATIVACAO` | Administrador tenta desativar o próprio usuário (RF01) |
     | 409 | `TRANSICAO_ESTADO_INVALIDA` | Mudança de estado do estudo não permitida (RF07) |
     | 409 | `ESTUDO_FORA_DO_PLANEJAMENTO` | Critério alterado fora do planejamento (RF05) |
     | 409 | `ESTUDO_FORA_DE_RECRUTAMENTO` | Candidato ou avaliação fora do recrutamento (RF08, RF09) |
@@ -252,7 +253,9 @@ paths:
     patch:
       tags: [Usuários]
       summary: Ativa ou desativa um usuário (RF01)
-      description: "Perfil permitido: ADMINISTRADOR. Usuário desativado não faz login."
+      description: |
+        Perfil permitido: ADMINISTRADOR. Usuário desativado não faz login.
+        Não é permitido desativar o próprio usuário (409 `USUARIO_PROPRIO_DESATIVACAO`).
       parameters:
         - $ref: "#/components/parameters/IdPath"
       requestBody:
@@ -278,6 +281,17 @@ paths:
           $ref: "#/components/responses/SemPermissao"
         "404":
           $ref: "#/components/responses/NaoEncontrado"
+        "409":
+          description: Tentativa de desativar o próprio usuário
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+              example:
+                timestamp: "2026-11-23T12:00:00-03:00"
+                status: 409
+                codigo: USUARIO_PROPRIO_DESATIVACAO
+                mensagem: Você não pode desativar o próprio usuário.
 
   /perfis:
     get:

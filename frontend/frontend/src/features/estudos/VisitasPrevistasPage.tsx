@@ -2,7 +2,6 @@ import '../../estilos/estudos.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AbasEstudo } from './AbasEstudo'
-import { salvarCacheVisitasPrevistas } from '../agenda/agendaService'
 import {
   atualizarVisitaPrevista,
   buscarEstudo,
@@ -141,7 +140,6 @@ export function VisitasPrevistasPage() {
         if (!ativo) return
         setEstudo(dadosEstudo)
         setVisitas(lista)
-        salvarCacheVisitasPrevistas(estudoId, lista)
         // Por padrão, a prévia usa a data de início do estudo como D0
         setDataReferencia(dadosEstudo.dataInicio)
       })
@@ -245,7 +243,6 @@ export function VisitasPrevistasPage() {
       }
       const atualizadas = await listarVisitasPrevistas(estudoId)
       setVisitas(atualizadas)
-      salvarCacheVisitasPrevistas(estudoId, atualizadas)
       limparFormulario()
     } catch (erro) {
       setMensagemErro(`Não foi possível salvar a visita prevista. ${traduzirErro(erro).message}`)
@@ -261,7 +258,6 @@ export function VisitasPrevistasPage() {
       await excluirVisitaPrevista(estudoId, visita.id)
       const restantes = visitas.filter((v) => v.id !== visita.id)
       setVisitas(restantes)
-      salvarCacheVisitasPrevistas(estudoId, restantes)
       if (editandoId === visita.id) limparFormulario()
       setSucesso('Visita prevista excluída com sucesso.')
     } catch (erro) {

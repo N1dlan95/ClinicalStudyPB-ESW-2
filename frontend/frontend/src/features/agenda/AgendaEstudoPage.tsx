@@ -91,7 +91,7 @@ export function AgendaEstudoPage() {
         v.participante.nome,
         v.participante.email,
         v.visitaPrevista.nome,
-        `D${v.visitaPrevista.diaPrevisto}`,
+        v.visitaPrevista.diaPrevisto !== null ? `D${v.visitaPrevista.diaPrevisto}` : '',
         v.local ?? '',
       ].some((valor) => valor.toLowerCase().includes(termo))
     })
@@ -148,15 +148,17 @@ export function AgendaEstudoPage() {
           </p>
         </div>
 
-        {!encerrado ? (
-          <Link to={`/estudos/${estudoId}/agenda/novo`} className="botao botao--primario">
-            + Agendar visita
-          </Link>
-        ) : (
-          <button type="button" className="botao botao--primario" disabled>
-            + Agendar visita
-          </button>
-        )}
+        {/* Só quem gerencia visitas (coordenador) agenda; pesquisador e administrador só consultam */}
+        {podeAlterarEstadoVisita &&
+          (!encerrado ? (
+            <Link to={`/estudos/${estudoId}/agenda/novo`} className="botao botao--primario">
+              + Agendar visita
+            </Link>
+          ) : (
+            <button type="button" className="botao botao--primario" disabled>
+              + Agendar visita
+            </button>
+          ))}
       </div>
 
       {!carregando && visitas.length > 0 && (
@@ -303,7 +305,7 @@ export function AgendaEstudoPage() {
                 Limpar filtros
               </button>
             )}
-            {!encerrado && (
+            {!encerrado && podeAlterarEstadoVisita && (
               <Link to={`/estudos/${estudoId}/agenda/novo`} className="botao botao--primario">
                 + Agendar primeira visita
               </Link>
@@ -332,16 +334,18 @@ export function AgendaEstudoPage() {
                   <tr key={v.id}>
                     <td>
                       <strong>{v.participante.nome}</strong>
-                      <small>{v.participante.email}</small>
+                      {v.participante.email && <small>{v.participante.email}</small>}
                     </td>
                     <td>
                       <strong>{v.visitaPrevista.nome}</strong>
-                      <small>
-                        Dia D{v.visitaPrevista.diaPrevisto}
-                        {v.visitaPrevista.janelaDias !== null
-                          ? ` (± ${v.visitaPrevista.janelaDias} dias)`
-                          : ''}
-                      </small>
+                      {v.visitaPrevista.diaPrevisto !== null && (
+                        <small>
+                          Dia D{v.visitaPrevista.diaPrevisto}
+                          {v.visitaPrevista.janelaDias !== null
+                            ? ` (± ${v.visitaPrevista.janelaDias} dias)`
+                            : ''}
+                        </small>
+                      )}
                     </td>
                     <td>
                       <strong>

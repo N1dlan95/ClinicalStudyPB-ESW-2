@@ -6,8 +6,13 @@ import type {
   ErrosAgendamentoVisita,
   PeriodoFiltroVisita,
   VisitaAgendada,
-  VisitaPrevistaResumo,
 } from './tipos'
+
+// Dia previsto e janela do protocolo (RF06), usados para calcular a data sugerida
+export interface ProtocoloVisita {
+  diaPrevisto: number
+  janelaDias: number | null
+}
 
 export interface CalculoJanelaVisita {
   dataInclusao: string
@@ -40,7 +45,7 @@ export function diferencaDiasIso(isoA: string, isoB: string): number {
 // Calcula a data sugerida (D0 + diaPrevisto) e a janela ideal (D0 + diaPrevisto ± janelaDias)
 export function calcularJanelaVisita(
   dataInclusao: string | null | undefined,
-  visitaPrevista: Pick<VisitaPrevistaResumo, 'diaPrevisto' | 'janelaDias'> | null | undefined,
+  visitaPrevista: ProtocoloVisita | null | undefined,
   dataReferenciaEstudo?: string | null,
 ): CalculoJanelaVisita | null {
   const base = (dataInclusao || dataReferenciaEstudo || '').slice(0, 10)
@@ -64,7 +69,7 @@ export function calcularJanelaVisita(
 export function analisarJanelaAgendamento(
   dataAgendada: string,
   dataInclusao: string | null | undefined,
-  visitaPrevista: Pick<VisitaPrevistaResumo, 'diaPrevisto' | 'janelaDias'> | null | undefined,
+  visitaPrevista: ProtocoloVisita | null | undefined,
   dataReferenciaEstudo?: string | null,
 ): AnaliseJanelaAgendamento | null {
   const calculo = calcularJanelaVisita(dataInclusao, visitaPrevista, dataReferenciaEstudo)

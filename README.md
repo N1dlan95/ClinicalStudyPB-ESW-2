@@ -7,6 +7,7 @@ Sistema simplificado de gestão do ciclo de vida de estudos clínicos, desenvolv
 
 - [Sobre o projeto](#sobre-o-projeto)
 - [Release 1: escopo](#release-1-escopo)
+- [Release 2: escopo](#release-2-escopo)
 - [Arquitetura](#arquitetura)
 - [Stack](#stack)
 - [Como executar](#como-executar)
@@ -46,6 +47,26 @@ A Release 1 (**Estrutura e recrutamento**) reúne as Sprints 1 e 2 e entrega uma
 
 A situação de cada requisito, as evidências e as capturas de tela estão no [README da Release 1](releases/release1/README.md). Os testes e a cobertura estão no [relatório de testes](releases/release1/relatorio-testes.md).
 
+## Release 2: escopo
+
+A Release 2 (**Acompanhamento e mobile**) reúne as Sprints 3 e 4, de 10/11 a 07/12/2026. Ela acompanha os participantes incluídos na web e entrega o app do participante. **Em andamento:** a Sprint 3 terminou em 23/11.
+
+| ID | Requisito | Sprint | Situação |
+| --- | --- | --- | --- |
+| RF12 | Agendar visitas para os participantes incluídos | 3 | Entregue |
+| RF13 | Registrar a realização, ausência ou cancelamento de visitas | 3 | Entregue |
+| RF14 | Registrar resultados fictícios das avaliações previstas | 3 | Entregue |
+| RF15 | Consultar o histórico de visitas e avaliações de um participante | 3 | Entregue |
+| RF16 | Registrar a retirada de um participante do estudo | 3 | Entregue |
+| RF17 | App: estudos em que o participante está incluído | 3 | Entregue |
+| RF18 | App: próximas visitas e histórico de comparecimento | 3 | Entregue |
+| RF19 | App: confirmar presença ou pedir reagendamento | 4 | Planejado |
+| RF20 | App: pedir retirada voluntária | 4 | Planejado |
+| RF21 | Painel com candidatos, incluídos e visitas | 4 | Planejado |
+| RF22 | Relatório de recrutamento e acompanhamento | 4 | Planejado |
+
+O login do app com a API real também entrou na Sprint 3. A situação de cada requisito e as evidências estão no [README da Release 2](releases/release2/README.md).
+
 ## Arquitetura
 
 ```mermaid
@@ -63,7 +84,7 @@ flowchart LR
 - **Banco de dados:** PostgreSQL, com o esquema criado e versionado pelo Flyway na inicialização da API.
 - **Contrato da API:** descrito em OpenAPI (`openapi.yaml`) e publicado no Swagger UI, gerado pelo springdoc-openapi.
 
-O modelo de dados está em [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md`](Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md).
+O modelo de dados está em [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v3.md`](Docs/ClinicalStudyPB-Docs/Diagramas/MER-v3.md).
 
 ## Stack
 
@@ -72,7 +93,7 @@ O modelo de dados está em [`Docs/ClinicalStudyPB-Docs/Diagramas/MER-v2.md`](Doc
 | Backend | Java 21, Spring Boot 4, Maven (wrapper `mvnw`), Spring Security com JWT, JPA/Hibernate, Flyway |
 | Banco de dados | PostgreSQL 17 |
 | Frontend web | React 19, TypeScript, Vite, React Router e Axios |
-| Mobile | React Native com Expo (congelado nesta release) |
+| Mobile | React Native com Expo (app do participante) |
 | Documentação da API | Contrato OpenAPI (`openapi.yaml`) e Swagger UI com springdoc-openapi |
 | Testes e cobertura | JUnit 5, Mockito e JaCoCo (backend); Vitest e Testing Library (frontend); Playwright (E2E) |
 | Infraestrutura | Docker e Docker Compose |
@@ -178,7 +199,7 @@ npm test
 
 Os detalhes estão no [relatório de testes](releases/release1/relatorio-testes.md), e a execução manual, com prints, em [`Docs/ClinicalStudyPB-Docs/Testes`](Docs/ClinicalStudyPB-Docs/Testes).
 
-O GitHub Actions roda o build e os testes do backend e do frontend a cada push e pull request. Pela regra do time, um PR só é mesclado com o CI verde e ao menos uma revisão.
+O GitHub Actions roda o build e os testes do backend, do frontend e do app mobile a cada push e pull request. Pela regra do time, um PR só é mesclado com o CI verde e ao menos uma revisão.
 
 Documentação de regressão e Bug Bash: [Roteiro RF01 a RF18](Docs/ClinicalStudyPB-Docs/Testes/roteiro-regressao-rf01-rf18.md) e [Bug Bash 19/11/2026](Docs/ClinicalStudyPB-Docs/Testes/bug-bash-2026-11-19.md).
 
@@ -195,7 +216,7 @@ Documentação de regressão e Bug Bash: [Roteiro RF01 a RF18](Docs/ClinicalStud
 .
 ├── backend/                 # API Spring Boot (clinicalstudypb-api)
 ├── frontend/                # aplicação web (código e testes em frontend/frontend)
-├── mobile/                  # app do participante (congelado na Release 1)
+├── mobile/                  # app do participante (React Native com Expo)
 ├── e2e/                     # teste E2E com Playwright
 ├── Docs/ClinicalStudyPB-Docs/
 │   ├── Contexto-Geral/      # contexto, requisitos e orientações (tutorial do FigCraft)
@@ -225,13 +246,13 @@ Documentação de regressão e Bug Bash: [Roteiro RF01 a RF18](Docs/ClinicalStud
 
 Os papéis rotacionam a cada sprint.
 
-| Papel | Sprint 1 | Sprint 2 |
-| --- | --- | --- |
-| Líder técnico / Gerente | Nidlan Hendell | Mirelle |
-| Backend | Maria Eduarda | Maria Eduarda |
-| Web 1 (estudos, protocolos, usuários) | Mirelle | Nidlan Hendell |
-| Web 2 (recrutamento, visitas, relatórios) | Adrielly | Jasmine |
-| Mobile | Jasmine | Arthur |
-| QA / DevOps | Arthur | Adrielly |
+| Papel | Sprint 1 | Sprint 2 | Sprint 3 |
+| --- | --- | --- | --- |
+| Líder técnico / Gerente | Nidlan Hendell | Mirelle | Adrielly |
+| Backend | Maria Eduarda | Maria Eduarda | Jasmine |
+| Web 1 (estudos, protocolos, usuários) | Mirelle | Nidlan Hendell | Arthur |
+| Web 2 (recrutamento, visitas, relatórios) | Adrielly | Jasmine | Nidlan Hendell |
+| Mobile | Jasmine | Arthur | Maria Eduarda |
+| QA / DevOps | Arthur | Adrielly | Mirelle |
 
 A documentação de cada sprint fica na pasta da sua release: [Release 1](releases/release1/sprints) (Sprints 1 e 2) e [Release 2](releases/release2/sprints) (Sprint 3 em diante).

@@ -1,7 +1,7 @@
 # Pendência: data e hora nas visitas
 
 **Origem:** revisão da tela web de visitas previstas (RF06, Sprint 2), feita por Nidlan Hendell.
-**Situação:** em aberto. A tela tem só uma prévia visual; banco, API e app móvel não mudaram.
+**Situação:** resolvida na Sprint 3. O agendamento de visitas (RF12, task 3755, migração `V11`) grava a data e a hora de cada visita do participante, e a API só aceita datas dentro da janela calculada a partir da inclusão (`data_inclusao + dia_previsto ± janela_dias`). A prévia de calendário da tela de visitas previstas continua sendo só visual, porque a visita prevista é um modelo do protocolo.
 
 ## Contexto
 

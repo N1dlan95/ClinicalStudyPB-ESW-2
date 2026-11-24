@@ -31,12 +31,25 @@ export interface Candidato {
   status: StatusCandidato
   consentimento?: Consentimento | null // ausente ou null: ainda não registrado
   dataInclusao?: string | null // ISO; preenchida quando o status vira INCLUIDO (task 3565)
+  possuiConta?: boolean // task 3751: já tem conta de acesso ao app (criada na inclusão)
+}
+
+// Conta de acesso do participante ao app (task 3751, ContaParticipanteResponse).
+// senhaProvisoria só vem quando a conta acabou de ser criada; contaExistente indica que a pessoa já
+// tinha conta de participante (por exemplo, incluída antes em outro estudo) e usa o mesmo acesso.
+export interface ContaParticipante {
+  usuarioId: number
+  email: string
+  ativo: boolean
+  contaExistente: boolean
+  senhaProvisoria: string | null
 }
 
 // Resposta da inclusão (task 3565): vagas ocupadas e total depois de incluir
 export interface ResultadoInclusao {
   vagasOcupadas: number
   limiteParticipantes: number
+  conta?: ContaParticipante | null // T-86: acesso do participante criado ou reaproveitado na inclusão
 }
 
 // Dados enviados ao cadastrar/editar. O status não vem do cliente (muda pela avaliação e inclusão).

@@ -120,3 +120,12 @@
   color: var(--erro);
 }
 
+/* T-86: acesso do participante na inclusão */
+.selo--conta { background: #e4eefb; color: #1f4f8f; }
+.acesso__dados { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; padding: 12px 14px; border: 1px solid var(--borda); border-radius: 8px; background: var(--rosa-fundo); }
+.acesso__dados div { display: flex; flex-direction: column; gap: 2px; }
+.acesso__dados dt { color: var(--texto-suave); font-size: 11px; }
+.acesso__dados dd { margin: 0; font-size: 14px; font-weight: 600; word-break: break-all; }
+.acesso__senha { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 16px; letter-spacing: 0.04em; }
+.acesso__copia { margin: 8px 0 0; color: #2e7d32; font-size: 12px; }
+.acesso__copia--erro { color: var(--erro); }

@@ -124,6 +124,43 @@ class VisitaPrevistaControllerTest {
 		verifyNoInteractions(servico);
 	}
 
+	// RF12: o coordenador agenda a partir das visitas previstas, por isso consulta a lista; o administrador também.
+	@Test
+	@WithMockUser(roles = "COORDENADOR")
+	void coordenadorConsultaAsVisitasPrevistas() throws Exception {
+		when(servico.listar(1L)).thenReturn(List.of(visita(2L)));
+
+		mvc.perform(get("/estudos/1/visitas-previstas")).andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].nome").value("Visita de triagem"));
+	}
+
+	@Test
+	@WithMockUser(roles = "ADMINISTRADOR")
+	void administradorConsultaAsVisitasPrevistas() throws Exception {
+		when(servico.listar(1L)).thenReturn(List.of());
+
+		mvc.perform(get("/estudos/1/visitas-previstas")).andExpect(status().isOk());
+	}
+
+	// Só a consulta foi liberada: cadastrar, editar e excluir continuam só com o pesquisador
+	@Test
+	@WithMockUser(roles = "COORDENADOR")
+	void coordenadorNaoCadastraEditaNemExclui() throws Exception {
+		mvc.perform(post("/estudos/1/visitas-previstas").contentType(MediaType.APPLICATION_JSON).content(CORPO_VALIDO))
+				.andExpect(status().isForbidden());
+		mvc.perform(put("/estudos/1/visitas-previstas/2").contentType(MediaType.APPLICATION_JSON).content(CORPO_VALIDO))
+				.andExpect(status().isForbidden());
+		mvc.perform(delete("/estudos/1/visitas-previstas/2")).andExpect(status().isForbidden());
+		verifyNoInteractions(servico);
+	}
+
+	@Test
+	@WithMockUser(roles = "PARTICIPANTE")
+	void participanteNaoConsulta() throws Exception {
+		mvc.perform(get("/estudos/1/visitas-previstas")).andExpect(status().isForbidden());
+		verifyNoInteractions(servico);
+	}
+
 	private static VisitaPrevista visita(Long id) {
 		Estudo estudo = mock(Estudo.class);
 		ReflectionTestUtils.setField(estudo, "id", 1L);

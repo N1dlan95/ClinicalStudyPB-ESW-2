@@ -153,7 +153,7 @@ A professora não respondeu às dúvidas 3, 4 e 5 até 11/11, então a equipe se
 - [x] **3781** (T-108) Testes de componente web (agenda, agendamento, status e acesso na inclusão) · Nidlan Hendell · 4h · 19/11 → 23/11 *(agenda no PR #73; acesso na inclusão no PR #76, da Mirelle)*
 - [x] **3782** (T-108) Testes de componente web (resultados, histórico e retirada) · Arthur · 4h · 19/11 → 23/11 *(histórico e retirada nos PRs #74 e #75; resultados no PR #68 e participante retirado no PR #77, da Mirelle)*
 - [x] **3783** (T-109) Testes de componente mobile: login, Estudos e Visitas · Maria Eduarda · 4h · 19/11 → 19/11 *(PRs #65 e #71)*
-- [ ] **3784** (T-110) E2E web: estender ao acompanhamento · Mirelle · 6h · 19/11 → 23/11 *(não entregue: a branch `test/T-110-e2e-acompanhamento-release2-clean` não tem commits; passa para a Sprint 4)*
+- [x] **3784** (T-110) E2E web: estender ao acompanhamento · Mirelle · 6h · 19/11 → 23/11 *(PR #79, em 24/11; também criou a rota da tela de resultados, que faltava)*
 - [x] **3786** (T-111) Roteiro de regressão e bug bash · Mirelle · 3h · 10/11 → 19/11 *(roteiro no PR #52; execução no PR #70, em 23/11)*
 - [x] **3787** (T-112) Cobertura ≥ 80% e CI com os testes do mobile · Mirelle · 3h · 10/11 → 19/11 *(PRs #51 e #61)*
 
@@ -230,18 +230,18 @@ flowchart LR
 - **Conta do participante:** criada ou reaproveitada na inclusão, com a senha inicial mostrada uma única vez no diálogo de acesso.
 - **App do participante:** login e logout com a API real, bloqueio dos perfis da equipe e telas Estudos (RF17) e Visitas (RF18) com os endpoints `/participantes/me/estudos` e `/participantes/me/visitas`. RF19 e RF20 ficaram ocultos para a Sprint 4.
 - **Modelo e contrato:** MER v3, migrações V11 a V14, contrato OpenAPI de RF12 a RF18 e diagramas de sequência do acompanhamento e do app.
-- **Qualidade:** 939 testes automatizados passando em 23/11 (598 no backend, 287 no frontend e 54 no mobile), regra de 80% de linhas por pacote do backend cumprida, CI com backend, web e mobile em todo PR, e regressão de RF01 a RF18 com 42 de 43 casos aprovados.
+- **Qualidade:** E2E web cobrindo inclusão e acompanhamento (agendar, realizar, resultados, histórico e retirada), 939 testes automatizados passando em 23/11 (598 no backend, 287 no frontend e 54 no mobile), regra de 80% de linhas por pacote do backend cumprida, CI com backend, web e mobile em todo PR, e regressão de RF01 a RF18 com 42 de 43 casos aprovados.
 
 #### O que falta
-- **E2E do acompanhamento (3784):** não foi entregue e passa para a Sprint 4. O E2E da Release 1 (recrutamento) continua passando.
 - **Bug #1 (R-05, severidade média):** a API deixa o administrador desativar o próprio usuário. A tela já bloqueia. Card a criar no Azure e corrigir na Sprint 4 ([bug bash](../../../Docs/ClinicalStudyPB-Docs/Testes/bug-bash-2026-11-19.md)).
 - **Bugs baixos herdados da Release 1:** filtro de candidatos sem a opção "Retirado" e texto de vagas sem singular ("1 vagas").
 - **Data no passado no agendamento:** a web recusa, mas a API valida só a janela da visita (decisão 4 do MER v3). Se a janela incluir dias passados, a API aceita a data.
 
 #### O que melhorar
-- **Merges concentrados no fim da sprint:** os marcos de 13/11, 16/11 e 17/11 não foram cumpridos. 22 dos 28 PRs da sprint foram mesclados entre 22/11 e 24/11, e o bug bash planejado para 19/11 só foi executado em 23/11.
+- **Merges concentrados no fim da sprint:** os marcos de 13/11, 16/11 e 17/11 não foram cumpridos. 23 dos 29 PRs da sprint foram mesclados entre 22/11 e 24/11, e o bug bash planejado para 19/11 só foi executado em 23/11.
 - **Tasks feitas por outra pessoa sem aviso no board:** a Mirelle assumiu seis tasks de Web 1 e Web 2 (3753, 3762, 3764, 3765 e as integrações das tasks 3756 e 3757). O responsável no Azure precisa ser trocado quando a task muda de mãos.
 - **CI vermelho mesclado:** o PR #74 entrou com o build do frontend quebrado (chaves duplicadas em `permissoes.ts`), corrigido no merge do PR #75. Só mesclar com o CI verde.
+- **Tela sem rota:** a tela de resultados (PR #68) entrou sem rota no `AppRoutes.tsx` e só ficou acessível com o E2E (PR #79). O E2E precisa rodar antes do fim da sprint, não depois.
 - **Dados simulados na tela:** a agenda do PR #73 caía em `localStorage` quando a API respondia 403 ou 404, contra a Definição de Pronto. Corrigido no PR #78.
 - **Commits sem `AB#`** e títulos fora do padrão (PR #73 e o título "eat(web)" do PR #76).
 
@@ -254,7 +254,7 @@ flowchart LR
 - [ ] Checkpoint de 16/11 com merge real: PR aberto no dia previsto, mesmo que pequeno.
 - [ ] Trocar o responsável no Azure sempre que outra pessoa assumir a task.
 - [ ] Zerar o Remaining Work de uma task só depois do merge do PR dela, e então mover para Done.
-- [ ] Entregar o E2E do acompanhamento logo no início da sprint.
+- [ ] Estender o E2E a cada RF novo junto com a tela, e não no fim da sprint.
 
 ### Burndown
 
@@ -264,7 +264,7 @@ flowchart LR
 
 - **10/11 a 16/11, acima da linha ideal:** o restante começou em cerca de 147h e ficou de 10h a 15h acima do ideal até o checkpoint (cerca de 72h em 16/11).
 - **17/11 a 23/11, na linha ideal:** o real encostou no ideal em 17/11 e chegou a **0h em 23/11**, com média de 11h por dia.
-- **Leitura:** diferente da escada da Sprint 2, o Remaining Work foi atualizado todo dia, seguindo as horas a decrementar do planejamento. Mas o gráfico mede horas decrementadas, não entregas: 22 dos 28 PRs só foram mesclados entre 22/11 e 24/11. Por isso o burndown parece no prazo, enquanto o trabalho na `develop` atrasou. Na Sprint 4, só zerar o Remaining Work de uma task depois que o PR dela for mesclado.
+- **Leitura:** diferente da escada da Sprint 2, o Remaining Work foi atualizado todo dia, seguindo as horas a decrementar do planejamento. Mas o gráfico mede horas decrementadas, não entregas: 23 dos 29 PRs só foram mesclados entre 22/11 e 24/11. Por isso o burndown parece no prazo, enquanto o trabalho na `develop` atrasou. Na Sprint 4, só zerar o Remaining Work de uma task depois que o PR dela for mesclado.
 - O relatório mostra "Completed 0%" e "Total Scope Increase -147", o que indica que as tasks tiveram o Remaining Work zerado mas ainda não foram movidas para Done no Azure.
 
 ### Contribuição por integrante
@@ -276,7 +276,7 @@ flowchart LR
 | 3 | Web 1 | Arthur | Página do participante com o histórico e a linha do tempo (3766, PR #74) e ação de registrar a retirada com o diálogo de motivo (3769, PR #75), com os testes de componente das duas telas (3782). O protótipo (3762), a tela de resultados (3764) e o endpoint do histórico (3765) previstos para ele foram feitos pela Mirelle. |
 | 4 | Web 2 | Nidlan Hendell | Agenda de visitas do estudo, formulário de agendamento e ações de realizada, ausente e cancelada (3756, 3757 e 3760, PR #73), com testes de componente da agenda (3781), e protótipos de tela e tutorial do FigCraft (PR #57). A integração da agenda com a API real (PR #78) e o diálogo de acesso na inclusão (3753, PR #76) foram feitos pela Mirelle. |
 | 5 | Mobile | Maria Eduarda | Login e logout do app com a API real e sessão expirada (3771, PR #53), endpoints `/participantes/me/estudos` e `/me/visitas` (3773 e 3775, PR #64), telas Estudos e Visitas com RF19 e RF20 desligados (3774 e 3777, PR #65), testes de componente do app (3783, PRs #65 e #71), README do mobile (3772, PR #66) e capturas das telas do app (3792, PR #72). |
-| 6 | QA / DevOps | Mirelle | CI com os testes do mobile e regra do JaCoCo por pacote (3787, PRs #51 e #61), roteiro de regressão de RF01 a RF18 e execução do bug bash (3786, PRs #52 e #70), testes de integração de RF12 a RF18 (3780, PR #62) e seed da Release 2 (3750, PR #63). Também fez tasks de outras áreas: endpoint do histórico (3765, PR #67), tela de resultados (3764, PR #68), protótipo de RF14 a RF16 (3762, PR #69), diálogo de acesso na inclusão (3753, PR #76), testes do participante retirado (PR #77) e a integração da agenda com a API real (PR #78). O E2E do acompanhamento (3784) não foi entregue. |
+| 6 | QA / DevOps | Mirelle | CI com os testes do mobile e regra do JaCoCo por pacote (3787, PRs #51 e #61), roteiro de regressão de RF01 a RF18 e execução do bug bash (3786, PRs #52 e #70), testes de integração de RF12 a RF18 (3780, PR #62), seed da Release 2 (3750, PR #63) e E2E do acompanhamento, com o job no CI e a rota da tela de resultados (3784, PR #79). Também fez tasks de outras áreas: endpoint do histórico (3765, PR #67), tela de resultados (3764, PR #68), protótipo de RF14 a RF16 (3762, PR #69), diálogo de acesso na inclusão (3753, PR #76), testes do participante retirado (PR #77) e a integração da agenda com a API real (PR #78). |
 
 ### Requisitos da sprint — situação final
 
@@ -307,7 +307,7 @@ flowchart LR
 | 08 Login mobile | Aceita | |
 | 09 Estudos no app (RF17) | Aceita | |
 | 10 Visitas no app (RF18) | Aceita | |
-| 11 Qualidade | Com pendência | E2E do acompanhamento (3784) e Bug #1 (R-05) passam para a Sprint 4 |
+| 11 Qualidade | Com pendência | Bug #1 (R-05) passa para a Sprint 4 |
 | 12 Documentação | Aceita | Capturas web (3790 e 3791) dispensadas pela PO |
 
 ### Roteiro da demonstração
@@ -324,5 +324,5 @@ flowchart LR
 | 6 | Histórico e retirada (RF15 e RF16) | Arthur | `coordenador@` | Abrir o histórico da Paula. Registrar a retirada do Lucas com motivo e mostrar a visita final cancelada, o selo Retirado e o contador de vagas. |
 | 7 | API e contrato | Jasmine | — | No Swagger, mostrar as rotas de visitas e um erro 409 com código. |
 | 8 | App do participante (RF17 e RF18) | Maria Eduarda | `participante@` e `participante4@` | Login da Paula, tela Estudos com a próxima visita e tela Visitas com o histórico. Login do Otávio, com a participação retirada. Tentar entrar com `coordenador@` para mostrar o bloqueio. |
-| 9 | Qualidade | Mirelle | — | CI verde no último PR, cobertura do backend e resultado da regressão (42 de 43 casos e Bug #1). |
-| 10 | Encerramento | Adrielly | — | Pendências (E2E e Bug #1) e o que entra na Sprint 4. |
+| 9 | Qualidade | Mirelle | — | E2E do acompanhamento (capturas ou vídeo do Playwright), CI verde, cobertura do backend e resultado da regressão (42 de 43 casos e Bug #1). |
+| 10 | Encerramento | Adrielly | — | Pendência (Bug #1) e o que entra na Sprint 4. |

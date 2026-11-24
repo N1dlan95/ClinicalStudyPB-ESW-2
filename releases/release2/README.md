@@ -45,9 +45,7 @@ Pendências herdadas da Release 1:
 | Evidência | Onde encontrar |
 | --- | --- |
 | Relatório de testes e cobertura | a preencher (`relatorio-testes.md`); parcial de 22/11 na seção 4 |
-| Capturas de tela (web e app) | Seção 5; app do participante concluído, web a preencher (`img/`) |
 | E2E web do acompanhamento (T-110) | Capturas `img/e2e-acompanhamento-*.png`; relatório e resultados Playwright no artefato `e2e-web-release2` do CI |
-| Regressão de RF01 a RF18 e bug bash | [`Testes/`](../../Docs/ClinicalStudyPB-Docs/Testes/) |
 | Capturas de tela do app | Seção 5 |
 | Protótipo de RF14 a RF16 (validado pela PO) | [`PrototiposTela/RF14-RF16/`](../../Docs/ClinicalStudyPB-Docs/PrototiposTela/RF14-RF16/) |
 | Regressão de RF01 a RF18 e bug bash (42 de 43 casos aprovados) | [`bug-bash-2026-11-19.md`](../../Docs/ClinicalStudyPB-Docs/Testes/bug-bash-2026-11-19.md) |
@@ -125,7 +123,8 @@ As capturas das telas web da Sprint 3 (tasks 3790 e 3791) foram dispensadas pela
 O planejamento, as tasks, a review, o burndown, a contribuição de cada integrante e o roteiro da demonstração estão em [`sprints/sprint-3.md`](sprints/sprint-3.md). Resumo:
 
 - **Entregue:** RF12 a RF18 e o login do app com a API real, com MER v3, contrato OpenAPI, diagramas de sequência e seed V14.
-- **Pendências para a Sprint 4:** E2E do acompanhamento (task 3784) e Bug #1, em que a API deixa o administrador desativar o próprio usuário.
+- **E2E do acompanhamento (task 3784):** passou no CI, com as capturas `img/e2e-acompanhamento-*.png` (PR #79).
+- **Pendência para a Sprint 4:** Bug #1, em que a API deixa o administrador desativar o próprio usuário.
 - **Burndown:** chegou a 0h em 23/11 e acompanhou a linha ideal a partir de 17/11, mas mede horas decrementadas, não entregas.
 - **Principal melhoria:** os merges se concentraram entre 22/11 e 24/11, depois dos marcos de 13/11 a 17/11. Na Sprint 4, cada marco precisa de um PR mesclado no dia previsto, e o Remaining Work só é zerado depois do merge.
 

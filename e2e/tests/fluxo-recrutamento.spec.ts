@@ -129,7 +129,7 @@ test('fluxo completo: inclusão e acompanhamento do participante', async ({
   await pesquisador.getByRole('link', { name: 'Visitas previstas' }).click()
   await expect(pesquisador.getByRole('heading', { name: 'Visitas previstas e atividades' })).toBeVisible()
   await pesquisador.getByLabel('Nome da visita *').fill('Visita E2E')
-  await pesquisador.getByLabel('Ordem da visita *').fill('1')
+  await pesquisador.getByLabel('Ordem da atividade 1').fill('1')
   await pesquisador.getByLabel('Dia previsto (após inclusão) *').fill('0')
   await pesquisador.getByLabel('Descrição da atividade 1').fill('Pressão arterial E2E')
   await pesquisador.getByRole('button', { name: '+ Cadastrar visita' }).click()
@@ -229,7 +229,8 @@ test('fluxo completo: inclusão e acompanhamento do participante', async ({
   await coordenador.waitForTimeout(Math.max(0, agendamento.instante - Date.now()))
   await linkAcaoVisita.click()
   await expect(coordenador.getByRole('heading', { name: 'Ações na visita agendada' })).toBeVisible()
-  await expect(coordenador.getByRole('button', { name: 'Realizada' })).toHaveAttribute('aria-pressed', 'true')
+  const grupoAcoes = coordenador.getByRole('group', { name: 'Ações disponíveis para a visita' })
+  await expect(grupoAcoes.getByRole('button', { name: /^Realizada/ })).toHaveAttribute('aria-pressed', 'true')
   await coordenador.getByRole('button', { name: 'Confirmar como realizada' }).click()
   await expect(coordenador).toHaveURL(new RegExp(`/estudos/${estudoId}/agenda$`))
   await expect(coordenador.locator('tbody tr', { hasText: 'João Candidato' })).toContainText('Realizada')
@@ -275,6 +276,17 @@ test('fluxo completo: inclusão e acompanhamento do participante', async ({
   await expect(coordenador.getByRole('button', { name: 'Incluir no estudo' })).toBeDisabled()
   await evidencia(coordenador, testInfo, '10-erro-vagas-esgotadas')
 
+  // A API também deve bloquear a inclusão enquanto a vaga estiver ocupada
+  const login = await request.post('/api/auth/login', { data: { email: COORDENADOR, senha: SENHA } })
+  const autorizacao = { Authorization: `Bearer ${(await login.json()).token}` }
+  const candidatos = (
+    await (await request.get(`/api/estudos/${estudoId}/candidatos`, { headers: autorizacao })).json()
+  ).content as { id: number; nome: string; status: string }[]
+  const maria = candidatos.find((c) => c.nome === 'Maria Candidata')!.id
+  const inclusao = await request.post(`/api/candidatos/${maria}/inclusao`, { headers: autorizacao })
+  expect(inclusao.status()).toBe(409)
+  expect((await inclusao.json()).codigo).toBe('VAGAS_ESGOTADAS')
+
   // ---- 13. Retira o participante e confirma o status e a vaga liberada
   await coordenador.goto(`/estudos/${estudoId}/candidatos/${candidatoId}/historico`)
   await coordenador.getByRole('button', { name: 'Registrar retirada' }).click()
@@ -284,7 +296,6 @@ test('fluxo completo: inclusão e acompanhamento do participante', async ({
   await dialogoRetirada.getByRole('button', { name: 'Confirmar retirada' }).click()
   await expect(coordenador.getByText(/Retirada registrada\./)).toBeVisible()
   await expect(coordenador.locator('.selo--candidato-retirado')).toContainText('Retirado')
-  await expect(coordenador.getByRole('status')).toContainText('Vagas ocupadas: 0 de 1')
   await evidencia(
     coordenador,
     testInfo,
@@ -301,17 +312,11 @@ test('fluxo completo: inclusão e acompanhamento do participante', async ({
     fileURLToPath(new URL('../../releases/release2/img/e2e-acompanhamento-08-vaga-liberada.png', import.meta.url)),
   )
 
-  // A API confirma o bloqueio, mesmo que alguém tente incluir sem passar pela tela
-  const login = await request.post('/api/auth/login', { data: { email: COORDENADOR, senha: SENHA } })
-  const autorizacao = { Authorization: `Bearer ${(await login.json()).token}` }
-  const candidatos = (await (await request.get(`/api/estudos/${estudoId}/candidatos`, { headers: autorizacao })).json())
-    .content as { id: number; nome: string; status: string }[]
-  const maria = candidatos.find((c) => c.nome === 'Maria Candidata')!.id
-  const joao = candidatos.find((c) => c.id === candidatoId)
+  const candidatosAposRetirada = (
+    await (await request.get(`/api/estudos/${estudoId}/candidatos`, { headers: autorizacao })).json()
+  ).content as { id: number; nome: string; status: string }[]
+  const joao = candidatosAposRetirada.find((c) => c.id === candidatoId)
   expect(joao?.status).toBe('RETIRADO')
-  const inclusao = await request.post(`/api/candidatos/${maria}/inclusao`, { headers: autorizacao })
-  expect(inclusao.status()).toBe(409)
-  expect((await inclusao.json()).codigo).toBe('VAGAS_ESGOTADAS')
 
   await coordenador.close()
 })

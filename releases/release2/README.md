@@ -45,12 +45,10 @@ Pendências herdadas da Release 1:
 | Evidência | Onde encontrar |
 | --- | --- |
 | Relatório de testes e cobertura | a preencher (`relatorio-testes.md`); parcial de 22/11 na seção 4 |
-| Capturas de tela (web e app) | Seção 5; app do participante concluído, web a preencher (`img/`) |
 | E2E web do acompanhamento (T-110) | Capturas `img/e2e-acompanhamento-*.png`; relatório e resultados Playwright no artefato `e2e-web-release2` do CI |
 | Regressão de RF01 a RF18 e bug bash | [`Testes/`](../../Docs/ClinicalStudyPB-Docs/Testes/) |
 | Capturas de tela do app | Seção 5 |
 | Protótipo de RF14 a RF16 (validado pela PO) | [`PrototiposTela/RF14-RF16/`](../../Docs/ClinicalStudyPB-Docs/PrototiposTela/RF14-RF16/) |
-| Regressão de RF01 a RF18 e bug bash (42 de 43 casos aprovados) | [`bug-bash-2026-11-19.md`](../../Docs/ClinicalStudyPB-Docs/Testes/bug-bash-2026-11-19.md) |
 | Contrato OpenAPI | [`openapi.yaml`](../../Docs/ClinicalStudyPB-Docs/api/openapi.yaml) |
 
 ## 4. Cobertura do backend (parcial, 22/11/2026)

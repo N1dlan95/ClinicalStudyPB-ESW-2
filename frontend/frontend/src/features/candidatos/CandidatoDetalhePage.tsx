@@ -1,6 +1,6 @@
 import '../../estilos/estudos.css'
 import '../../estilos/candidatos.css'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { isoParaBR } from '../estudos/datas'
 import { buscarEstudo } from '../estudos/estudosService'
@@ -12,10 +12,17 @@ import {
   registrarConsentimento,
   traduzirErro,
 } from './candidatosService'
+import { AcessoParticipanteDialogo } from './AcessoParticipanteDialogo'
 import { ConfirmacaoDialogo } from './ConfirmacaoDialogo'
 import { ContadorVagas } from './ContadorVagas'
 import { dataConsentimento, podeRegistrarConsentimento } from './consentimento'
-import { MENSAGEM_BLOQUEIO, bloqueioInclusao, mensagemErroInclusao } from './inclusao'
+import {
+  MENSAGEM_BLOQUEIO,
+  MENSAGEM_CONTA_EXISTENTE,
+  acessoDaInclusao,
+  bloqueioInclusao,
+  mensagemErroInclusao,
+} from './inclusao'
 import { ROTULO_STATUS_CANDIDATO, type Candidato } from './tipos'
 
 function CartaoConsentimento({
@@ -134,6 +141,10 @@ export function CandidatoDetalhePage() {
   const [ocupadas, setOcupadas] = useState<number | null>(null)
   const [confirmandoInclusao, setConfirmandoInclusao] = useState(false)
   const [incluindo, setIncluindo] = useState(false)
+  // T-86: senha inicial da conta criada na inclusão. Só neste estado local: ao fechar o diálogo,
+  // ela é apagada e não aparece de novo (não vai para estado global, localStorage nem URL).
+  const [acessoNovo, setAcessoNovo] = useState<{ email: string; senha: string } | null>(null)
+  const fecharAcesso = useCallback(() => setAcessoNovo(null), [])
 
   useEffect(() => {
     let ativo = true
@@ -170,9 +181,12 @@ export function CandidatoDetalhePage() {
       setOcupadas(resultado.vagasOcupadas)
       setEstudo((e) => (e ? { ...e, limiteParticipantes: resultado.limiteParticipantes } : e))
       setCandidato(await buscarCandidato(idEstudo, idCandidato))
+      const acesso = acessoDaInclusao(resultado.conta)
       setSucesso(
-        `Candidato incluído no estudo. Vagas ocupadas: ${resultado.vagasOcupadas} de ${resultado.limiteParticipantes}.`,
+        `Candidato incluído no estudo. Vagas ocupadas: ${resultado.vagasOcupadas} de ${resultado.limiteParticipantes}.` +
+          (acesso?.tipo === 'EXISTENTE' ? ` ${MENSAGEM_CONTA_EXISTENTE}` : ''),
       )
+      if (acesso?.tipo === 'NOVA') setAcessoNovo({ email: acesso.email, senha: acesso.senha })
     } catch (e) {
       setErroInclusao(mensagemErroInclusao(traduzirErro(e)))
     } finally {
@@ -217,6 +231,9 @@ export function CandidatoDetalhePage() {
             <span className={`selo selo--candidato-${candidato.status.toLowerCase()}`}>
               {ROTULO_STATUS_CANDIDATO[candidato.status]}
             </span>
+          )}
+          {candidato?.status === 'INCLUIDO' && candidato.possuiConta && (
+            <span className="selo selo--conta">Conta de acesso vinculada</span>
           )}
         </div>
         {candidato && (
@@ -321,6 +338,14 @@ export function CandidatoDetalhePage() {
             e passa a participar do estudo.
           </p>
         </ConfirmacaoDialogo>
+      )}
+      {acessoNovo && candidato && (
+        <AcessoParticipanteDialogo
+          nome={candidato.nome}
+          email={acessoNovo.email}
+          senha={acessoNovo.senha}
+          aoFechar={fecharAcesso}
+        />
       )}
       <footer className="pagina__rodape">
         <Link to={lista} className="botao botao--contorno">

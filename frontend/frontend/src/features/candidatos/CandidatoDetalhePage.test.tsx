@@ -191,3 +191,125 @@ describe('CandidatoDetalhePage – inclusão', () => {
     )
   })
 })
+
+const CONTA_NOVA = {
+  usuarioId: 50,
+  email: 'ana.ribeiro@exemplo.test',
+  ativo: true,
+  contaExistente: false,
+  senhaProvisoria: 'Kx7#pQ2m',
+}
+
+describe('CandidatoDetalhePage – acesso do participante (T-86)', () => {
+  function incluidoDepois() {
+    vi.mocked(buscarCandidato)
+      .mockResolvedValueOnce(COM_CONSENTIMENTO)
+      .mockResolvedValue({ ...COM_CONSENTIMENTO, status: 'INCLUIDO', dataInclusao: '2026-11-04', possuiConta: true })
+  }
+
+  async function incluir(usuario: ReturnType<typeof userEvent.setup>) {
+    await usuario.click(await screen.findByRole('button', { name: 'Incluir no estudo' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar inclusão' }))
+  }
+
+  it('mostra o e-mail e a senha inicial num diálogo depois de incluir', async () => {
+    incluidoDepois()
+    vi.mocked(incluirCandidato).mockResolvedValue({ vagasOcupadas: 19, limiteParticipantes: 40, conta: CONTA_NOVA })
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await incluir(usuario)
+
+    const dialogo = await screen.findByRole('dialog', { name: 'Acesso do participante' })
+    expect(within(dialogo).getByText('ana.ribeiro@exemplo.test')).toBeInTheDocument()
+    expect(within(dialogo).getByText('Kx7#pQ2m')).toBeInTheDocument()
+    expect(
+      within(dialogo).getByText('Esta senha é exibida apenas uma vez. Entregue ao participante.'),
+    ).toBeInTheDocument()
+    expect(within(dialogo).getByRole('button', { name: 'Copiar' })).toHaveFocus()
+  })
+
+  it('copia o e-mail e a senha', async () => {
+    incluidoDepois()
+    vi.mocked(incluirCandidato).mockResolvedValue({ vagasOcupadas: 19, limiteParticipantes: 40, conta: CONTA_NOVA })
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await incluir(usuario)
+    await usuario.click(await screen.findByRole('button', { name: 'Copiar' }))
+
+    expect(await navigator.clipboard.readText()).toBe('E-mail: ana.ribeiro@exemplo.test\nSenha inicial: Kx7#pQ2m')
+    expect(screen.getByText('E-mail e senha copiados.')).toBeInTheDocument()
+  })
+
+  it('ao fechar, a senha some e não volta ao reabrir a tela', async () => {
+    incluidoDepois()
+    vi.mocked(incluirCandidato).mockResolvedValue({ vagasOcupadas: 19, limiteParticipantes: 40, conta: CONTA_NOVA })
+    const usuario = userEvent.setup()
+    const { unmount } = renderizar()
+
+    await incluir(usuario)
+    await usuario.click(await screen.findByRole('button', { name: 'Fechar' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByText('Kx7#pQ2m')).not.toBeInTheDocument()
+    expect(JSON.stringify({ ...localStorage, ...sessionStorage })).not.toContain('Kx7#pQ2m')
+
+    unmount()
+    renderizar()
+    expect(await screen.findByText('Conta de acesso vinculada')).toBeInTheDocument()
+    expect(screen.queryByText('Kx7#pQ2m')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('avisa que o participante já tinha conta, sem diálogo de senha', async () => {
+    incluidoDepois()
+    vi.mocked(incluirCandidato).mockResolvedValue({
+      vagasOcupadas: 19,
+      limiteParticipantes: 40,
+      conta: { ...CONTA_NOVA, contaExistente: true, senhaProvisoria: null },
+    })
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await incluir(usuario)
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'O participante já tinha conta; ele usa o mesmo acesso.',
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('mostra o selo só para o participante incluído com conta', async () => {
+    vi.mocked(buscarCandidato).mockResolvedValue({ ...COM_CONSENTIMENTO, status: 'INCLUIDO', possuiConta: true })
+    const { unmount } = renderizar()
+    expect(await screen.findByText('Conta de acesso vinculada')).toBeInTheDocument()
+    unmount()
+
+    vi.mocked(buscarCandidato).mockResolvedValue({ ...COM_CONSENTIMENTO, possuiConta: false })
+    renderizar()
+    expect(await screen.findByRole('heading', { name: 'Ana Ribeiro' })).toBeInTheDocument()
+    expect(screen.queryByText('Conta de acesso vinculada')).not.toBeInTheDocument()
+  })
+
+  it('explica o erro de e-mail que já pertence a alguém da equipe', async () => {
+    vi.mocked(buscarCandidato).mockResolvedValue(COM_CONSENTIMENTO)
+    vi.mocked(incluirCandidato).mockRejectedValue(
+      new ErroCandidatoApi(
+        'O e-mail do candidato já pertence a um usuário da equipe. Corrija o e-mail antes de incluir',
+        409,
+        'EMAIL_DE_OUTRO_PERFIL',
+        {},
+      ),
+    )
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await incluir(usuario)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'E-mail já usado por alguém da equipe. O e-mail deste candidato pertence a um usuário da equipe',
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})

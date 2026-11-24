@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -147,11 +149,12 @@ class UsuarioControllerTest {
 	void alterarStatusRetornaUsuarioAtualizado() throws Exception {
 		Usuario desativado = usuario(1L);
 		desativado.definirAtivo(false);
-		when(servico.alterarAtivo(1L, false)).thenReturn(desativado);
+		when(servico.alterarAtivo(1L, false, 2L)).thenReturn(desativado);
 
 		mvc.perform(patch("/usuarios/1/status").contentType(MediaType.APPLICATION_JSON).content("""
 				{"ativo": false}
-				"""))
+				""").with(jwt().jwt(token -> token.subject("2"))
+						.authorities(new SimpleGrantedAuthority("ROLE_ADMINISTRADOR"))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.ativo").value(false));
 	}

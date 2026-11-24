@@ -5,6 +5,8 @@ import java.net.URI;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,8 +74,9 @@ public class UsuarioController {
 
 	@PatchMapping("/{id}/status")
 	@Operation(summary = "Altera o status do usuário", description = "Ativa ou desativa um usuário.")
-	public UsuarioResponse alterarStatus(@PathVariable Long id, @RequestBody @Valid UsuarioStatusRequest dados) {
-		return UsuarioResponse.de(servico.alterarAtivo(id, dados.ativo()));
+	public UsuarioResponse alterarStatus(@PathVariable Long id, @RequestBody @Valid UsuarioStatusRequest dados,
+			@AuthenticationPrincipal Jwt token) {
+		return UsuarioResponse.de(servico.alterarAtivo(id, dados.ativo(), Long.valueOf(token.getSubject())));
 	}
 
 }

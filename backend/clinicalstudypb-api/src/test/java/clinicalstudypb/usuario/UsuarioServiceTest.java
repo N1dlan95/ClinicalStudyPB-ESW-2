@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import clinicalstudypb.config.erro.RecursoNaoEncontradoException;
 import clinicalstudypb.config.erro.RegraNegocioException;
@@ -113,10 +114,26 @@ class UsuarioServiceTest {
 	@Test
 	void alterarAtivoDesativaEReativa() {
 		Usuario existente = usuario();
+		ReflectionTestUtils.setField(existente, "id", 1L);
 		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
 
-		assertThat(servico.alterarAtivo(1L, false).isAtivo()).isFalse();
-		assertThat(servico.alterarAtivo(1L, true).isAtivo()).isTrue();
+		assertThat(servico.alterarAtivo(1L, false, 2L).isAtivo()).isFalse();
+		assertThat(servico.alterarAtivo(1L, true, 1L).isAtivo()).isTrue();
+	}
+
+	@Test
+	void alterarAtivoNaoPermiteDesativarOProprioUsuario() {
+		Usuario existente = usuario();
+		ReflectionTestUtils.setField(existente, "id", 1L);
+		when(repositorio.findById(1L)).thenReturn(Optional.of(existente));
+
+		assertThatThrownBy(() -> servico.alterarAtivo(1L, false, 1L))
+				.isInstanceOfSatisfying(RegraNegocioException.class, ex -> {
+					assertThat(ex.getCodigo()).isEqualTo("USUARIO_PROPRIO_DESATIVACAO");
+					assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+					assertThat(ex).hasMessage("Você não pode desativar o próprio usuário.");
+				});
+		assertThat(existente.isAtivo()).isTrue();
 	}
 
 	@Test

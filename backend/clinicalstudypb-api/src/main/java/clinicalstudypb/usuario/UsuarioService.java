@@ -65,8 +65,12 @@ public class UsuarioService {
 
 	// Usuário desativado não consegue fazer login (verificado na autenticação)
 	@Transactional
-	public Usuario alterarAtivo(Long id, boolean ativo) {
+	public Usuario alterarAtivo(Long id, boolean ativo, Long usuarioAutenticadoId) {
 		Usuario usuario = buscar(id);
+		if (!ativo && usuario.getId().equals(usuarioAutenticadoId)) {
+			throw new RegraNegocioException("USUARIO_PROPRIO_DESATIVACAO",
+					"Você não pode desativar o próprio usuário.", HttpStatus.CONFLICT);
+		}
 		usuario.definirAtivo(ativo);
 		return usuario;
 	}

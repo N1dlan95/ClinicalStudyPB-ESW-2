@@ -71,7 +71,8 @@ class AutorizacaoTest {
 	void configurar() {
 		when(usuarioService.listar(any(), any(), any(), any())).thenReturn(Page.empty());
 		when(usuarioService.buscar(any())).thenReturn(usuario(1L, Perfil.PESQUISADOR));
-		when(usuarioService.alterarAtivo(any(), any(Boolean.class))).thenReturn(usuario(1L, Perfil.PESQUISADOR));
+		when(usuarioService.alterarAtivo(any(), any(Boolean.class), any()))
+				.thenReturn(usuario(1L, Perfil.PESQUISADOR));
 		when(usuarioService.listarPerfis()).thenReturn(List.of(Perfil.values()));
 		when(estudoService.listar(any(), any(), any())).thenReturn(Page.empty());
 		when(estudoService.buscar(any())).thenReturn(estudo(1L, Perfil.PESQUISADOR));
@@ -87,7 +88,7 @@ class AutorizacaoTest {
 
 		mvc.perform(comToken(get("/usuarios"), token)).andExpect(status().isOk());
 		mvc.perform(comToken(get("/usuarios/1"), token)).andExpect(status().isOk());
-		mvc.perform(comToken(patch("/usuarios/1/status").contentType(MediaType.APPLICATION_JSON)
+		mvc.perform(comToken(patch("/usuarios/2/status").contentType(MediaType.APPLICATION_JSON)
 				.content("{\"ativo\": false}"), token)).andExpect(status().isOk());
 		mvc.perform(comToken(get("/perfis"), token)).andExpect(status().isOk());
 	}

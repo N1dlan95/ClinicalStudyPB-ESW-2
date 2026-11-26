@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { AuthContext } from '../auth/AuthContext'
 import { temPermissao, type Permissao } from '../auth/permissoes'
 
-export type AbaEstudo = 'dados' | 'criterios' | 'visitas' | 'estado' | 'agenda'
+export type AbaEstudo = 'dados' | 'criterios' | 'visitas' | 'estado' | 'agenda' | 'solicitacoes'
 
 export function AbasEstudo({ estudoId, ativa }: { estudoId: number; ativa: AbaEstudo }) {
   const auth = useContext(AuthContext)
@@ -40,6 +40,11 @@ export function AbasEstudo({ estudoId, ativa }: { estudoId: number; ativa: AbaEs
       <Link to={`/estudos/${estudoId}/agenda`} className={classe('agenda')}>
         Agenda do estudo
       </Link>
+      {pode('decidirSolicitacoes') && (
+        <Link to={`/estudos/${estudoId}/solicitacoes`} className={classe('solicitacoes')}>
+          Solicitações
+        </Link>
+      )}
     </nav>
   )
 }

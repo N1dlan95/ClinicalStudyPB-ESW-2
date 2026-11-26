@@ -18,6 +18,7 @@ import { UsuarioFormPage } from '../features/usuarios/UsuarioFormPage'
 import { UsuariosListaPage } from '../features/usuarios/UsuariosListaPage'
 import { LayoutPrincipal } from '../layout/LayoutPrincipal'
 import { HistoricoParticipantePage } from '../features/historico/HistoricoParticipantePage'
+import { SolicitacoesEstudoPage } from '../features/solicitacoes/SolicitacoesEstudoPage'
 import { ResultadosVisitaPage } from '../features/visitas/ResultadosVisitaPage'
 
 // Quem já está logado não precisa ver a tela de login de novo
@@ -166,6 +167,14 @@ export function AppRoutes() {
             element={
               <ExigePermissao permissao="verAcompanhamento">
                 <HistoricoParticipantePage />
+              </ExigePermissao>
+            }
+          />
+          <Route
+            path="/estudos/:estudoId/solicitacoes"
+            element={
+              <ExigePermissao permissao="decidirSolicitacoes">
+                <SolicitacoesEstudoPage />
               </ExigePermissao>
             }
           />

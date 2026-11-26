@@ -115,6 +115,9 @@ export function CandidatosListaPage() {
           <Link to={`/estudos/${idEstudo}/agenda`} className="botao botao--contorno">
             Agenda do estudo
           </Link>
+          <Link to={`/estudos/${idEstudo}/solicitacoes`} className="botao botao--contorno">
+            Solicitações
+          </Link>
           {emRecrutamento ? (
             <Link to={`/estudos/${idEstudo}/candidatos/novo`} className="botao botao--primario">
               + Novo candidato

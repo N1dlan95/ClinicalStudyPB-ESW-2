@@ -1,0 +1,9 @@
+/* Solicitações do participante (T-119, RF19 e RF20). Filtros e estados reaproveitam o agenda.css. */
+.selo--solicitacao-reagendamento { background: #e4eefb; color: #1f4f8f; }
+.selo--solicitacao-retirada { background: var(--rosa-claro); color: var(--vinho); }
+
+.selo--solicitacao-pendente { background: var(--atencao-fundo); color: #8a5a00; }
+.selo--solicitacao-aprovada { background: #e3f4e6; color: #2e7d32; }
+.selo--solicitacao-recusada { background: var(--erro-fundo); color: var(--erro); }
+
+.solicitacoes__motivo { max-width: 260px; white-space: normal; line-height: 1.4; }

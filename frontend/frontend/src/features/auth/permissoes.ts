@@ -12,6 +12,7 @@ export type Permissao =
   | 'registrarResultados'
   | 'verAcompanhamento'
   | 'registrarRetirada'
+  | 'decidirSolicitacoes'
 
 export const ROTULO_PERFIL: Record<Perfil, string> = {
   ADMINISTRADOR: 'Administrador',
@@ -32,11 +33,13 @@ export const DESCRICAO_PERMISSAO: Record<Permissao, string> = {
   registrarResultados: 'registrar os resultados das visitas',
   verAcompanhamento: 'ver o histórico dos participantes',
   registrarRetirada: 'registrar a retirada de participantes',
+  decidirSolicitacoes: 'decidir as solicitações dos participantes',
 }
 
 // Igual ao backend (Perfil.java e SecurityConfig.java) e ao openapi.yaml: só o PESQUISADOR
 // cadastra e edita estudos (US-04.1); administrador e coordenador apenas consultam.
 // Candidatos (RF08) e alteração de estado das visitas (RF13): acesso exclusivo do COORDENADOR.
+// Solicitações do participante (RF19, RF20): só o coordenador lista e decide.
 // Resultados (RF14): pesquisador, coordenador e administrador consultam; só o coordenador registra.
 const PERMISSOES_POR_PERFIL: Record<Perfil, Permissao[]> = {
   ADMINISTRADOR: ['verEstudos', 'gerenciarUsuarios', 'verResultados', 'verAcompanhamento'],
@@ -48,6 +51,7 @@ const PERMISSOES_POR_PERFIL: Record<Perfil, Permissao[]> = {
     'registrarResultados',
     'verAcompanhamento',
     'registrarRetirada',
+    'decidirSolicitacoes',
   ],
   PESQUISADOR: ['verEstudos', 'criarEstudos', 'editarEstudos', 'verResultados', 'verAcompanhamento'],
   // Participante usa só o aplicativo móvel: nenhuma permissão no painel web

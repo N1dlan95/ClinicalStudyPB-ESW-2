@@ -121,6 +121,11 @@ export function EstudosListaPage() {
                     <Link to={`/estudos/${estudo.id}/agenda`} className="link">
                       Agenda
                     </Link>
+                    {pode('decidirSolicitacoes') && (
+                      <Link to={`/estudos/${estudo.id}/solicitacoes`} className="link">
+                        Solicitações
+                      </Link>
+                    )}
                     {pode('editarEstudos') && (
                       <>
                         <Link to={`/estudos/${estudo.id}/criterios`} className="link">
